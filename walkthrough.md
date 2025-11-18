@@ -18,23 +18,17 @@ Nail Tech Co-Pilot is a mobile-first SaaS application designed to help Nail Tech
     - "Scanning" animation to simulate AI processing.
     - Detailed receipt generation (Cost Drivers, Time, Total Price).
 - **Aesthetics:** Clean, receipt-style card with pink accents.
-
-### 3. Service Sorter (Tool 2)
-- **Function:** Upload an inspo pic to get a pre-written booking message.
-- **Implementation:**
-    - Image upload with preview.
-    - Service matching logic (mocked).
-    - Copy-pasteable client message.
-- **Aesthetics:** Simple, action-oriented UI.
-
-## How to Verify
-1.  **Start the App:** Run `npm run dev` in the terminal.
-2.  **Landing Page:** Open the local URL. Verify the design matches the "Clean Girl Aesthetic".
-3.  **QuoteCam:** Click "Try QuoteCam Free". Upload an image. Watch the scanning animation and check the generated receipt.
-4.  **Service Sorter:** Navigate to "Sort" via the bottom bar. Upload an image. Check the generated booking message and try the "Copy" button.
-
-## Tech Stack
 - **Framework:** React + Vite
 - **Styling:** Tailwind CSS (Custom Config)
 - **Icons:** Lucide React
 - **Routing:** React Router DOM
+- **Routing:** React Router DOM
+
+## Deployment & Source Code
+- **Live URL:** [https://nailsaas-cvh9i6xsq-guhdnews-projects.vercel.app](https://nailsaas-cvh9i6xsq-guhdnews-projects.vercel.app)
+- **GitHub Repository:** [https://github.com/guhdnews/lacqr](https://github.com/guhdnews/lacqr)
+
+## Next Steps
+- Connect custom domain (Lacqr.io) in Vercel settings.
+- Integrate real Gemini API key.
+- Implement backend (Firebase/Supabase).
