@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, X, DollarSign, Clock } from 'lucide-react';
+import { Camera, X, DollarSign, Clock, Edit2, Check } from 'lucide-react';
 
 // Mock Data for QuoteCam Result
 const MOCK_RESULT = {
@@ -18,6 +18,7 @@ export default function QuoteCam() {
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<typeof MOCK_RESULT | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -36,7 +37,7 @@ export default function QuoteCam() {
         setResult(null);
         setTimeout(() => {
             setIsAnalyzing(false);
-            setResult(MOCK_RESULT);
+            setResult({ ...MOCK_RESULT }); // Create a copy to allow editing
         }, 2000);
     };
 
@@ -44,6 +45,22 @@ export default function QuoteCam() {
         setImage(null);
         setResult(null);
         setIsAnalyzing(false);
+        setIsEditing(false);
+    };
+
+    const handlePriceChange = (index: number, newPrice: string) => {
+        if (!result) return;
+        const updatedItems = [...result.items];
+        updatedItems[index].price = Number(newPrice) || 0;
+
+        const newTotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
+        setResult({ ...result, items: updatedItems, total: newTotal });
+    };
+
+    const saveCorrection = () => {
+        setIsEditing(false);
+        // In a real app, this would send the corrected data + image to the backend for training
+        console.log("Correction saved for training:", result);
     };
 
     return (
@@ -108,16 +125,55 @@ export default function QuoteCam() {
 
                     <div className="space-y-3 mb-6">
                         {result.items.map((item, i) => (
-                            <div key={i} className="flex justify-between text-sm group">
+                            <div key={i} className="flex justify-between text-sm group items-center">
                                 <span className="text-gray-600 group-hover:text-charcoal transition-colors">{item.name}</span>
-                                <span className="font-medium text-gray-900">${item.price}</span>
+                                {isEditing ? (
+                                    <div className="flex items-center">
+                                        <span className="text-gray-400 mr-1">$</span>
+                                        <input
+                                            type="number"
+                                            value={item.price}
+                                            onChange={(e) => handlePriceChange(i, e.target.value)}
+                                            className="w-16 border border-gray-200 rounded px-2 py-1 text-right font-medium focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
+                                ) : (
+                                    <span className="font-medium text-gray-900">${item.price}</span>
+                                )}
                             </div>
                         ))}
                     </div>
 
-                    <button className="w-full bg-charcoal text-white py-4 rounded-xl font-medium hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-95">
-                        Copy Receipt
-                    </button>
+                    <div className="flex space-x-3">
+                        {isEditing ? (
+                            <button
+                                onClick={saveCorrection}
+                                className="flex-1 bg-green-600 text-white py-4 rounded-xl font-medium hover:bg-green-700 transition-all shadow-lg flex items-center justify-center space-x-2"
+                            >
+                                <Check size={18} />
+                                <span>Save Correction</span>
+                            </button>
+                        ) : (
+                            <>
+                                <button className="flex-1 bg-charcoal text-white py-4 rounded-xl font-medium hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-95">
+                                    Copy Receipt
+                                </button>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="px-4 py-4 rounded-xl font-medium text-gray-500 hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200"
+                                    title="Correct Price"
+                                >
+                                    <Edit2 size={20} />
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {!isEditing && (
+                        <p className="text-xs text-center text-gray-400 mt-4">
+                            AI can make mistakes. Tap pencil to correct & train.
+                        </p>
+                    )}
                 </div>
             )}
         </div>
