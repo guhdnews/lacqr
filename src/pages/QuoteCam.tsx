@@ -1,44 +1,33 @@
 import React, { useState } from 'react';
-import { Camera, X, DollarSign, Clock, Edit2, Check } from 'lucide-react';
-
-// Mock Data for QuoteCam Result
-const MOCK_RESULT = {
-    items: [
-        { name: 'Gel-X Extension', price: 65 },
-        { name: 'Almond Shape', price: 0 },
-        { name: 'Chrome Powder (All)', price: 15 },
-        { name: '3D Charms (x2)', price: 10 },
-        { name: 'French Tip Design', price: 15 },
-    ],
-    total: 105,
-    time: '2h 15m',
-};
+import { Camera, X, DollarSign, Edit2, Check, AlertCircle } from 'lucide-react';
+import { AI_SERVICE } from '../services/ai';
+import type { QuoteAnalysis } from '../types/ai';
 
 export default function QuoteCam() {
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<typeof MOCK_RESULT | null>(null);
+    const [result, setResult] = useState<QuoteAnalysis | null>(null);
     const [isEditing, setIsEditing] = useState(false);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-                simulateAnalysis();
-            };
+            reader.onloadend = () => setImage(reader.result as string);
             reader.readAsDataURL(file);
-        }
-    };
 
-    const simulateAnalysis = () => {
-        setIsAnalyzing(true);
-        setResult(null);
-        setTimeout(() => {
-            setIsAnalyzing(false);
-            setResult({ ...MOCK_RESULT }); // Create a copy to allow editing
-        }, 2000);
+            setIsAnalyzing(true);
+            setResult(null);
+
+            try {
+                const analysis = await AI_SERVICE.analyzeImage(file);
+                setResult(analysis);
+            } catch (error) {
+                console.error("Analysis failed", error);
+            } finally {
+                setIsAnalyzing(false);
+            }
+        }
     };
 
     const reset = () => {
@@ -50,16 +39,15 @@ export default function QuoteCam() {
 
     const handlePriceChange = (index: number, newPrice: string) => {
         if (!result) return;
-        const updatedItems = [...result.items];
-        updatedItems[index].price = Number(newPrice) || 0;
+        const updatedAddOns = [...result.add_ons];
+        updatedAddOns[index].estimated_price = Number(newPrice) || 0;
 
-        const newTotal = updatedItems.reduce((sum, item) => sum + item.price, 0);
-        setResult({ ...result, items: updatedItems, total: newTotal });
+        const newTotal = updatedAddOns.reduce((sum, item) => sum + (item.estimated_price || 0), 65); // Assuming base price 65
+        setResult({ ...result, add_ons: updatedAddOns, total_estimated_price: newTotal });
     };
 
     const saveCorrection = () => {
         setIsEditing(false);
-        // In a real app, this would send the corrected data + image to the backend for training
         console.log("Correction saved for training:", result);
     };
 
@@ -111,34 +99,62 @@ export default function QuoteCam() {
                             <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Estimated Total</p>
                             <div className="flex items-baseline text-pink-600">
                                 <DollarSign size={24} className="self-center" />
-                                <span className="text-4xl font-bold">{result.total}</span>
+                                <span className="text-4xl font-bold">{result.total_estimated_price}</span>
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Time</p>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Confidence</p>
                             <div className="flex items-center justify-end text-gray-700 font-medium">
-                                <Clock size={16} className="mr-1" />
-                                {result.time}
+                                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${result.confidence_score > 0.8 ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                                {Math.round(result.confidence_score * 100)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Detected Attributes */}
+                    <div className="mb-6 bg-pink-50/50 p-4 rounded-xl border border-pink-100">
+                        <h4 className="font-bold text-sm text-charcoal mb-3 flex items-center">
+                            <AlertCircle size={16} className="mr-2 text-pink-500" />
+                            Detected Attributes
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span className="text-gray-500 block text-xs">Shape</span>
+                                <span className="font-medium">{result.shape}</span>
+                            </div>
+                            <div>
+                                <span className="text-gray-500 block text-xs">Length</span>
+                                <span className="font-medium">{result.length}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="space-y-3 mb-6">
-                        {result.items.map((item, i) => (
+                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold">Itemized Costs</p>
+
+                        {/* Base Service (Hardcoded for now based on mock) */}
+                        <div className="flex justify-between text-sm group items-center">
+                            <span className="text-gray-600">{result.base_service}</span>
+                            <span className="font-medium text-gray-900">$65</span>
+                        </div>
+
+                        {result.add_ons.map((item, i) => (
                             <div key={i} className="flex justify-between text-sm group items-center">
-                                <span className="text-gray-600 group-hover:text-charcoal transition-colors">{item.name}</span>
+                                <span className="text-gray-600 group-hover:text-charcoal transition-colors">
+                                    {item.count && item.count > 1 ? `${item.count}x ` : ''}{item.name}
+                                </span>
                                 {isEditing ? (
                                     <div className="flex items-center">
                                         <span className="text-gray-400 mr-1">$</span>
                                         <input
                                             type="number"
-                                            value={item.price}
+                                            value={item.estimated_price}
                                             onChange={(e) => handlePriceChange(i, e.target.value)}
                                             className="w-16 border border-gray-200 rounded px-2 py-1 text-right font-medium focus:outline-none focus:border-pink-500"
                                         />
                                     </div>
                                 ) : (
-                                    <span className="font-medium text-gray-900">${item.price}</span>
+                                    <span className="font-medium text-gray-900">${item.estimated_price}</span>
                                 )}
                             </div>
                         ))}

@@ -1,38 +1,34 @@
 import React, { useState } from 'react';
-import { Sparkles, X, Copy, Check } from 'lucide-react';
-
-// Mock Data for Service Sorter Result
-const MOCK_RESULT = {
-    services: ['Gel-X Extension', 'Level 2 Art', 'Chrome Add-on'],
-    message: "Hey! To get this look, please book: Gel-X Extension + Level 2 Art + Chrome Add-on. Can't wait to see you! ✨",
-};
+import { Sparkles, X, Copy, Check, Clock, MessageCircle } from 'lucide-react';
+import { AI_SERVICE } from '../services/ai';
+import type { ServiceRecommendation } from '../types/ai';
 
 export default function ServiceSorter() {
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<typeof MOCK_RESULT | null>(null);
+    const [result, setResult] = useState<ServiceRecommendation | null>(null);
     const [copied, setCopied] = useState(false);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-                simulateAnalysis();
-            };
+            reader.onloadend = () => setImage(reader.result as string);
             reader.readAsDataURL(file);
-        }
-    };
 
-    const simulateAnalysis = () => {
-        setIsAnalyzing(true);
-        setResult(null);
-        setCopied(false);
-        setTimeout(() => {
-            setIsAnalyzing(false);
-            setResult(MOCK_RESULT);
-        }, 2000);
+            setIsAnalyzing(true);
+            setResult(null);
+            setCopied(false);
+
+            try {
+                const recommendation = await AI_SERVICE.recommendService(file);
+                setResult(recommendation);
+            } catch (error) {
+                console.error("Analysis failed", error);
+            } finally {
+                setIsAnalyzing(false);
+            }
+        }
     };
 
     const reset = () => {
@@ -44,7 +40,7 @@ export default function ServiceSorter() {
 
     const copyToClipboard = () => {
         if (result) {
-            navigator.clipboard.writeText(result.message);
+            navigator.clipboard.writeText(result.draft_reply);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         }
@@ -93,21 +89,46 @@ export default function ServiceSorter() {
             {/* Results Card */}
             {result && (
                 <div className="bg-white rounded-3xl p-6 shadow-xl animate-in slide-in-from-bottom-10 fade-in duration-500 border border-pink-100">
+
+                    {/* Booking Codes */}
                     <div className="mb-6">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-3">Detected Services</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-3">Required Booking Codes</p>
                         <div className="flex flex-wrap gap-2">
-                            {result.services.map((service, i) => (
-                                <span key={i} className="bg-pink-50 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
-                                    {service}
+                            {result.booking_codes.map((code, i) => (
+                                <span key={i} className="bg-pink-50 text-pink-600 px-3 py-1 rounded-full text-sm font-bold border border-pink-100">
+                                    {code}
                                 </span>
                             ))}
                         </div>
                     </div>
 
+                    {/* Reasoning & Time */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-gray-50 p-3 rounded-xl">
+                            <div className="flex items-center text-gray-400 mb-1">
+                                <Clock size={14} className="mr-1" />
+                                <span className="text-xs font-bold uppercase">Est. Time</span>
+                            </div>
+                            <span className="font-medium text-charcoal">{Math.floor(result.estimated_duration_minutes / 60)}h {result.estimated_duration_minutes % 60}m</span>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-xl">
+                            <div className="flex items-center text-gray-400 mb-1">
+                                <Sparkles size={14} className="mr-1" />
+                                <span className="text-xs font-bold uppercase">Upsell</span>
+                            </div>
+                            <span className="text-xs text-charcoal leading-tight block">{result.upsell_suggestion || "None"}</span>
+                        </div>
+                    </div>
+
+                    {/* Draft Reply */}
                     <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-3">Client Message</p>
+                        <div className="flex justify-between items-center mb-3">
+                            <p className="text-xs text-gray-400 uppercase tracking-wider font-bold">Draft Reply</p>
+                            <span className="text-xs text-pink-500 font-medium">Ready to send</span>
+                        </div>
                         <div className="bg-gray-50 p-4 rounded-xl text-gray-700 text-sm leading-relaxed border border-gray-100 relative">
-                            "{result.message}"
+                            <MessageCircle size={16} className="absolute top-4 right-4 text-gray-300" />
+                            "{result.draft_reply}"
                         </div>
                     </div>
 
