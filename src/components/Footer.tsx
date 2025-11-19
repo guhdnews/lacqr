@@ -7,7 +7,7 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
                 {/* Brand */}
                 <div className="space-y-4">
-                    <div className="text-2xl font-serif font-bold tracking-tight text-charcoal">Lacqr</div>
+                    <Link to="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal block">Lacqr</Link>
                     <p className="text-gray-500 text-sm leading-relaxed">
                         Empowering nail technicians with AI tools to price with confidence and book with ease.
                     </p>
