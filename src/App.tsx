@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import QuoteCam from './pages/QuoteCam';
@@ -13,23 +13,21 @@ import Terms from './pages/Terms';
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="login" element={<Login />} />
-                <Route path="signup" element={<Signup />} />
-                <Route path="privacy" element={<Privacy />} />
-                <Route path="terms" element={<Terms />} />
+        <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
 
-                {/* App Routes */}
-                <Route path="app" element={<Layout />}>
-                    <Route path="quote" element={<QuoteCam />} />
-                    <Route path="sort" element={<ServiceSorter />} />
-                    <Route path="settings" element={<Settings />} />
-                    <Route path="prices" element={<PriceList />} />
-                    <Route path="clients" element={<Clients />} />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+            {/* App Routes */}
+            <Route path="app" element={<Layout />}>
+                <Route path="quote" element={<QuoteCam />} />
+                <Route path="sort" element={<ServiceSorter />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="prices" element={<PriceList />} />
+                <Route path="clients" element={<Clients />} />
+            </Route>
+        </Routes>
     );
 }
