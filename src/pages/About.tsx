@@ -1,23 +1,55 @@
+import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Heart, Users, Star } from 'lucide-react';
 
 export default function About() {
     return (
         <div className="min-h-screen bg-white font-sans text-charcoal">
-            <div className="max-w-4xl mx-auto px-6 py-24">
-                <h1 className="text-5xl font-serif font-bold mb-8 text-center">Built for Techs, by Techs.</h1>
-                <p className="text-xl text-gray-600 text-center mb-16 leading-relaxed">
-                    We believe nail artistry is undervalued. Lacqr exists to help you get paid what you're worth, without the awkward money conversations.
-                </p>
+            <Header />
 
-                <div className="prose prose-lg mx-auto text-gray-600">
-                    <p>
-                        Lacqr started with a simple frustration: "How much for this?" It's the question every nail tech dreads.
-                        Calculating costs for complex designs on the fly is stressful, and undercharging is rampant in our industry.
+            {/* Hero */}
+            <div className="bg-pink-50 py-24 px-6 text-center">
+                <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">Built by Techs, For Techs</h1>
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    We're on a mission to help nail artists stop undercharging and start thriving.
+                </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto px-6 py-24 space-y-24">
+                {/* Our Story */}
+                <div className="space-y-6">
+                    <h2 className="text-3xl font-serif font-bold">Our Story</h2>
+                    <p className="text-lg text-gray-600 leading-relaxed">
+                        Lacqr started with a simple observation: Nail techs are incredible artists, but often struggle with the business side. We saw talented friends undercharging for complex sets, spending hours in DMs explaining prices, and losing money on no-shows.
                     </p>
-                    <p className="mt-6">
-                        We built QuoteCam to be the objective third party. It sees the work—the chrome, the gems, the hand-painted details—and
-                        assigns value to every stroke. It empowers you to stand by your prices with confidence.
+                    <p className="text-lg text-gray-600 leading-relaxed">
+                        We realized that technology could bridge this gap. By using AI to objectively analyze designs and calculate prices, we could give techs the confidence to charge what they're worth.
                     </p>
+                </div>
+
+                {/* Values */}
+                <div className="grid md:grid-cols-3 gap-8">
+                    <div className="text-center p-6 bg-gray-50 rounded-3xl">
+                        <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 mx-auto mb-4">
+                            <Heart size={24} />
+                        </div>
+                        <h3 className="font-bold text-xl mb-2">Empowerment</h3>
+                        <p className="text-gray-600">We believe every artist deserves to be paid fairly for their skill and time.</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-50 rounded-3xl">
+                        <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 mx-auto mb-4">
+                            <Users size={24} />
+                        </div>
+                        <h3 className="font-bold text-xl mb-2">Community</h3>
+                        <p className="text-gray-600">We're building a supportive network of techs who lift each other up.</p>
+                    </div>
+                    <div className="text-center p-6 bg-gray-50 rounded-3xl">
+                        <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 mx-auto mb-4">
+                            <Star size={24} />
+                        </div>
+                        <h3 className="font-bold text-xl mb-2">Innovation</h3>
+                        <p className="text-gray-600">We use cutting-edge AI to solve real-world problems for small businesses.</p>
+                    </div>
                 </div>
             </div>
             <Footer />

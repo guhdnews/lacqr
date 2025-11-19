@@ -1,42 +1,14 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Camera, Sparkles, CheckCircle, ArrowRight, DollarSign } from 'lucide-react';
 import Footer from '../components/Footer';
+import Header from '../components/Header';
 
 export default function LandingPage() {
     const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-white font-sans text-charcoal">
-            {/* Sticky Navigation */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-pink-50">
-                <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
-                    <Link to="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal cursor-pointer">
-                        Lacqr
-                    </Link>
-
-                    <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
-                        <Link to="/features" className="hover:text-pink-500 transition-colors">Features</Link>
-                        <Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link>
-                        <Link to="/faq" className="hover:text-pink-500 transition-colors">FAQ</Link>
-                        <Link to="/about" className="hover:text-pink-500 transition-colors">About</Link>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                        <Link
-                            to="/login"
-                            className="text-sm font-medium hover:text-pink-500 transition-colors hidden sm:block"
-                        >
-                            Log In
-                        </Link>
-                        <button
-                            onClick={() => navigate('/signup')}
-                            className="bg-charcoal text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-black transition-all shadow-md hover:shadow-lg"
-                        >
-                            Get Started
-                        </button>
-                    </div>
-                </div>
-            </nav>
+            <Header />
 
             {/* Hero Section */}
             <section className="relative pt-12 pb-32 px-6 overflow-hidden">

@@ -1,46 +1,114 @@
-import { CheckCircle, Camera, Sparkles } from 'lucide-react';
+import { CheckCircle, Camera, Sparkles, Smartphone, Zap, Shield } from 'lucide-react';
 import Footer from '../components/Footer';
+import Header from '../components/Header';
 
 export default function Features() {
     return (
         <div className="min-h-screen bg-white font-sans text-charcoal">
-            <div className="max-w-7xl mx-auto px-6 py-24">
-                <h1 className="text-5xl font-serif font-bold mb-12 text-center">Features that Power Your Business</h1>
+            <Header />
 
-                <div className="grid md:grid-cols-2 gap-16 mb-24">
-                    <div className="space-y-6">
-                        <div className="w-16 h-16 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600">
+            {/* Hero */}
+            <div className="bg-pink-50 py-24 px-6 text-center">
+                <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6">The Toolkit for Modern Nail Techs</h1>
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Stop using five different apps to run your business. Lacqr combines AI pricing, booking intelligence, and client management into one seamless workflow.
+                </p>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 py-24">
+                {/* QuoteCam Deep Dive */}
+                <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
+                    <div className="space-y-8">
+                        <div className="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
                             <Camera size={32} />
                         </div>
-                        <h2 className="text-3xl font-bold">QuoteCam™</h2>
+                        <h2 className="text-4xl font-serif font-bold">QuoteCam™: Your Pricing Guardian</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            Stop guessing prices. Our AI analyzes nail art photos to identify every cost driver—from length and shape to specific charms and techniques.
+                            Undercharging is the #1 killer of nail businesses. QuoteCam uses advanced computer vision to analyze inspo pics and finished sets, identifying every cost driver that usually slips through the cracks.
                         </p>
-                        <ul className="space-y-3 text-gray-600">
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Instant itemized receipts</li>
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Customizable price lists</li>
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Time estimation</li>
-                        </ul>
+
+                        <div className="space-y-6">
+                            <div className="flex items-start space-x-4">
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><CheckCircle size={20} /></div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Granular Detection</h4>
+                                    <p className="text-gray-600">It doesn't just see "nails." It sees "XL Coffin," "Chrome Powder," "3D Charms," and "French Tips."</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-4">
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><CheckCircle size={20} /></div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Customizable Price Lists</h4>
+                                    <p className="text-gray-600">Map our AI detections to YOUR specific service menu. We don't dictate prices; we enforce yours.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-4">
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><CheckCircle size={20} /></div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Instant Receipts</h4>
+                                    <p className="text-gray-600">Generate a professional, itemized image to send to clients. No more awkward "why is it so much?" conversations.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="bg-gray-100 rounded-3xl h-96 w-full"></div> {/* Placeholder for image */}
+                    <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
+                            Interactive QuoteCam Demo UI
+                        </div>
+                    </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-16 mb-24">
-                    <div className="bg-gray-100 rounded-3xl h-96 w-full order-2 md:order-1"></div> {/* Placeholder for image */}
-                    <div className="space-y-6 order-1 md:order-2">
-                        <div className="w-16 h-16 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600">
+                {/* Service Sorter Deep Dive */}
+                <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
+                    <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden order-2 md:order-1">
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
+                            Service Sorter Chat UI
+                        </div>
+                    </div>
+                    <div className="space-y-8 order-1 md:order-2">
+                        <div className="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
                             <Sparkles size={32} />
                         </div>
-                        <h2 className="text-3xl font-bold">Service Sorter</h2>
+                        <h2 className="text-4xl font-serif font-bold">Service Sorter: The Booking Translator</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            Eliminate booking confusion. We translate vague client requests into exact booking codes for your scheduling software.
+                            "What do I book for this?" It's the question that clogs your DMs. Service Sorter analyzes client requests and tells them exactly which buttons to click on your booking site.
                         </p>
-                        <ul className="space-y-3 text-gray-600">
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Auto-generated booking links</li>
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Pre-written client responses</li>
-                            <li className="flex items-center"><CheckCircle size={20} className="text-pink-500 mr-3" /> Reduces DM back-and-forth</li>
-                        </ul>
+
+                        <div className="space-y-6">
+                            <div className="flex items-start space-x-4">
+                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Smartphone size={20} /></div>
+                                <div>
+                                    <h4 className="font-bold text-lg">DM Integration</h4>
+                                    <p className="text-gray-600">Copy-paste the client's message or photo, and we'll generate the perfect reply with a direct booking link.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-4">
+                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Zap size={20} /></div>
+                                <div>
+                                    <h4 className="font-bold text-lg">Time Estimation</h4>
+                                    <p className="text-gray-600">We calculate the estimated time for the design so you don't run late for your next appointment.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                {/* Additional Features Grid */}
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl font-serif font-bold mb-4">Everything Else You Get</h2>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8">
+                    {[
+                        { icon: Shield, title: "No-Show Protection", desc: "Tools to help you enforce deposit policies and reduce cancellations." },
+                        { icon: Smartphone, title: "Mobile First", desc: "Built entirely for your phone, because that's where you run your business." },
+                        { icon: Zap, title: "Fast & Offline Mode", desc: "Works even when the salon WiFi is spotty." }
+                    ].map((feat, i) => (
+                        <div key={i} className="bg-gray-50 p-8 rounded-3xl hover:bg-pink-50 transition-colors">
+                            <feat.icon className="text-pink-500 mb-4" size={32} />
+                            <h3 className="text-xl font-bold mb-2">{feat.title}</h3>
+                            <p className="text-gray-600">{feat.desc}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
             <Footer />
