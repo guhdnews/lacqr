@@ -1,53 +1,53 @@
 import { Instagram, Twitter, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
-        <footer className="bg-pink-50 pt-16 pb-8 px-6">
+        <footer className="bg-white border-t border-gray-100 pt-16 pb-8 px-6">
             <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
-                {/* Brand Column */}
+                {/* Brand */}
                 <div className="space-y-4">
-                    <h3 className="font-serif text-2xl font-bold text-charcoal">Lacqr</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                        The AI co-pilot for modern nail technicians. Stop guessing prices, start scaling your business.
+                    <div className="text-2xl font-serif font-bold tracking-tight text-charcoal">Lacqr</div>
+                    <p className="text-gray-500 text-sm leading-relaxed">
+                        Empowering nail technicians with AI tools to price with confidence and book with ease.
                     </p>
                     <div className="flex space-x-4 text-gray-400">
-                        <a href="#" className="hover:text-pink-500 transition-colors"><Instagram size={20} /></a>
-                        <a href="#" className="hover:text-pink-500 transition-colors"><Twitter size={20} /></a>
-                        <a href="#" className="hover:text-pink-500 transition-colors"><Mail size={20} /></a>
+                        <Instagram size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
+                        <Twitter size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
+                        <Mail size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
                     </div>
                 </div>
 
-                {/* Product Column */}
+                {/* Product */}
                 <div>
-                    <h4 className="font-bold mb-4 text-charcoal">Product</h4>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-pink-500">QuoteCam</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Service Sorter</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Pricing</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Login</a></li>
+                    <h4 className="font-bold mb-4">Product</h4>
+                    <ul className="space-y-2 text-sm text-gray-500">
+                        <li><Link to="/features" className="hover:text-pink-500 transition-colors">QuoteCam</Link></li>
+                        <li><Link to="/features" className="hover:text-pink-500 transition-colors">Service Sorter</Link></li>
+                        <li><Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
+                        <li><Link to="/login" className="hover:text-pink-500 transition-colors">Log In</Link></li>
                     </ul>
                 </div>
 
-                {/* Company Column */}
+                {/* Company */}
                 <div>
-                    <h4 className="font-bold mb-4 text-charcoal">Company</h4>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-pink-500">About Us</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Blog</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Careers</a></li>
-                        <li><a href="#" className="hover:text-pink-500">Contact</a></li>
+                    <h4 className="font-bold mb-4">Company</h4>
+                    <ul className="space-y-2 text-sm text-gray-500">
+                        <li><Link to="/about" className="hover:text-pink-500 transition-colors">About Us</Link></li>
+                        <li><Link to="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+                        <li><Link to="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
                     </ul>
                 </div>
 
-                {/* Newsletter Column */}
+                {/* Newsletter */}
                 <div>
-                    <h4 className="font-bold mb-4 text-charcoal">Stay in the Loop</h4>
-                    <p className="text-xs text-gray-500 mb-4">Get the latest tips on pricing and nail tech business growth.</p>
+                    <h4 className="font-bold mb-4">Stay Updated</h4>
+                    <p className="text-xs text-gray-400 mb-4">Get the latest tips on pricing and business growth.</p>
                     <div className="flex">
                         <input
                             type="email"
-                            placeholder="Enter your email"
-                            className="bg-white border border-gray-200 rounded-l-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-pink-300"
+                            placeholder="Email address"
+                            className="bg-gray-50 border border-gray-200 rounded-l-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-pink-300"
                         />
                         <button className="bg-charcoal text-white px-4 py-2 rounded-r-lg text-sm font-medium hover:bg-black transition-colors">
                             Join
@@ -56,11 +56,11 @@ export default function Footer() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto border-t border-pink-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+            <div className="max-w-7xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
                 <p>© 2024 Lacqr. All rights reserved.</p>
                 <div className="flex space-x-6 mt-4 md:mt-0">
-                    <a href="#" className="hover:text-charcoal">Privacy Policy</a>
-                    <a href="#" className="hover:text-charcoal">Terms of Service</a>
+                    <Link to="/privacy" className="hover:text-charcoal transition-colors">Privacy Policy</Link>
+                    <Link to="/terms" className="hover:text-charcoal transition-colors">Terms of Service</Link>
                 </div>
             </div>
         </footer>

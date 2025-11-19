@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap');
 
 @theme {
   --color-pink-50: #FCE4EC;
@@ -13,8 +14,8 @@
   --color-charcoal: #212121;
   --color-gold: #C5A059;
 
-  --font-sans: 'Lato', sans-serif;
-  --font-serif: 'Playfair Display', serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-serif: "Playfair Display", serif;
 }
 
 @layer base {
