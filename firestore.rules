@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Public Booking: Anyone can create, but only admins can read/update/delete
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // Service Menus: Public read, Admin write
+    match /serviceMenus/{menuId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Clients: Admin only
+    match /clients/{clientId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Training Data: Admin only
+    match /training_data/{dataId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

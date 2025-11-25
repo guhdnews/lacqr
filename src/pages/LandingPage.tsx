@@ -1,17 +1,23 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Sparkles, CheckCircle, ArrowRight, DollarSign } from 'lucide-react';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
+import { Camera, Sparkles, CheckCircle, ArrowRight, DollarSign, Users, BarChart3, Image as ImageIcon } from 'lucide-react';
+import { useAppStore } from '../store/useAppStore';
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const { user } = useAppStore();
+
+    useEffect(() => {
+        if (user.isAuthenticated) {
+            navigate('/lacqr-lens');
+        }
+    }, [user.isAuthenticated, navigate]);
 
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
-            <Header />
+        <div className="font-sans text-charcoal">
 
             {/* Hero Section */}
-            <section className="relative pt-12 pb-32 px-6 overflow-hidden">
+            <section className="relative pt-4 pb-12 md:pt-8 md:pb-20 px-6 overflow-hidden">
                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8 text-center md:text-left">
                         <div className="inline-flex items-center space-x-2 bg-pink-50 px-4 py-2 rounded-full text-pink-600 text-sm font-medium animate-fade-in-up border border-pink-100">
@@ -33,7 +39,7 @@ export default function LandingPage() {
                                 onClick={() => navigate('/signup')}
                                 className="bg-charcoal text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-black transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-2 w-full sm:w-auto justify-center"
                             >
-                                <span>Try QuoteCam Free</span>
+                                <span>Try Lacqr Lens Free</span>
                                 <ArrowRight size={20} />
                             </button>
                             <button className="text-gray-500 hover:text-charcoal font-medium px-6 py-4 w-full sm:w-auto">
@@ -64,7 +70,7 @@ export default function LandingPage() {
             </section>
 
             {/* How it Works Section */}
-            <section id="how-it-works" className="py-24 px-6 bg-white">
+            <section id="how-it-works" className="py-24 px-6 bg-white/50">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Your New Workflow</h2>
@@ -103,7 +109,7 @@ export default function LandingPage() {
                             <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mb-8 text-pink-600">
                                 <Camera size={28} />
                             </div>
-                            <h3 className="text-2xl font-bold mb-4">QuoteCam™</h3>
+                            <h3 className="text-2xl font-bold mb-4">Lacqr Lens</h3>
                             <p className="text-gray-600 leading-relaxed mb-6">
                                 Never undercharge again. Upload a photo of any design. Our AI identifies every cost driver—from chrome to 3D charms—and generates an instant, itemized price receipt based on <strong>your</strong> settings.
                             </p>
@@ -119,7 +125,7 @@ export default function LandingPage() {
                             <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mb-8 text-pink-600">
                                 <Sparkles size={28} />
                             </div>
-                            <h3 className="text-2xl font-bold mb-4">Service Sorter</h3>
+                            <h3 className="text-2xl font-bold mb-4">Smart Quote</h3>
                             <p className="text-gray-600 leading-relaxed mb-6">
                                 Client sent a vague inspo pic? We analyze it and tell them exactly what to book. "Book Gel-X + Level 2 Art." No more DM back-and-forth or surprise add-ons at the appointment.
                             </p>
@@ -128,6 +134,41 @@ export default function LandingPage() {
                                 <li className="flex items-center"><CheckCircle size={16} className="text-pink-500 mr-2" /> Pre-writes client replies</li>
                                 <li className="flex items-center"><CheckCircle size={16} className="text-pink-500 mr-2" /> Reduces booking errors</li>
                             </ul>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+                        {/* Feature 3 - CRM */}
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white hover:border-pink-100">
+                            <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center mb-6 text-pink-600">
+                                <Users size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3">Client CRM</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                                Keep track of every client's history, preferences, and past sets. Never forget a birthday or a favorite color again.
+                            </p>
+                        </div>
+
+                        {/* Feature 4 - Analytics */}
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white hover:border-pink-100">
+                            <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center mb-6 text-pink-600">
+                                <BarChart3 size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3">Business Analytics</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                                See exactly how much you're earning. Track your most popular services and identify where you can increase your rates.
+                            </p>
+                        </div>
+
+                        {/* Feature 5 - Portfolio */}
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white hover:border-pink-100">
+                            <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center mb-6 text-pink-600">
+                                <ImageIcon size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3">Smart Portfolio</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                                Automatically organize your work by style and price. Show clients exactly what they can get for their budget.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -140,17 +181,17 @@ export default function LandingPage() {
 
                 <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {/* Free Tier */}
-                    <div className="border border-gray-200 rounded-3xl p-8 text-left hover:border-pink-200 transition-colors relative group">
+                    <div className="border border-gray-200 rounded-3xl p-8 text-left hover:border-pink-200 transition-colors relative group bg-white">
                         <h3 className="text-xl font-bold mb-2">Starter</h3>
                         <div className="text-4xl font-bold mb-6">$0 <span className="text-base font-normal text-gray-500">/mo</span></div>
                         <ul className="space-y-4 mb-8">
                             <li className="flex items-center space-x-3 text-gray-600">
                                 <CheckCircle size={18} className="text-green-500" />
-                                <span>5 QuoteCam Scans / mo</span>
+                                <span>5 Lacqr Lens Scans / mo</span>
                             </li>
                             <li className="flex items-center space-x-3 text-gray-600">
                                 <CheckCircle size={18} className="text-green-500" />
-                                <span>Basic Service Sorting</span>
+                                <span>Basic Smart Quote</span>
                             </li>
                         </ul>
                         <button
@@ -169,7 +210,7 @@ export default function LandingPage() {
                         <ul className="space-y-4 mb-8">
                             <li className="flex items-center space-x-3 text-gray-300">
                                 <CheckCircle size={18} className="text-pink-400" />
-                                <span>Unlimited QuoteCam Scans</span>
+                                <span>Unlimited Lacqr Lens Scans</span>
                             </li>
                             <li className="flex items-center space-x-3 text-gray-300">
                                 <CheckCircle size={18} className="text-pink-400" />
@@ -198,7 +239,10 @@ export default function LandingPage() {
                         {[
                             { q: "How accurate is the pricing AI?", a: "Our AI is trained on thousands of nail designs. It's highly accurate at identifying components, but you always have the final say to adjust the price before sending it." },
                             { q: "Can I use my own price list?", a: "Yes! In the Pro plan, you can upload your specific service menu prices so the AI quotes match your salon's rates exactly." },
-                            { q: "Does it work for all nail shapes?", a: "Absolutely. QuoteCam recognizes all standard shapes (Almond, Coffin, Square, Stiletto) and lengths." }
+                            { q: "Does it work for all nail shapes?", a: "Absolutely. QuoteCam recognizes all standard shapes (Almond, Coffin, Square, Stiletto) and lengths." },
+                            { q: "Is there a free trial?", a: "Yes, the Starter plan is free forever for up to 5 scans per month. You can upgrade to Pro anytime." },
+                            { q: "Can I cancel my subscription?", a: "Yes, you can cancel your Pro subscription at any time. You'll keep access until the end of your billing cycle." },
+                            { q: "Do I need to download an app?", a: "Lacqr is a web app, meaning you can use it directly in your browser on your phone, tablet, or computer. No download required." }
                         ].map((item, i) => (
                             <div key={i} className="bg-white p-6 rounded-2xl shadow-sm">
                                 <h4 className="font-bold text-lg mb-2">{item.q}</h4>
@@ -208,8 +252,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
-
-            <Footer />
         </div>
     );
 }

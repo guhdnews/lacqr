@@ -7,7 +7,7 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
                 {/* Brand */}
                 <div className="space-y-4">
-                    <Link to="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal block">Lacqr</Link>
+                    <Link to="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal block hover:text-pink-600 transition-all hover:scale-105 active:scale-95 origin-left">Lacqr</Link>
                     <p className="text-gray-500 text-sm leading-relaxed">
                         Empowering nail technicians with AI tools to price with confidence and book with ease.
                     </p>
@@ -22,10 +22,11 @@ export default function Footer() {
                 <div>
                     <h4 className="font-bold mb-4">Product</h4>
                     <ul className="space-y-2 text-sm text-gray-500">
-                        <li><Link to="/features" className="hover:text-pink-500 transition-colors">QuoteCam</Link></li>
-                        <li><Link to="/features" className="hover:text-pink-500 transition-colors">Service Sorter</Link></li>
+                        <li><Link to="/lacqr-lens" className="hover:text-pink-500 transition-colors">Lacqr Lens</Link></li>
+                        <li><Link to="/smart-quote" className="hover:text-pink-500 transition-colors">Smart Quote</Link></li>
                         <li><Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
                         <li><Link to="/login" className="hover:text-pink-500 transition-colors">Log In</Link></li>
+                        <li><Link to="/signup" className="hover:text-pink-500 transition-colors">Sign Up</Link></li>
                     </ul>
                 </div>
 

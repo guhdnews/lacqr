@@ -19,9 +19,9 @@ export default function Features() {
                 {/* QuoteCam Deep Dive */}
                 <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
                     <div className="space-y-8">
-                        <h2 className="text-4xl font-serif font-bold">QuoteCam™: Your Pricing Guardian</h2>
+                        <h2 className="text-4xl font-serif font-bold">Lacqr Lens: Your Pricing Guardian</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            Undercharging is the #1 killer of nail businesses. QuoteCam uses advanced computer vision to analyze inspo pics and finished sets, identifying every cost driver that usually slips through the cracks. It's like having a business manager in your pocket.
+                            Undercharging is the #1 killer of nail businesses. Lacqr Lens uses advanced computer vision to analyze inspo pics and finished sets, identifying every cost driver that usually slips through the cracks. It's like having a business manager in your pocket.
                         </p>
 
                         <div className="space-y-6">
@@ -50,7 +50,7 @@ export default function Features() {
                     </div>
                     <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
-                            Interactive QuoteCam Demo UI
+                            Interactive Lacqr Lens Demo UI
                         </div>
                     </div>
                 </div>
@@ -59,13 +59,13 @@ export default function Features() {
                 <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
                     <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden order-2 md:order-1">
                         <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
-                            Service Sorter Chat UI
+                            Smart Quote Chat UI
                         </div>
                     </div>
                     <div className="space-y-8 order-1 md:order-2">
-                        <h2 className="text-4xl font-serif font-bold">Service Sorter: The Booking Translator</h2>
+                        <h2 className="text-4xl font-serif font-bold">Smart Quote: The Booking Translator</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            "What do I book for this?" It's the question that clogs your DMs. Service Sorter analyzes client requests and tells them exactly which buttons to click on your booking site, reducing booking errors and surprise add-ons.
+                            "What do I book for this?" It's the question that clogs your DMs. Smart Quote analyzes client requests and tells them exactly which buttons to click on your booking site, reducing booking errors and surprise add-ons.
                         </p>
 
                         <div className="space-y-6">

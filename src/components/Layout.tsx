@@ -1,27 +1,24 @@
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
-import { Camera, Search, Menu, Settings, Users, DollarSign, LogOut } from 'lucide-react';
+import { Camera, Search, Menu, Settings, Users, List, LogOut, Shield } from 'lucide-react';
 import { useState } from 'react';
+import BetaBanner from './BetaBanner';
 
 export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const isLanding = location.pathname === '/';
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    if (isLanding) {
-        return <Outlet />;
-    }
-
     const navItems = [
-        { path: '/app/quote', label: 'QuoteCam', icon: Camera },
-        { path: '/app/sort', label: 'Service Sorter', icon: Search },
-        { path: '/app/clients', label: 'Clients', icon: Users },
-        { path: '/app/prices', label: 'Price List', icon: DollarSign },
-        { path: '/app/settings', label: 'Settings', icon: Settings },
+        { label: 'Lens', path: '/app/lens', icon: Camera },
+        { label: 'Smart Quote', path: '/app/smart-quote', icon: Search },
+        { label: 'Clients', path: '/app/clients', icon: Users },
+        { label: 'Service Menu', path: '/app/service-menu', icon: List },
+        { label: 'Settings', path: '/app/settings', icon: Settings },
+        { label: 'Admin', path: '/app/admin', icon: Shield },
     ];
 
     return (
-        <div className="flex h-screen bg-pink-50 font-sans text-charcoal">
+        <div className="flex h-screen bg-white">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-64 bg-white border-r border-pink-100 p-6">
                 <div className="mb-10 px-2">
@@ -58,6 +55,8 @@ export default function Layout() {
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
+                <BetaBanner />
+
                 {/* Mobile Header */}
                 <header className="md:hidden p-4 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-pink-50 sticky top-0 z-20">
                     <h1 className="text-lg font-bold tracking-tight font-serif">Lacqr</h1>
@@ -107,19 +106,19 @@ export default function Layout() {
                 {/* Mobile Bottom Nav (Only for core tools) */}
                 <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-around items-center pb-8 z-10">
                     <button
-                        onClick={() => navigate('/app/quote')}
-                        className={`flex flex-col items-center space-y-1 ${location.pathname.includes('quote') ? 'text-pink-500' : 'text-gray-400'}`}
+                        onClick={() => navigate('/app/lens')}
+                        className={`flex flex-col items-center space-y-1 ${location.pathname.includes('lens') ? 'text-pink-500' : 'text-gray-400'}`}
                     >
                         <Camera size={24} />
-                        <span className="text-[10px] font-medium uppercase tracking-wide">Quote</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide">Lens</span>
                     </button>
 
                     <button
-                        onClick={() => navigate('/app/sort')}
-                        className={`flex flex-col items-center space-y-1 ${location.pathname.includes('sort') ? 'text-pink-500' : 'text-gray-400'}`}
+                        onClick={() => navigate('/app/smart-quote')}
+                        className={`flex flex-col items-center space-y-1 ${location.pathname.includes('smart-quote') ? 'text-pink-500' : 'text-gray-400'}`}
                     >
                         <Search size={24} />
-                        <span className="text-[10px] font-medium uppercase tracking-wide">Sort</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide">Quote</span>
                     </button>
 
                     <button

@@ -20,6 +20,6 @@
 
 @layer base {
   body {
-    @apply bg-pink-50 text-charcoal font-sans antialiased;
+    @apply bg-gradient-to-br from-pink-50 to-white text-charcoal font-sans antialiased min-h-screen;
   }
 }

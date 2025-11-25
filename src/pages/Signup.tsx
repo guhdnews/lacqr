@@ -1,22 +1,58 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
-import Header from '../components/Header';
 
 export default function Signup() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSignup = (e: React.FormEvent) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock signup logic
-        navigate('/app/quote');
+        setError('');
+        setLoading(true);
+
+        try {
+            const { createUserWithEmailAndPassword } = await import('firebase/auth');
+            const { auth, db } = await import('../lib/firebase');
+            const { doc, setDoc } = await import('firebase/firestore');
+
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Create user document
+            await setDoc(doc(db, 'users', user.uid), {
+                email: user.email,
+                createdAt: new Date().toISOString(),
+                role: 'owner', // Default role
+                settings: {
+                    theme: 'light',
+                    notifications: true
+                }
+            });
+
+            // Create default Master Service Menu for the new user
+            await setDoc(doc(db, 'serviceMenus', user.uid), {
+                categories: ['Manicure', 'Pedicure', 'Extensions'],
+                services: [],
+                addOns: [],
+                tiers: []
+            });
+
+            navigate('/lacqr-lens');
+        } catch (err: any) {
+            console.error("Signup Error:", err);
+            setError(err.message || 'Failed to create account.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-white font-sans text-charcoal">
-            <Header />
             <div className="flex items-center justify-center py-12 px-6 bg-pink-50 min-h-[calc(100vh-80px)]">
                 <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md">
                     <div className="text-center mb-8">
@@ -33,6 +69,11 @@ export default function Signup() {
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
+                                {error}
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input
@@ -56,9 +97,13 @@ export default function Signup() {
                             />
                         </div>
 
-                        <button type="submit" className="w-full bg-charcoal text-white py-3 rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center space-x-2">
-                            <span>Get Started Free</span>
-                            <ArrowRight size={18} />
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-charcoal text-white py-3 rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>{loading ? 'Creating Account...' : 'Get Started Free'}</span>
+                            {!loading && <ArrowRight size={18} />}
                         </button>
                     </form>
 

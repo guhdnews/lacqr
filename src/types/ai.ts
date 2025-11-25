@@ -4,25 +4,39 @@ export type NailLength = 'Natural' | 'Short' | 'Medium' | 'Long' | 'XL' | 'XXL' 
 export interface AddOn {
     name: string;
     type: 'charm' | 'gem' | 'art' | 'finish' | 'structural';
-    count?: number; // For gems, charms
-    confidence: number; // 0-1
-    estimated_price?: number; // User's price list mapping
+    upsell_suggestion?: string;
+    draft_reply: string; // Pre-written DM
 }
-
 export interface QuoteAnalysis {
-    shape: NailShape;
-    length: NailLength;
-    base_service: string; // e.g., "Full Set Gel-X"
-    add_ons: AddOn[];
     total_estimated_price: number;
     confidence_score: number;
-    reasoning: string; // AI explanation
+    breakdown: {
+        base_service: {
+            name: string;
+            price: number;
+            confidence: number;
+        };
+        add_ons: {
+            name: string;
+            type: 'design' | 'charm' | 'gem' | 'finish' | 'art' | 'custom';
+            count: number;
+            estimated_price: number;
+            confidence: number;
+        }[];
+        shape: string;
+        length: string;
+        detected_colors?: string[];
+        design_complexity?: 'Simple' | 'Moderate' | 'Intricate';
+        notes?: string;
+    };
+    reasoning: string;
+    visual_description?: string;
 }
 
 export interface ServiceRecommendation {
-    booking_codes: string[]; // e.g., ["GEL-X-FULL", "ART-LVL-2"]
-    reasoning: string;
+    booking_codes: string[];
     estimated_duration_minutes: number;
     upsell_suggestion?: string;
-    draft_reply: string; // Pre-written DM
+    reasoning: string;
+    draft_reply: string;
 }
