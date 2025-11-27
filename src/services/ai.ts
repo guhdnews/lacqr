@@ -123,7 +123,7 @@ export async function analyzeImage(file: File): Promise<ServiceSelection> {
             }
         `;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
     const result = await model.generateContent([prompt, imagePart]);
     const text = result.response.text();
