@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useServiceStore } from '../store/useServiceStore';
-import { calculatePrice } from '../utils/pricingCalculator';
+import { calculatePrice, calculateDuration } from '../utils/pricingCalculator';
 import type { ServiceSelection, SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, BlingDensity, ForeignWork, PedicureType } from '../types/serviceSchema';
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { Sparkles, AlertCircle, Clock } from 'lucide-react';
 
 interface ServiceConfiguratorProps {
     initialSelection: ServiceSelection;
@@ -13,11 +13,14 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
     const { menu } = useServiceStore();
     const [selection, setSelection] = useState<ServiceSelection>(initialSelection);
     const [price, setPrice] = useState(0);
+    const [duration, setDuration] = useState(0);
 
-    // Recalculate price whenever selection or menu changes
+    // Recalculate price and duration whenever selection or menu changes
     useEffect(() => {
         const newPrice = calculatePrice(selection, menu);
+        const newDuration = calculateDuration(selection, menu);
         setPrice(newPrice);
+        setDuration(newDuration);
         if (onUpdate) {
             onUpdate(selection);
         }
@@ -56,15 +59,31 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                     <p className="text-gray-400 text-sm">Customize your set details</p>
                 </div>
                 <div className="text-right">
-                    <div className="text-3xl font-bold font-display flex items-center">
+                    <div className="text-3xl font-bold font-display flex items-center justify-end">
                         <span className="text-gray-400 text-lg mr-1">$</span>
                         {price.toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-400 uppercase tracking-wider">Estimated Total</div>
+                    <div className="flex items-center justify-end text-gray-400 text-xs uppercase tracking-wider mt-1">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {Math.floor(duration / 60)}h {duration % 60}m
+                    </div>
                 </div>
             </div>
 
             <div className="p-6 space-y-8">
+                {/* AI Description (if available) */}
+                {selection.aiDescription && (
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mb-6">
+                        <div className="flex items-start gap-3">
+                            <Sparkles className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <h4 className="font-bold text-purple-900 text-sm uppercase tracking-wide mb-1">AI Analysis</h4>
+                                <p className="text-purple-800 text-sm leading-relaxed">{selection.aiDescription}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* 1. Base Service */}
                 <section>
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Base Service</h3>

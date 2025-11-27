@@ -43,3 +43,31 @@ export function calculatePrice(selection: ServiceSelection, menu: MasterServiceM
 
     return total;
 }
+
+export function calculateDuration(selection: ServiceSelection, menu: MasterServiceMenu): number {
+    let minutes = 0;
+
+    // 1. Base Duration
+    minutes += menu.durations.base[selection.base.system] || 0;
+
+    // 2. Length Duration
+    minutes += menu.durations.length[selection.base.length] || 0;
+
+    // 3. Art Duration
+    if (selection.art.level) {
+        minutes += menu.durations.art[selection.art.level] || 0;
+    }
+
+    // 4. Bling Duration
+    minutes += menu.durations.bling[selection.bling.density] || 0;
+
+    // 5. Pedicure Duration
+    minutes += menu.durations.pedicure[selection.pedicure.type] || 0;
+
+    // 6. Removal
+    if (selection.modifiers.foreignWork === 'Foreign Removal' || selection.modifiers.soakOffOnly) {
+        minutes += menu.durations.removal;
+    }
+
+    return minutes;
+}

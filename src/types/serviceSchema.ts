@@ -67,6 +67,16 @@ export interface MasterServiceMenu {
     };
     modifierSurcharges: Record<ForeignWork, number>;
     pedicurePrices: Record<PedicureType, number>;
+
+    // Duration Constants (Minutes)
+    durations: {
+        base: Record<SystemType, number>;
+        length: Record<NailLength, number>;
+        art: Record<ArtLevel, number>;
+        bling: Record<BlingDensity, number>;
+        pedicure: Record<PedicureType, number>;
+        removal: number;
+    };
 }
 
 export const DEFAULT_MENU: MasterServiceMenu = {
@@ -126,6 +136,40 @@ export const DEFAULT_MENU: MasterServiceMenu = {
         'Classic': 35,
         'Gel': 50,
         'Acrylic Toe Set': 65
+    },
+    durations: {
+        base: {
+            'Acrylic': 60,
+            'Gel-X': 45,
+            'Hard Gel': 60,
+            'Structure Gel': 45
+        },
+        length: {
+            'Short': 0,
+            'Medium': 15,
+            'Long': 30,
+            'XL': 45,
+            'XXL': 60
+        },
+        art: {
+            'Level 1': 15,
+            'Level 2': 30,
+            'Level 3': 60,
+            'Level 4': 90
+        },
+        bling: {
+            'None': 0,
+            'Minimal': 15,
+            'Moderate': 30,
+            'Heavy': 60
+        },
+        pedicure: {
+            'None': 0,
+            'Classic': 30,
+            'Gel': 45,
+            'Acrylic Toe Set': 60
+        },
+        removal: 30
     }
 };
 

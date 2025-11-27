@@ -43,8 +43,11 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
     console.log("✅ Modal Result:", modalResult);
 
     // 3. Calculate Price
-    // Note: Modal result structure matches what calculatePrice expects
-    const pricing = calculatePrice(modalResult.objects);
+    // Find nail plate for length calculation
+    const nailPlate = modalResult.objects.find((obj: any) => obj.label === "nail_plate");
+    const nailPlateBox = nailPlate ? nailPlate.box : undefined;
+
+    const pricing = calculatePrice(modalResult.objects, nailPlateBox);
 
     // 4. Map to ServiceSelection
     return {
@@ -83,7 +86,8 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
       reasoning: `Detected ${modalResult.objects.length} objects. Length: ${pricing.details.lengthTier}. Density: ${pricing.details.densityTier}.`,
       estimatedPrice: pricing.totalPrice,
       pricingDetails: pricing,
-      modalResult: modalResult
+      modalResult: modalResult,
+      aiDescription: modalResult.description // Map description from Modal
     };
 
   } catch (error: any) {
