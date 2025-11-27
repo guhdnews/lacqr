@@ -39,6 +39,13 @@ export interface ServiceSelection {
         toeArtMatch: boolean;
     };
     visual_description?: string;
+
+    // New fields for AI Analysis
+    estimatedPrice?: number;
+    pricingDetails?: any;
+    modalResult?: any;
+    confidence?: number;
+    reasoning?: string;
 }
 
 // The "Menu" - Prices for each option

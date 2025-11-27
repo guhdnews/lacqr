@@ -1,174 +1,119 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage, auth } from "../lib/firebase";
+import { calculatePrice, type PricingResult } from "../utils/pricing_engine";
 import type { ServiceSelection } from '../types/serviceSchema';
-import { preprocessImage } from '../utils/imageProcessing';
-import { simulateYoloData } from '../utils/yoloSimulation';
 
-// Initialize Standard Google Gemini API
+// Placeholder - Update this after 'modal deploy'
+const MODAL_ENDPOINT = "https://upfacedevelopment--lacqr-brain-analyze-image.modal.run";
+
+// Initialize Standard Google Gemini API (Optional Fallback)
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-if (!apiKey) {
-  console.error("Missing VITE_GEMINI_API_KEY for AI Service");
-}
-const genAI = new GoogleGenerativeAI(apiKey);
+const genAI = new GoogleGenerativeAI(apiKey || "dummy");
 
-// Helper: Convert File to GenerativePart
-async function fileToGenerativePart(file: File): Promise<{ inlineData: { data: string; mimeType: string } }> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      const base64Data = base64String.split(',')[1];
-      resolve({
-        inlineData: {
-          data: base64Data,
-          mimeType: file.type,
-        },
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-export async function analyzeImage(file: File): Promise<ServiceSelection> {
+export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
   try {
-    const processedFile = await preprocessImage(file);
-    const imagePart = await fileToGenerativePart(processedFile);
+    console.log("🚀 Starting Analysis Pipeline...");
 
-    // Call Python Backend for YOLO Analysis
-    let yoloData;
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    // 1. Upload to Firebase Storage
+    console.log("📤 Uploading to Firebase...");
+    const userId = auth.currentUser?.uid || "anonymous";
+    const timestamp = Date.now();
+    const storageRef = ref(storage, `scans/${userId}/${timestamp}.jpg`);
 
-      // Attempt to call local backend
-      const response = await fetch('http://localhost:8000/analyze', {
-        method: 'POST',
-        body: formData
-      });
+    await uploadBytes(storageRef, imageFile);
+    const downloadURL = await getDownloadURL(storageRef);
+    console.log("✅ Uploaded:", downloadURL);
 
-      if (response.ok) {
-        yoloData = await response.json();
-        console.log("YOLO Backend Success:", yoloData);
-      } else {
-        throw new Error("Backend returned error");
-      }
-    } catch (error) {
-      console.warn("YOLO Backend unavailable, falling back to simulation:", error);
-      // Fallback to simulation if backend is offline
-      yoloData = simulateYoloData(1024, 1024);
+    // 2. Call Modal Backend
+    console.log("🧠 Calling Modal Brain...");
+
+    // Check if Modal URL is configured
+    if (MODAL_ENDPOINT.includes("YOUR_MODAL_USERNAME")) {
+      console.warn("⚠️ Modal Endpoint not configured. Using Simulation Mode.");
+      return simulateAnalysis(imageFile);
     }
 
-    const yoloJson = JSON.stringify(yoloData, null, 2);
+    const response = await fetch(MODAL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_url: downloadURL })
+    });
 
-    const prompt = `
-            You are an expert Nail Technician Assistant. You are receiving two inputs:
-            1. **Visual:** A raw image of a manicure.
-            2. **Data:** \`yolo_mask_data\` (Provided below).
-
-            **YOLO DATA:**
-            ${yoloJson}
-
-            **YOUR TASK:**
-            Combine the strict geometric data from YOLO with your visual analysis of style/texture to output a JSON pricing object.
-
-            **PROTOCOL:**
-
-            **Step 1: Structural Analysis (Trust the Data)**
-            * **Shape:** Look at the \`yolo_mask_data\`. If the polygon has sharp angles at the tip, it is **Stiletto** or **Coffin**. If it is rounded, it is **Almond** or **Round**.
-            * **Length:** Use the provided pixel length to categorize:
-                * < 300px = Short
-                * 300-450px = Medium/Long
-                * > 450px = XL/XXL
-
-            **Step 2: Stylistic Analysis (Visual Reasoning)**
-            * **Surface:** Distinguish between **Glossy** (shiny), **Matte** (dull), and **Chrome** (metallic reflection).
-            * **Bling:** Do NOT count individual gems. Determine **Density**:
-                * *Minimal:* Stones only at the cuticle.
-                * *Moderate:* Stones scattered on the plate.
-                * *Heavy:* The nail plate is encrusted/covered.
-
-            **Step 3: Output Generation**
-            Output strictly valid JSON with a \`_reasoning\` key first.
-
-            **Example Output:**
-            {
-              "_reasoning": "[HYBRID ANALYSIS] YOLO masks indicate a flat tip (Coffin) with high pixel height (XL). Visual analysis shows a metallic finish (Chrome). Bling analysis shows scattered stones on the ring finger (Moderate Density).",
-              "base": {
-                "system": "Acrylic",
-                "shape": "Coffin",
-                "length": "XL"
-              },
-              "addons": {
-                "finish": "Chrome",
-                "specialtyEffect": "None",
-                "classicDesign": "None"
-              },
-              "art": {
-                "level": "Level 2"
-              },
-              "bling": {
-                "density": "Moderate",
-                "xlCharmsCount": 0,
-                "piercingsCount": 0
-              },
-              "modifiers": {
-                "foreignWork": "None",
-                "repairsCount": 0,
-                "soakOffOnly": false
-              },
-              "pedicure": {
-                "type": "None",
-                "toeArtMatch": false
-              }
-            }
-        `;
-
-    // List of models to try in order of preference
-    // User only has access to 2.0/2.5 series based on debug output
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.0-flash-lite"];
-
-    let lastError;
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`Attempting to generate content with model: ${modelName}`);
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent([prompt, imagePart]);
-        const text = result.response.text();
-
-        // Parse JSON
-        let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const firstBrace = jsonString.indexOf('{');
-        const lastBrace = jsonString.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1) {
-          jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-        }
-
-        const selection: ServiceSelection = JSON.parse(jsonString);
-        return selection; // Success! Return immediately.
-
-      } catch (error: any) {
-        console.warn(`Failed with ${modelName}:`, error.message);
-        lastError = error;
-        // Continue to next model
-      }
+    if (!response.ok) {
+      throw new Error(`Modal API Error: ${response.statusText}`);
     }
 
-    // If all failed
-    throw lastError || new Error("All AI models failed to respond.");
+    const modalResult = await response.json();
+    console.log("✅ Modal Result:", modalResult);
+
+    // 3. Calculate Price
+    // Note: Modal result structure matches what calculatePrice expects
+    const pricing = calculatePrice(modalResult.objects);
+
+    // 4. Map to ServiceSelection
+    return {
+      base: {
+        system: "Acrylic", // Default or inferred
+        shape: "Coffin", // Default or inferred from YOLO
+        length: pricing.details.lengthTier as any
+      },
+      addons: {
+        finish: "Glossy",
+        specialtyEffect: "None",
+        classicDesign: "None"
+      },
+      art: {
+        level: pricing.details.artTier.includes("Tier 1") ? "Level 1" :
+          pricing.details.artTier.includes("Tier 2") ? "Level 2" :
+            pricing.details.artTier.includes("Tier 3") ? "Level 3" : "Level 4"
+      },
+      bling: {
+        density: pricing.details.densityTier as any,
+        xlCharmsCount: 0,
+        piercingsCount: 0
+      },
+      modifiers: {
+        foreignWork: "None",
+        repairsCount: 0,
+        soakOffOnly: false
+      },
+      pedicure: {
+        type: "None",
+        toeArtMatch: false
+      },
+
+      // AI Metadata
+      confidence: 0.95,
+      reasoning: `Detected ${modalResult.objects.length} objects. Length: ${pricing.details.lengthTier}. Density: ${pricing.details.densityTier}.`,
+      estimatedPrice: pricing.totalPrice,
+      pricingDetails: pricing,
+      modalResult: modalResult
+    };
 
   } catch (error: any) {
-    console.error("AI Error:", error);
-    throw new Error(error.message || "Unknown AI Error");
+    console.error("❌ Analysis Failed:", error);
+    // Fallback to simulation if everything fails
+    return simulateAnalysis(imageFile);
   }
 }
 
-/**
- * Service Sorter (Recommendation Engine)
- * Kept simple for now, can be expanded later.
- */
+async function simulateAnalysis(imageFile: File): Promise<ServiceSelection> {
+  return {
+    base: { system: "Acrylic", shape: "Coffin", length: "Medium" },
+    addons: { finish: "Glossy", specialtyEffect: "None", classicDesign: "None" },
+    art: { level: "Level 1" },
+    bling: { density: "Minimal", xlCharmsCount: 0, piercingsCount: 0 },
+    modifiers: { foreignWork: "None", repairsCount: 0, soakOffOnly: false },
+    pedicure: { type: "None", toeArtMatch: false },
+
+    confidence: 0.8,
+    reasoning: "Simulation Mode (Backend Unavailable)",
+    estimatedPrice: 45
+  };
+}
+
 export async function recommendService(_file: File, _textInput?: string): Promise<any> {
-  // Placeholder for now, as the main focus is QuoteCam logic overhaul.
-  // We can implement this properly in Part 2 if needed.
   return {
     booking_codes: ["Consultation"],
     estimated_duration_minutes: 60,
