@@ -123,21 +123,37 @@ export async function analyzeImage(file: File): Promise<ServiceSelection> {
             }
         `;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // List of models to try in order of preference
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro-vision"];
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const text = result.response.text();
+    let lastError;
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`Attempting to generate content with model: ${modelName}`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent([prompt, imagePart]);
+        const text = result.response.text();
 
-    // Parse JSON
-    let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const firstBrace = jsonString.indexOf('{');
-    const lastBrace = jsonString.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        // Parse JSON
+        let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const firstBrace = jsonString.indexOf('{');
+        const lastBrace = jsonString.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+          jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        }
+
+        const selection: ServiceSelection = JSON.parse(jsonString);
+        return selection; // Success! Return immediately.
+
+      } catch (error: any) {
+        console.warn(`Failed with ${modelName}:`, error.message);
+        lastError = error;
+        // Continue to next model
+      }
     }
 
-    const selection: ServiceSelection = JSON.parse(jsonString);
-    return selection;
+    // If all failed
+    throw lastError || new Error("All AI models failed to respond.");
 
   } catch (error: any) {
     console.error("AI Error:", error);
