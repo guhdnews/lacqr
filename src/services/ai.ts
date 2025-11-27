@@ -124,7 +124,8 @@ export async function analyzeImage(file: File): Promise<ServiceSelection> {
         `;
 
     // List of models to try in order of preference
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro-vision"];
+    // User only has access to 2.0/2.5 series based on debug output
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.0-flash-lite"];
 
     let lastError;
     for (const modelName of modelsToTry) {
