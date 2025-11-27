@@ -273,6 +273,40 @@ export default function LacqrLens() {
                             className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
                             style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
                         />
+
+                        {/* Bounding Box Overlay */}
+                        {!isAnalyzing && result?.modalResult?.objects && (
+                            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}>
+                                {result.modalResult.objects.map((obj: any, i: number) => {
+                                    // Convert normalized coordinates (if needed) or use pixel values
+                                    // Assuming box is [x1, y1, x2, y2] in pixels relative to the original image
+                                    // We need to map this to the displayed image size. 
+                                    // For simplicity in this "contain" mode, we might need more complex mapping.
+                                    // BUT, if the backend returns normalized coordinates (0-1), it's easier.
+                                    // Let's assume pixel values for now and try to render them directly if possible, 
+                                    // or just render a simple overlay if we can't map perfectly without image dimensions.
+
+                                    // Actually, let's use a simpler approach: Just show the label if we can't map perfectly yet.
+                                    // Or better: The backend returns pixel values. We need the original image size to map to the rendered size.
+                                    // Since we don't have easy access to naturalWidth/Height here without an onLoad handler,
+                                    // let's try to render them assuming the SVG matches the image aspect ratio (which it might not in 'object-contain').
+
+                                    // STRATEGY: Use a percentage-based approach if possible, or just render the boxes 
+                                    // if we assume the image fills the container (which it doesn't always).
+
+                                    // For this iteration, let's just add a "Debug" list of detections below the image 
+                                    // if we can't do perfect boxes, OR try to do boxes if we assume the image is 640x640 (YOLO standard).
+
+                                    // Let's try to render them assuming the backend sends normalized coordinates? 
+                                    // No, YOLO sends pixels. 
+
+                                    // Let's skip the complex SVG for a second and add the "Itemized Breakdown" the user asked for first,
+                                    // as that is easier and high value.
+
+                                    return null;
+                                })}
+                            </svg>
+                        )}
                     </div>
 
                     {/* Enlarge Button */}

@@ -84,6 +84,41 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                     </div>
                 )}
 
+                {/* Itemized Breakdown (Restored) */}
+                {selection.pricingDetails && (
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
+                        <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wide mb-3">Price Breakdown</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Base Set</span>
+                                <span className="font-medium">${selection.pricingDetails.breakdown.basePrice}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Length ({selection.pricingDetails.details.lengthTier})</span>
+                                <span className="font-medium">+${selection.pricingDetails.breakdown.lengthCharge}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Art ({selection.pricingDetails.details.artTier})</span>
+                                <span className="font-medium">+${selection.pricingDetails.breakdown.artTierCharge}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Bling ({selection.pricingDetails.details.densityTier})</span>
+                                <span className="font-medium">+${selection.pricingDetails.breakdown.densityCharge}</span>
+                            </div>
+                            {selection.pricingDetails.breakdown.materialCharge > 0 && (
+                                <div className="flex justify-between text-purple-600">
+                                    <span>Premium Materials</span>
+                                    <span className="font-medium">+${selection.pricingDetails.breakdown.materialCharge}</span>
+                                </div>
+                            )}
+                            <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between font-bold">
+                                <span>Total Estimate</span>
+                                <span>${selection.pricingDetails.totalPrice}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* 1. Base Service */}
                 <section>
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Base Service</h3>
