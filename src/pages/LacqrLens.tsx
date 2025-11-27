@@ -277,7 +277,7 @@ export default function LacqrLens() {
                         {/* Bounding Box Overlay */}
                         {!isAnalyzing && result?.modalResult?.objects && (
                             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}>
-                                {result.modalResult.objects.map((obj: any, i: number) => {
+                                {result.modalResult.objects.map((_obj: any, _i: number) => {
                                     // Convert normalized coordinates (if needed) or use pixel values
                                     // Assuming box is [x1, y1, x2, y2] in pixels relative to the original image
                                     // We need to map this to the displayed image size. 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useServiceStore } from '../store/useServiceStore';
 import { calculatePrice, calculateDuration } from '../utils/pricingCalculator';
-import type { ServiceSelection, SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, BlingDensity, ForeignWork, PedicureType } from '../types/serviceSchema';
+import type { ServiceSelection, SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, ForeignWork, PedicureType } from '../types/serviceSchema';
 import { Sparkles, AlertCircle, Clock } from 'lucide-react';
 
 interface ServiceConfiguratorProps {
