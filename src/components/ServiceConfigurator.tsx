@@ -98,6 +98,20 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
 
                 <hr className="border-gray-100" />
 
+                {/* Appointment Details */}
+                <section>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Appointment Details</h3>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Requested Time</label>
+                        <input
+                            type="datetime-local"
+                            value={selection.appointmentTime || ''}
+                            onChange={(e) => setSelection(prev => ({ ...prev, appointmentTime: e.target.value }))}
+                            className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-pink-500"
+                        />
+                    </div>
+                </section>
+
                 {/* 2. Add-ons */}
                 <section>
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Add-ons & Finish</h3>

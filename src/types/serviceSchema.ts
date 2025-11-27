@@ -39,6 +39,7 @@ export interface ServiceSelection {
         toeArtMatch: boolean;
     };
     visual_description?: string;
+    appointmentTime?: string; // ISO Date String
 
     // New fields for AI Analysis
     estimatedPrice?: number;
@@ -46,6 +47,7 @@ export interface ServiceSelection {
     modalResult?: any;
     confidence?: number;
     reasoning?: string;
+    aiDescription?: string; // Natural language description from Moondream
 }
 
 // The "Menu" - Prices for each option
