@@ -26,11 +26,13 @@ This document serves as the **Source of Truth** for the Lacqr project. It is int
 *   **Platform:** Modal.com (Serverless GPU).
 *   **Language:** Python 3.10+.
 *   **Entry Point:** `lacqr_modal/main.py`.
-*   **AI Pipeline:**
-    1.  **Detection:** YOLOv11 (Custom trained `best.pt`) for identifying nails, gems, charms, art.
-    2.  **Segmentation:** SAM 2 (Segment Anything Model 2) for precise masks.
-    3.  **Description:** Moondream (VLM) for natural language visual description.
-    4.  **Vector DB:** Zilliz (Milvus) for similarity search (Visual Dictionary).
+*   **AI Pipeline (The Dream Stack):**
+    1.  **Stage 0 (ROI):** **Custom YOLOv11** (`best.pt`) detects `nail_plate` to define the Region of Interest.
+    2.  **Stage 1 (Microscope):** **YOLO-World** + **SAHI** detects microscopic items (gems, charms) within nail plates.
+    3.  **Stage 2 (Scalpel):** **SAM 2** (Segment Anything Model 2) generates clean masks for precise area calculation.
+    4.  **Stage 3A (The Poet):** **Moondream** (VLM) generates artistic descriptions.
+    5.  **Stage 3B (The Physicist):** **DINOv2** extracts embeddings for material analysis (Texture/Finish).
+    6.  **Stage 4 (Memory):** **Milvus** (Zilliz Cloud) performs vector search for "Lookalikes".
 
 ### Data & Storage
 *   **Database:** Firebase Firestore (Clients, Quotes, Training Data).

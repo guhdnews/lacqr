@@ -1,0 +1,14 @@
+# Ignore backend and training files for Vercel deployment
+node_modules
+lacqr_modal
+lacqr_training
+lacqrtraining_dataset_v1
+lacqrtraining_dataset_v2
+lacqrtraining_dataset_v3
+runs
+backend
+*.pt
+*.yaml
+debug_modal.py
+verify_pricing_logic.ts
+

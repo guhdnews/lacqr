@@ -45,3 +45,5 @@ combined_data.yaml
 .env
 *.env
 .env.*
+
+.vercel
