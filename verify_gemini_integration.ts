@@ -15,10 +15,10 @@ const scenarios = [
             art_notes: "None",
             estimated_length: "Long"
         } as GeminiAnalysis,
-        nailPlate: [0, 0, 100, 200], // Ratio 2.0 -> XL in mapping logic
+        nailPlate: [0, 0, 100, 200], // Ratio 2.0 -> XL in YOLO, but Gemini says Long
         expectedShape: "Stiletto",
         expectedSystem: "Acrylic",
-        expectedLength: "XL"
+        expectedLength: "Long" // Gemini priority confirmed
     },
     {
         name: "Scenario 2: Gel-X with 3D Art (Gemini Art Detection)",

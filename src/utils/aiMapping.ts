@@ -9,11 +9,20 @@ export interface GeminiAnalysis {
 }
 
 export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[], gemini?: GeminiAnalysis): ServiceSelection {
-    // 1. Length Calculation (Aspect Ratio + Gemini Validation)
+    // 1. Length Calculation (Gemini First, YOLO Fallback)
     let length: NailLength = "Short";
 
-    // Use YOLO box if available, otherwise fallback to Gemini's estimate or default
-    if (nailPlateBox && nailPlateBox.length === 4) {
+    // Gemini is usually better at qualitative "Length" than bounding box ratios
+    if (gemini?.estimated_length) {
+        const gLen = gemini.estimated_length.toLowerCase();
+        if (gLen.includes("xxl")) length = "XXL";
+        else if (gLen.includes("xl") || gLen.includes("extra")) length = "XL";
+        else if (gLen.includes("long")) length = "Long";
+        else if (gLen.includes("medium")) length = "Medium";
+        else if (gLen.includes("short")) length = "Short";
+    }
+    // Fallback to YOLO aspect ratio if Gemini is unsure
+    else if (nailPlateBox && nailPlateBox.length === 4) {
         const [x1, y1, x2, y2] = nailPlateBox;
         const width = x2 - x1;
         const height = y2 - y1;
@@ -24,14 +33,6 @@ export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[]
         else if (ratio < 2.0) length = "Long";
         else if (ratio < 2.5) length = "XL";
         else length = "XXL";
-    } else if (gemini?.estimated_length) {
-        // Map Gemini's string to NailLength
-        const gLen = gemini.estimated_length.toLowerCase();
-        if (gLen.includes("short")) length = "Short";
-        else if (gLen.includes("medium")) length = "Medium";
-        else if (gLen.includes("long")) length = "Long";
-        else if (gLen.includes("xl") || gLen.includes("extra")) length = "XL";
-        else if (gLen.includes("xxl")) length = "XXL";
     }
 
     // 2. Bling Density (Area Coverage)

@@ -10,4 +10,6 @@
 - [x] Verify Scan & Price Workflow (Flawless Execution) <!-- id: 4 -->
 - [x] Deploy to Vercel & Update Git <!-- id: 5 -->
 - [x] Fix Moondream Deployment & Improve Accuracy (Implemented Open-World Pipeline) <!-- id: 6 -->
-- [ ] Final Deployment (Modal, Vercel, Git) <!-- id: 7 -->
+- [x] Final Deployment (Modal, Vercel, Git) <!-- id: 7 -->
+- [x] Debug Accuracy & Remove Simulation Fallback (Gemini-First Approach) <!-- id: 8 -->
+- [ ] Redeploy with Accuracy Fixes & AI Inspector <!-- id: 9 -->

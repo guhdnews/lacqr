@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useServiceStore } from '../store/useServiceStore';
 import { calculatePrice, calculateDuration } from '../utils/pricingCalculator';
 import type { ServiceSelection, SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, ForeignWork, PedicureType } from '../types/serviceSchema';
-import { Sparkles, AlertCircle, Clock } from 'lucide-react';
+import { Sparkles, AlertCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ServiceConfiguratorProps {
     initialSelection: ServiceSelection;
@@ -14,6 +14,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
     const [selection, setSelection] = useState<ServiceSelection>(initialSelection);
     const [price, setPrice] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [showDebug, setShowDebug] = useState(false);
 
     // Recalculate price and duration whenever selection or menu changes
     useEffect(() => {
@@ -391,6 +392,38 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                         )}
                     </div>
                 </section>
+                {/* 7. AI Inspector (Debug) */}
+                <div className="border-t border-gray-100 pt-6">
+                    <button
+                        onClick={() => setShowDebug(!showDebug)}
+                        className="flex items-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        {showDebug ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                        {showDebug ? "Hide AI Inspector" : "Show AI Inspector (Debug)"}
+                    </button>
+
+                    {showDebug && (
+                        <div className="mt-4 p-4 bg-gray-900 rounded-xl text-xs font-mono text-green-400 overflow-x-auto">
+                            <h4 className="font-bold text-gray-500 mb-2 uppercase tracking-wider">Raw Analysis Data</h4>
+                            <div className="space-y-4">
+                                <div>
+                                    <span className="text-gray-500 block mb-1">Reasoning:</span>
+                                    <p className="text-white">{selection.reasoning}</p>
+                                </div>
+                                <div>
+                                    <span className="text-gray-500 block mb-1">Confidence:</span>
+                                    <p className="text-white">{selection.confidence ? (selection.confidence * 100).toFixed(1) : 0}%</p>
+                                </div>
+                                <div>
+                                    <span className="text-gray-500 block mb-1">Modal Result (YOLO/Florence):</span>
+                                    <pre className="bg-black p-2 rounded border border-gray-800">
+                                        {JSON.stringify(selection.modalResult, null, 2)}
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

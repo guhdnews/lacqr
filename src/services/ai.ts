@@ -89,8 +89,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
 
   } catch (error: any) {
     console.error("❌ Analysis Failed:", error);
-    // Fallback to simulation if everything fails
-    return simulateAnalysis(imageFile);
+    throw error; // CRITICAL: Throw error to UI instead of simulating
   }
 }
 
@@ -112,12 +111,13 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
     const base64Image = base64Data.split(',')[1];
 
     let prompt = `
-        Analyze this nail art image as a professional nail technician. 
+        You are an expert Nail Technician and Pricing Specialist. 
+        Analyze this nail art image with extreme attention to detail.
         `;
 
     if (florenceCaptions) {
       prompt += `
-        Here are some computer vision captions to help you:
+        Computer Vision Insights (Use these as hints, but trust your eyes more):
         - Dense Caption: "${florenceCaptions.dense}"
         - Object Detection: "${JSON.stringify(florenceCaptions.od)}"
         `;
@@ -128,11 +128,13 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
         {
             "shape": "Coffin, Stiletto, Almond, Square, or Oval",
             "system": "Acrylic, Gel-X, Hard Gel, or Structure Gel (look for thickness/apex)",
-            "vibe": "A short creative description of the style/vibe (e.g. 'Y2K Cyberpunk with chrome')",
-            "art_notes": "List specific techniques seen (e.g. '3d charms', 'hand painted character', 'french tip', 'ombre', 'encapsulated')",
-            "estimated_length": "Short, Medium, Long, XL, or XXL"
+            "vibe": "A creative, artistic description of the style (e.g. 'Y2K Cyberpunk with chrome drip', 'Elegant bridal with 3D flowers'). BE SPECIFIC.",
+            "art_notes": "List EVERY technique seen. Look for: 3d charms, hand painted character, french tip, ombre, encapsulated, chrome, cat eye, airbrush, blooming gel.",
+            "estimated_length": "Short (sport), Medium, Long, XL, or XXL (extendo)"
         }
-        Be dynamic and identify even untrained or novel artistic elements in 'art_notes' and 'vibe'.
+        IMPORTANT: 
+        1. If you see ANY 3D art, charms, or complex painting, mention it in 'art_notes'.
+        2. Be generous with 'estimated_length' - if it looks long, call it Long or XL.
         `;
 
     const result = await model.generateContent([
@@ -153,20 +155,7 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
   }
 }
 
-async function simulateAnalysis(_imageFile: File): Promise<ServiceSelection> {
-  return {
-    base: { system: "Acrylic", shape: "Coffin", length: "Medium" },
-    addons: { finish: "Glossy", specialtyEffect: "None", classicDesign: "None" },
-    art: { level: "Level 1" },
-    bling: { density: "Minimal", xlCharmsCount: 0, piercingsCount: 0 },
-    modifiers: { foreignWork: "None", repairsCount: 0, soakOffOnly: false },
-    pedicure: { type: "None", toeArtMatch: false },
 
-    confidence: 0.8,
-    reasoning: "Simulation Mode (Backend Unavailable)",
-    estimatedPrice: 65 // Updated to reflect realistic pricing
-  };
-}
 
 export async function recommendService(_file: File, _textInput?: string): Promise<any> {
   return {
