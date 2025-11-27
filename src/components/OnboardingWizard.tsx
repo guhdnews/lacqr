@@ -12,18 +12,21 @@ export default function OnboardingWizard() {
     const [loading, setLoading] = useState(false);
     const [salonName, setSalonName] = useState('');
     const [currency, setCurrency] = useState('USD');
-    const [menu, setMenu] = useState<MasterServiceMenu>(DEFAULT_MENU);
+    const [menu] = useState<MasterServiceMenu>(DEFAULT_MENU);
 
     const handleNext = () => {
         setStep(step + 1);
     };
 
+    // Step 2 removed due to schema update
+    /*
     const handleServiceUpdate = (id: string, price: number) => {
         setMenu(prev => ({
             ...prev,
             services: prev.services.map(s => s.id === id ? { ...s, basePrice: price } : s)
         }));
     };
+    */
 
     const { user, setUser } = useAppStore();
 
@@ -60,12 +63,12 @@ export default function OnboardingWizard() {
             <div className="max-w-2xl w-full space-y-8">
                 {/* Progress Bar */}
                 <div className="flex items-center justify-center space-x-4 mb-12">
-                    {[1, 2, 3].map((s) => (
-                        <div key={s} className={`flex items-center ${s < 3 ? 'w-full' : ''}`}>
+                    {[1, 2].map((s) => (
+                        <div key={s} className={`flex items-center ${s < 2 ? 'w-full' : ''}`}>
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${step >= s ? 'bg-charcoal text-white' : 'bg-gray-100 text-gray-400'}`}>
                                 {step > s ? <Check size={20} /> : s}
                             </div>
-                            {s < 3 && (
+                            {s < 2 && (
                                 <div className={`flex-1 h-1 mx-4 rounded-full ${step > s ? 'bg-charcoal' : 'bg-gray-100'}`} />
                             )}
                         </div>
@@ -125,46 +128,8 @@ export default function OnboardingWizard() {
                     </div>
                 )}
 
-                {/* Step 2: Quick Menu */}
+                {/* Step 2: Completion */}
                 {step === 2 && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <div className="text-center space-y-2">
-                            <h1 className="text-3xl font-serif font-bold">Quick Menu Setup</h1>
-                            <p className="text-gray-500">Confirm prices for your most popular services.</p>
-                        </div>
-
-                        <div className="bg-gray-50 p-6 rounded-3xl space-y-4">
-                            {menu.services.slice(0, 4).map((service) => (
-                                <div key={service.id} className="bg-white p-4 rounded-xl flex justify-between items-center shadow-sm">
-                                    <div>
-                                        <h3 className="font-bold text-charcoal">{service.name}</h3>
-                                        <p className="text-xs text-gray-400">{service.durationMinutes} mins</p>
-                                    </div>
-                                    <div className="relative w-24">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
-                                        <input
-                                            type="number"
-                                            value={service.basePrice}
-                                            onChange={(e) => handleServiceUpdate(service.id, Number(e.target.value))}
-                                            className="w-full pl-6 pr-3 py-2 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-pink-500 focus:ring-0 text-right font-bold text-lg"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={handleNext}
-                            className="w-full bg-charcoal text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition-all flex items-center justify-center space-x-2"
-                        >
-                            <span>Looks Good</span>
-                            <ArrowRight size={20} />
-                        </button>
-                    </div>
-                )}
-
-                {/* Step 3: Completion */}
-                {step === 3 && (
                     <div className="text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
                         <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600 mb-6">
                             <Sparkles size={48} />

@@ -121,3 +121,61 @@ export const compressImage = (file: File, maxWidth = 2048, quality = 0.9): Promi
         reader.onerror = (error) => reject(error);
     });
 };
+
+/**
+ * Preprocesses image for AI analysis:
+ * 1. Resizes to max 2048px (Resolution Lock)
+ * 2. Applies contrast/brightness enhancement (Glare Sanitization)
+ */
+export const preprocessImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error('Could not get canvas context'));
+                    return;
+                }
+
+                // 1. Resize (Resolution Lock)
+                const maxWidth = 2048;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                // 2. Glare Sanitization (Simulated via Contrast/Brightness)
+                // Increase contrast slightly to separate glare from nail
+                // Decrease brightness slightly to reduce blown-out highlights
+                ctx.filter = 'contrast(1.2) brightness(0.95)';
+
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const processedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        resolve(processedFile);
+                    } else {
+                        reject(new Error('Canvas is empty'));
+                    }
+                }, 'image/jpeg', 0.95); // High quality
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};

@@ -5,13 +5,12 @@ import type { ServiceRecommendation } from '../types/ai';
 import ScanningOverlay from '../components/ScanningOverlay';
 import HelpModal from '../components/HelpModal';
 import { useCooldown } from '../hooks/useCooldown';
-import { useServiceStore } from '../store/useServiceStore';
 import { useAppStore } from '../store/useAppStore';
 import type { Client } from '../types/client';
 import { useEffect } from 'react';
 
 export default function SmartQuote() {
-    const { menu } = useServiceStore();
+    // const { menu } = useServiceStore();
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<ServiceRecommendation | null>(null);
@@ -26,13 +25,21 @@ export default function SmartQuote() {
         key: 'smart_quote_scan'
     });
 
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        // Always reset the input so the same file can be selected again
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+
         if (isCoolingDown) {
             alert(`Please wait ${remainingTime}s before scanning again.`);
             return;
         }
 
-        const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => setImage(reader.result as string);
@@ -44,7 +51,7 @@ export default function SmartQuote() {
             setZoomLevel(1);
 
             try {
-                const recommendation = await AI_SERVICE.recommendService(file, undefined, menu);
+                const recommendation = await AI_SERVICE.recommendService(file);
                 setResult(recommendation);
                 setEditableReply(recommendation.draft_reply);
                 startCooldown();
@@ -163,7 +170,7 @@ export default function SmartQuote() {
             {/* Upload Area */}
             {!image ? (
                 <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
-                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
                     <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Sparkles size={32} className="text-pink-500" />
                     </div>
@@ -215,7 +222,13 @@ export default function SmartQuote() {
                     )}
 
                     {/* Scanning Overlay */}
-                    <ScanningOverlay isVisible={isAnalyzing} />
+                    <ScanningOverlay
+                        isVisible={isAnalyzing}
+                        onCancel={() => {
+                            setIsAnalyzing(false);
+                            // Optional: Add error state if needed
+                        }}
+                    />
                 </div>
             )}
 

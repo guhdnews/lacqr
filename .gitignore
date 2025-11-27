@@ -23,4 +23,25 @@ dist-ssr
 *.sln
 *.sw?
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Training Artifacts
+runs/
+lacqrtraining_dataset_v1/
+lacqrtraining_dataset_v2/
+combined_data.yaml
+
+# Vercel
 .vercel
+.env
+*.env
+.env.*

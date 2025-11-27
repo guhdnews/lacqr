@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['nail']
+
+roboflow:
+  workspace: cool-feysg
+  project: nail-op8qf-h4ptb
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/cool-feysg/nail-op8qf-h4ptb/dataset/1

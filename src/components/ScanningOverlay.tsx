@@ -4,6 +4,7 @@ import { Scan, Sparkles, BrainCircuit, CheckCircle2 } from 'lucide-react';
 interface ScanningOverlayProps {
     isVisible: boolean;
     currentStep?: number; // Optional override
+    onCancel?: () => void;
 }
 
 const STEPS = [
@@ -13,7 +14,7 @@ const STEPS = [
     { icon: CheckCircle2, text: "Calculating estimate...", color: "text-green-500" }
 ];
 
-export default function ScanningOverlay({ isVisible }: ScanningOverlayProps) {
+export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlayProps) {
     const [activeStep, setActiveStep] = useState(0);
 
     useEffect(() => {
@@ -73,7 +74,16 @@ export default function ScanningOverlay({ isVisible }: ScanningOverlayProps) {
                     })}
                 </div>
 
-                <p className="text-xs text-gray-400 animate-pulse mt-8">
+                {onCancel && (
+                    <button
+                        onClick={onCancel}
+                        className="mt-8 px-6 py-2 rounded-full border border-gray-300 text-gray-500 text-sm hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                    >
+                        Cancel Scan
+                    </button>
+                )}
+
+                <p className="text-xs text-gray-400 animate-pulse mt-4">
                     Powered by Lacqr
                 </p>
             </div>

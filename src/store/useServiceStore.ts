@@ -1,22 +1,43 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_MENU } from '../types/serviceSchema';
-import type { MasterServiceMenu, BaseService, AddOn, NailLength, NailShape } from '../types/serviceSchema';
+import type {
+    MasterServiceMenu,
+    SystemType,
+    NailLength,
+    FinishType,
+    SpecialtyEffect,
+    ClassicDesign,
+    ArtLevel,
+    BlingDensity,
+    ForeignWork,
+    PedicureType
+} from '../types/serviceSchema';
 
 interface ServiceStore {
     menu: MasterServiceMenu;
 
-    // Actions
-    updateService: (id: string, updates: Partial<BaseService>) => void;
-    addService: (service: BaseService) => void;
-    deleteService: (id: string) => void;
+    // Actions for Base Prices
+    updateBasePrice: (system: SystemType, price: number) => void;
+    updateLengthSurcharge: (length: NailLength, price: number) => void;
 
-    updateAddOn: (id: string, updates: Partial<AddOn>) => void;
-    addAddOn: (addOn: AddOn) => void;
-    deleteAddOn: (id: string) => void;
+    // Actions for Add-ons
+    updateFinishSurcharge: (finish: FinishType, price: number) => void;
+    updateSpecialtySurcharge: (effect: SpecialtyEffect, price: number) => void;
+    updateClassicDesignSurcharge: (design: ClassicDesign, price: number) => void;
 
-    updateLengthUpcharge: (length: NailLength, price: number) => void;
-    updateShapeUpcharge: (shape: NailShape, price: number) => void;
+    // Actions for Art & Bling
+    updateArtLevelPrice: (level: ArtLevel, price: number) => void;
+    updateBlingDensityPrice: (density: BlingDensity, price: number) => void;
+
+    // Actions for Unit Prices
+    updateUnitPrice: (item: 'xlCharms' | 'piercings' | 'repairs' | 'soakOff', price: number) => void;
+
+    // Actions for Modifiers
+    updateModifierSurcharge: (modifier: ForeignWork, price: number) => void;
+
+    // Actions for Pedicure
+    updatePedicurePrice: (type: PedicureType, price: number) => void;
 
     resetMenu: () => void;
 }
@@ -26,66 +47,80 @@ export const useServiceStore = create<ServiceStore>()(
         (set) => ({
             menu: DEFAULT_MENU,
 
-            updateService: (id, updates) => set((state) => ({
+            updateBasePrice: (system, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    services: state.menu.services.map(s => s.id === id ? { ...s, ...updates } : s)
+                    basePrices: { ...state.menu.basePrices, [system]: price }
                 }
             })),
 
-            addService: (service) => set((state) => ({
+            updateLengthSurcharge: (length, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    services: [...state.menu.services, service]
+                    lengthSurcharges: { ...state.menu.lengthSurcharges, [length]: price }
                 }
             })),
 
-            deleteService: (id) => set((state) => ({
+            updateFinishSurcharge: (finish, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    services: state.menu.services.filter(s => s.id !== id)
+                    finishSurcharges: { ...state.menu.finishSurcharges, [finish]: price }
                 }
             })),
 
-            updateAddOn: (id, updates) => set((state) => ({
+            updateSpecialtySurcharge: (effect, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    addOns: state.menu.addOns.map(a => a.id === id ? { ...a, ...updates } : a)
+                    specialtySurcharges: { ...state.menu.specialtySurcharges, [effect]: price }
                 }
             })),
 
-            addAddOn: (addOn) => set((state) => ({
+            updateClassicDesignSurcharge: (design, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    addOns: [...state.menu.addOns, addOn]
+                    classicDesignSurcharges: { ...state.menu.classicDesignSurcharges, [design]: price }
                 }
             })),
 
-            deleteAddOn: (id) => set((state) => ({
+            updateArtLevelPrice: (level, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    addOns: state.menu.addOns.filter(a => a.id !== id)
+                    artLevelPrices: { ...state.menu.artLevelPrices, [level]: price }
                 }
             })),
 
-            updateLengthUpcharge: (length, price) => set((state) => ({
+            updateBlingDensityPrice: (density, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    lengthUpcharges: state.menu.lengthUpcharges.map(l => l.length === length ? { ...l, price } : l)
+                    blingDensityPrices: { ...state.menu.blingDensityPrices, [density]: price }
                 }
             })),
 
-            updateShapeUpcharge: (shape, price) => set((state) => ({
+            updateUnitPrice: (item, price) => set((state) => ({
                 menu: {
                     ...state.menu,
-                    shapeUpcharges: state.menu.shapeUpcharges.map(s => s.shape === shape ? { ...s, price } : s)
+                    unitPrices: { ...state.menu.unitPrices, [item]: price }
+                }
+            })),
+
+            updateModifierSurcharge: (modifier, price) => set((state) => ({
+                menu: {
+                    ...state.menu,
+                    modifierSurcharges: { ...state.menu.modifierSurcharges, [modifier]: price }
+                }
+            })),
+
+            updatePedicurePrice: (type, price) => set((state) => ({
+                menu: {
+                    ...state.menu,
+                    pedicurePrices: { ...state.menu.pedicurePrices, [type]: price }
                 }
             })),
 
             resetMenu: () => set({ menu: DEFAULT_MENU })
         }),
         {
-            name: 'lacqr-service-menu', // unique name for localStorage key
+            name: 'lacqr-service-menu-v2', // Changed key to force reset for new schema
         }
     )
 );

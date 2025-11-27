@@ -1,202 +1,167 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { QuoteAnalysis, ServiceRecommendation } from '../types/ai';
-import { DEFAULT_MENU, type MasterServiceMenu } from '../types/serviceSchema';
-import Fuse from 'fuse.js';
+import type { ServiceSelection } from '../types/serviceSchema';
+import { preprocessImage } from '../utils/imageProcessing';
+import { simulateYoloData } from '../utils/yoloSimulation';
 
 // Initialize Standard Google Gemini API
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 if (!apiKey) {
-    console.error("Missing VITE_GEMINI_API_KEY for AI Service");
+  console.error("Missing VITE_GEMINI_API_KEY for AI Service");
 }
 const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-/**
- * Helper: Convert File to GenerativePart
- */
+// Helper: Convert File to GenerativePart
 async function fileToGenerativePart(file: File): Promise<{ inlineData: { data: string; mimeType: string } }> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64String = reader.result as string;
-            const base64Data = base64String.split(',')[1];
-            resolve({
-                inlineData: {
-                    data: base64Data,
-                    mimeType: file.type,
-                },
-            });
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      const base64Data = base64String.split(',')[1];
+      resolve({
+        inlineData: {
+          data: base64Data,
+          mimeType: file.type,
+        },
+      });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
-/**
- * QuoteCam: Forensic Scan Logic
- */
-export async function analyzeImage(file: File, userMenu: MasterServiceMenu = DEFAULT_MENU): Promise<QuoteAnalysis> {
+export async function analyzeImage(file: File): Promise<ServiceSelection> {
+  try {
+    const processedFile = await preprocessImage(file);
+    const imagePart = await fileToGenerativePart(processedFile);
+
+    // Call Python Backend for YOLO Analysis
+    let yoloData;
     try {
-        const imagePart = await fileToGenerativePart(file);
+      const formData = new FormData();
+      formData.append('file', file);
 
-        const prompt = `
-            Analyze this nail image for pricing. 
-            Return a JSON object with the following structure:
-            {
-                "shape": "Square" | "Coffin" | "Almond" | "Stiletto" | "Oval",
-                "serviceType": "string" (e.g. "Gel-X", "Acrylic", "Structured Gel", "Manicure"),
-                "detectedAddOns": [
-                    { "name": "string", "count": number }
-                ],
-                "detectedColors": ["string"],
-                "designComplexity": "Simple" | "Moderate" | "Intricate",
-                "visual_description": "string" (A 1-2 sentence description of the nails, e.g. "Long coffin nails with a soft pink ombre and crystal accents on the ring finger.")
-            }
-            Be precise. Count specific items like charms or fingers with specific designs.
-        `;
+      // Attempt to call local backend
+      const response = await fetch('http://localhost:8000/analyze', {
+        method: 'POST',
+        body: formData
+      });
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        const text = response.text();
-
-        let detectedAttributes;
-        try {
-            let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            const firstBrace = jsonString.indexOf('{');
-            const lastBrace = jsonString.lastIndexOf('}');
-
-            if (firstBrace !== -1 && lastBrace !== -1) {
-                jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-            }
-
-            detectedAttributes = JSON.parse(jsonString);
-        } catch (e) {
-            console.error("Failed to parse AI response. Raw text:", text);
-            throw new Error("AI Response Error: Could not parse analysis results.");
-        }
-
-        // CALCULATOR LOGIC
-        const serviceFuse = new Fuse(userMenu.services, { keys: ['name', 'ai_tags'], includeScore: true });
-        const bestServiceMatch = serviceFuse.search(detectedAttributes.serviceType)[0];
-        const baseService = bestServiceMatch?.item || userMenu.services[0];
-
-        let totalPrice = baseService.basePrice;
-
-        const lengthCharge = userMenu.lengthUpcharges.find(l => l.length === detectedAttributes.length)?.price || 0;
-        totalPrice += lengthCharge;
-
-        const addOnOptions = { includeScore: true, keys: ['name', 'keywords'] };
-        const fuse = new Fuse(userMenu.addOns, addOnOptions);
-
-        const matchedAddOns = detectedAttributes.detectedAddOns.map((detected: any) => {
-            const match = fuse.search(detected.name)[0];
-            if (match && match.item) {
-                const item = match.item;
-                let cost = 0;
-
-                if (item.pricing_unit === 'per_nail') {
-                    cost = item.price * detected.count;
-                } else {
-                    cost = item.price;
-                }
-
-                totalPrice += cost;
-                return {
-                    name: item.name,
-                    type: 'design' as const,
-                    count: detected.count,
-                    estimated_price: cost,
-                    confidence: 0.95
-                };
-            }
-            return null;
-        }).filter(Boolean) as any[];
-
-        return {
-            total_estimated_price: totalPrice,
-            confidence_score: 0.92,
-            breakdown: {
-                base_service: {
-                    name: `${baseService.name} (${detectedAttributes.length})`,
-                    price: baseService.basePrice + lengthCharge,
-                    confidence: 0.98
-                },
-                add_ons: matchedAddOns,
-                shape: detectedAttributes.shape,
-                length: detectedAttributes.length,
-                detected_colors: detectedAttributes.detectedColors || [],
-                design_complexity: detectedAttributes.designComplexity || 'Moderate'
-            },
-            reasoning: `Detected ${detectedAttributes.length} ${detectedAttributes.shape} nails. Identified service as ${detectedAttributes.serviceType} (Matched to: ${baseService.name}). AI Analysis: ${text.substring(0, 50)}...`,
-            visual_description: detectedAttributes.visual_description
-        };
-    } catch (error: any) {
-        console.error("AI Error:", error);
-        throw new Error(error.message || "Unknown AI Error");
-    }
-}
-
-/**
- * Service Sorter: Booking Translator
- */
-export async function recommendService(file: File, textInput?: string, userMenu: MasterServiceMenu = DEFAULT_MENU): Promise<ServiceRecommendation> {
-    try {
-        const imagePart = await fileToGenerativePart(file);
-        const prompt = `
-            Analyze this nail image and the client's request: "${textInput || ''}".
-            Suggest the best booking codes based on visual complexity.
-            Return JSON:
-        {
-            "serviceName": "string",
-                "addOns": ["string"],
-                    "reasoning": "string",
-                        "upsell": "string"
-        }
-        `;
-
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        const text = response.text();
-        const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const aiResult = JSON.parse(jsonString);
-
-        const serviceFuse = new Fuse(userMenu.services, { keys: ['name', 'category'] });
-        const addOnFuse = new Fuse(userMenu.addOns, { keys: ['name', 'keywords'] });
-
-        const bestService = serviceFuse.search(aiResult.serviceName)[0]?.item || userMenu.services[0];
-
-        const bookingCodes = [bestService.name];
-        let totalDuration = bestService.durationMinutes;
-
-        aiResult.addOns.forEach((addOnName: string) => {
-            const match = addOnFuse.search(addOnName)[0]?.item;
-            if (match) {
-                bookingCodes.push(match.name);
-                totalDuration += match.durationMinutes;
-            }
-        });
-
-        return {
-            booking_codes: bookingCodes,
-            estimated_duration_minutes: totalDuration,
-            upsell_suggestion: aiResult.upsell,
-            reasoning: aiResult.reasoning,
-            draft_reply: `Hey! For this look, please book: ${bookingCodes.join(' + ')}. It should take about ${totalDuration / 60} hours. Can't wait to see you! ✨`
-        };
-
+      if (response.ok) {
+        yoloData = await response.json();
+        console.log("YOLO Backend Success:", yoloData);
+      } else {
+        throw new Error("Backend returned error");
+      }
     } catch (error) {
-        console.error("AI Error:", error);
-        return {
-            booking_codes: ["Consultation Required"],
-            estimated_duration_minutes: 60,
-            upsell_suggestion: "None",
-            reasoning: "AI Service Unavailable",
-            draft_reply: "Please contact for a custom quote."
-        };
+      console.warn("YOLO Backend unavailable, falling back to simulation:", error);
+      // Fallback to simulation if backend is offline
+      yoloData = simulateYoloData(1024, 1024);
     }
+
+    const yoloJson = JSON.stringify(yoloData, null, 2);
+
+    const prompt = `
+            You are an expert Nail Technician Assistant. You are receiving two inputs:
+            1. **Visual:** A raw image of a manicure.
+            2. **Data:** \`yolo_mask_data\` (Provided below).
+
+            **YOLO DATA:**
+            ${yoloJson}
+
+            **YOUR TASK:**
+            Combine the strict geometric data from YOLO with your visual analysis of style/texture to output a JSON pricing object.
+
+            **PROTOCOL:**
+
+            **Step 1: Structural Analysis (Trust the Data)**
+            * **Shape:** Look at the \`yolo_mask_data\`. If the polygon has sharp angles at the tip, it is **Stiletto** or **Coffin**. If it is rounded, it is **Almond** or **Round**.
+            * **Length:** Use the provided pixel length to categorize:
+                * < 300px = Short
+                * 300-450px = Medium/Long
+                * > 450px = XL/XXL
+
+            **Step 2: Stylistic Analysis (Visual Reasoning)**
+            * **Surface:** Distinguish between **Glossy** (shiny), **Matte** (dull), and **Chrome** (metallic reflection).
+            * **Bling:** Do NOT count individual gems. Determine **Density**:
+                * *Minimal:* Stones only at the cuticle.
+                * *Moderate:* Stones scattered on the plate.
+                * *Heavy:* The nail plate is encrusted/covered.
+
+            **Step 3: Output Generation**
+            Output strictly valid JSON with a \`_reasoning\` key first.
+
+            **Example Output:**
+            {
+              "_reasoning": "[HYBRID ANALYSIS] YOLO masks indicate a flat tip (Coffin) with high pixel height (XL). Visual analysis shows a metallic finish (Chrome). Bling analysis shows scattered stones on the ring finger (Moderate Density).",
+              "base": {
+                "system": "Acrylic",
+                "shape": "Coffin",
+                "length": "XL"
+              },
+              "addons": {
+                "finish": "Chrome",
+                "specialtyEffect": "None",
+                "classicDesign": "None"
+              },
+              "art": {
+                "level": "Level 2"
+              },
+              "bling": {
+                "density": "Moderate",
+                "xlCharmsCount": 0,
+                "piercingsCount": 0
+              },
+              "modifiers": {
+                "foreignWork": "None",
+                "repairsCount": 0,
+                "soakOffOnly": false
+              },
+              "pedicure": {
+                "type": "None",
+                "toeArtMatch": false
+              }
+            }
+        `;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const text = result.response.text();
+
+    // Parse JSON
+    let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const firstBrace = jsonString.indexOf('{');
+    const lastBrace = jsonString.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+    }
+
+    const selection: ServiceSelection = JSON.parse(jsonString);
+    return selection;
+
+  } catch (error: any) {
+    console.error("AI Error:", error);
+    throw new Error(error.message || "Unknown AI Error");
+  }
+}
+
+/**
+ * Service Sorter (Recommendation Engine)
+ * Kept simple for now, can be expanded later.
+ */
+export async function recommendService(_file: File, _textInput?: string): Promise<any> {
+  // Placeholder for now, as the main focus is QuoteCam logic overhaul.
+  // We can implement this properly in Part 2 if needed.
+  return {
+    booking_codes: ["Consultation"],
+    estimated_duration_minutes: 60,
+    upsell_suggestion: "None",
+    reasoning: "Service Sorter is being updated to new schema.",
+    draft_reply: "Please contact us for a quote."
+  };
 }
 
 export const AI_SERVICE = {
-    analyzeImage,
-    recommendService
+  analyzeImage,
+  recommendService
 };

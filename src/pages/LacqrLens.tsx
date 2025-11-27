@@ -1,34 +1,31 @@
-import React, { useState } from 'react';
-import { Camera, X, DollarSign, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, Check, Save, Download, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, Check, Save, Share2, HelpCircle } from 'lucide-react';
 import { AI_SERVICE } from '../services/ai';
 import { isImageBlurry, compressImage } from '../utils/imageProcessing';
 import { db } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import type { QuoteAnalysis } from '../types/ai';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import type { ServiceSelection } from '../types/serviceSchema';
 import ScanningOverlay from '../components/ScanningOverlay';
 import { useCooldown } from '../hooks/useCooldown';
-import { generateReceipt } from '../utils/receiptGenerator';
 import HelpModal from '../components/HelpModal';
-import { HelpCircle } from 'lucide-react';
 import { useServiceStore } from '../store/useServiceStore';
 import { useAppStore } from '../store/useAppStore';
 import type { Client } from '../types/client';
-import { useEffect } from 'react';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import ServiceConfigurator from '../components/ServiceConfigurator';
+import { calculatePrice } from '../utils/pricingCalculator';
 
 export default function LacqrLens() {
     const { menu } = useServiceStore();
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<QuoteAnalysis | null>(null);
-    const [editingId, setEditingId] = useState<number | null>(null);
+    const [result, setResult] = useState<ServiceSelection | null>(null);
     const [isBlurry, setIsBlurry] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [viewMode, setViewMode] = useState<'estimate' | 'receipt'>('estimate');
     const [showHelp, setShowHelp] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
+    const [correctionMode, setCorrectionMode] = useState(false);
 
     const { isCoolingDown, remainingTime, startCooldown } = useCooldown({
         cooldownTime: 10000, // 10 seconds cooldown between scans
@@ -62,14 +59,23 @@ export default function LacqrLens() {
         }
     }, [user]);
 
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        // Always reset the input so the same file can be selected again
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+
         if (isCoolingDown) {
             alert(`Please wait ${remainingTime}s before scanning again.`);
             return;
         }
 
-        const file = e.target.files?.[0];
         if (file) {
+
             const reader = new FileReader();
             reader.onloadend = async () => {
                 const imageSrc = reader.result as string;
@@ -85,12 +91,12 @@ export default function LacqrLens() {
             setResult(null);
             setSaveSuccess(false);
             setError(null);
-            setViewMode('estimate');
+            setCorrectionMode(false);
 
             try {
                 // Compress image before sending to AI
                 const compressedFile = await compressImage(file);
-                const analysis = await AI_SERVICE.analyzeImage(compressedFile, menu);
+                const analysis = await AI_SERVICE.analyzeImage(compressedFile); // No longer passing menu, AI returns ServiceSelection
                 setResult(analysis);
                 startCooldown();
             } catch (error: any) {
@@ -107,35 +113,14 @@ export default function LacqrLens() {
         setImage(null);
         setResult(null);
         setIsAnalyzing(false);
-        setEditingId(null);
         setIsBlurry(false);
         setZoomLevel(1);
         setSaveSuccess(false);
-        setViewMode('estimate');
+        setCorrectionMode(false);
     };
 
     const toggleZoom = () => {
         setZoomLevel(prev => prev === 1 ? 2.5 : 1);
-    };
-
-    const updatePrice = (index: number, newPrice: number) => {
-        if (!result) return;
-        const updatedAddOns = [...result.breakdown.add_ons];
-        updatedAddOns[index].estimated_price = newPrice;
-
-        // Recalculate total
-        const basePrice = result.breakdown.base_service.price;
-        const addOnsTotal = updatedAddOns.reduce((sum, item) => sum + item.estimated_price, 0);
-
-        setResult({
-            ...result,
-            breakdown: {
-                ...result.breakdown,
-                add_ons: updatedAddOns
-            },
-            total_estimated_price: basePrice + addOnsTotal
-        });
-        setEditingId(null);
     };
 
     const saveCorrection = async () => {
@@ -154,14 +139,14 @@ export default function LacqrLens() {
             const imageUrl = await getDownloadURL(storageRef);
 
             await addDoc(collection(db, 'training_data'), {
-                originalAnalysis: result,
-                imageUrl: imageUrl, // Save the actual image URL
+                finalSelection: result,
+                imageUrl: imageUrl,
                 timestamp: serverTimestamp(),
                 deviceInfo: {
                     userAgent: navigator.userAgent,
                     screenSize: `${window.innerWidth}x${window.innerHeight}`
                 },
-                correctionType: ['user_edit']
+                correctionType: ['smart_configurator']
             });
 
             setSaveSuccess(true);
@@ -174,31 +159,18 @@ export default function LacqrLens() {
         }
     };
 
-    const downloadReceipt = async () => {
-        if (!result) return;
-        try {
-            const receiptUrl = await generateReceipt(result);
-            const link = document.createElement('a');
-            link.href = receiptUrl;
-            link.download = `lacqr-receipt-${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error("Failed to generate receipt", error);
-            alert("Could not generate receipt.");
-        }
-    };
-
     const shareQuote = async () => {
         if (!result) return;
         try {
             const { addDoc, collection } = await import('firebase/firestore');
             const { db } = await import('../lib/firebase');
 
+            const totalPrice = calculatePrice(result, menu);
+
             const quoteData = {
-                type: 'lens',
+                type: 'lens_v2',
                 data: result,
+                totalPrice: totalPrice,
                 createdAt: new Date(),
                 salonName: user?.name || "Your Salon",
                 clientId: selectedClientId || null,
@@ -215,10 +187,10 @@ export default function LacqrLens() {
                     history: arrayUnion({
                         id: docRef.id,
                         date: new Date(),
-                        service: result.breakdown.base_service.name || "Nail Service",
-                        price: result.total_estimated_price,
-                        notes: "Generated via Lacqr Lens",
-                        image: image // Optional: save image URL if available (might be too large for Firestore, better to use Storage URL if saved)
+                        service: `${result.base.system} ${result.base.length}`,
+                        price: totalPrice,
+                        notes: "Generated via Lacqr Lens V2",
+                        image: image
                     })
                 });
             }
@@ -260,41 +232,8 @@ export default function LacqrLens() {
                         <div className="flex-1">
                             <h3 className="text-sm font-bold text-red-800 mb-1">Analysis Failed</h3>
                             <p className="text-xs text-red-700 break-words mb-2">
-                                {error.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                                    part.match(/^https?:\/\//) ? (
-                                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-red-900 break-all">
-                                            {part}
-                                        </a>
-                                    ) : (
-                                        part
-                                    )
-                                )}
+                                {error}
                             </p>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-                                        const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-                                        const url = `https://firebaseml.googleapis.com/v2beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-                                        const response = await fetch(url, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                contents: [{ parts: [{ text: "Test" }] }]
-                                            })
-                                        });
-
-                                        const data = await response.json();
-                                        alert(`Diagnostic Result:\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
-                                    } catch (e: any) {
-                                        alert(`Diagnostic Failed: ${e.message}`);
-                                    }
-                                }}
-                                className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded border border-red-200 hover:bg-red-200 font-bold"
-                            >
-                                Run Diagnostic Test
-                            </button>
                         </div>
                         <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 ml-2">
                             <X size={16} />
@@ -304,12 +243,18 @@ export default function LacqrLens() {
             )}
 
             {/* Scanning Overlay */}
-            <ScanningOverlay isVisible={isAnalyzing} />
+            <ScanningOverlay
+                isVisible={isAnalyzing}
+                onCancel={() => {
+                    setIsAnalyzing(false);
+                    setError("Scan cancelled by user.");
+                }}
+            />
 
             {/* Upload Area */}
             {!image ? (
                 <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
-                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                    <input type="file" ref={fileInputRef} accept="image/*" onChange={handleUpload} className="hidden" />
                     <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Camera size={32} className="text-pink-500" />
                     </div>
@@ -372,271 +317,34 @@ export default function LacqrLens() {
 
             {/* Results Card */}
             {result && (
-                <div className="bg-white rounded-3xl p-6 shadow-xl animate-in slide-in-from-bottom-10 fade-in duration-500 border border-pink-100">
-                    {/* Toggle Header */}
-                    <div className="flex justify-center mb-6">
-                        <div className="bg-gray-100 p-1 rounded-xl flex">
-                            <button
-                                onClick={() => setViewMode('estimate')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'estimate' ? 'bg-white shadow-sm text-charcoal' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                                Estimate
-                            </button>
-                            <button
-                                onClick={() => setViewMode('receipt')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'receipt' ? 'bg-white shadow-sm text-charcoal' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                                Receipt
-                            </button>
-                        </div>
-                    </div>
+                <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500">
 
-                    <div className="flex justify-between items-end mb-6 border-b border-gray-100 pb-6">
-                        <div>
-                            <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">
-                                {viewMode === 'estimate' ? 'Estimated Total' : 'Total Due'}
-                            </p>
-                            <div className="flex items-baseline text-pink-600">
-                                <DollarSign size={24} className="self-center" />
-                                <span className="text-4xl font-bold">{result.total_estimated_price}</span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Confidence</p>
-                            <div className="flex items-center justify-end text-gray-700 font-medium">
-                                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${result.confidence_score > 0.8 ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
-                                {Math.round(result.confidence_score * 100)}%
-                            </div>
-                            {result.reasoning.includes("DEMO MODE") && (
-                                <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full border border-amber-200">
-                                    DEMO MODE
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* AI Analysis Description */}
-                    {(result.visual_description || result.reasoning) && (
-                        <div className="mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                            <h4 className="font-bold text-sm text-indigo-900 mb-2 flex items-center">
-                                <span className="mr-2 text-lg">✨</span>
-                                AI Analysis
-                            </h4>
-                            <p className="text-sm text-indigo-800 leading-relaxed">
-                                {result.visual_description || result.reasoning.split("AI Analysis:")[0]}
-                            </p>
+                    {/* Visual Description Card */}
+                    {result.visual_description && (
+                        <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
+                            <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">AI Visual Analysis</h4>
+                            <p className="text-sm text-indigo-900 italic">"{result.visual_description}"</p>
                         </div>
                     )}
 
-                    {/* Detected Attributes with Visual Editors (Estimate Mode Only) */}
-                    {viewMode === 'estimate' && (
-                        <div className="mb-6 bg-pink-50/50 p-4 rounded-xl border border-pink-100">
-                            <h4 className="font-bold text-sm text-charcoal mb-3 flex items-center">
-                                <AlertCircle size={16} className="mr-2 text-pink-500" />
-                                Detected Attributes
-                            </h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                                <div className="bg-white p-3 rounded-lg border border-pink-100">
-                                    <span className="text-gray-500 block text-xs mb-1">Shape</span>
-                                    <select
-                                        className="w-full bg-transparent font-bold text-charcoal focus:outline-none cursor-pointer"
-                                        defaultValue={result.breakdown.shape}
-                                    >
-                                        {['Square', 'Coffin', 'Stiletto', 'Almond', 'Squoval', 'Oval'].map(s => (
-                                            <option key={s} value={s}>{s}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="bg-white p-3 rounded-lg border border-pink-100">
-                                    <span className="text-gray-500 block text-xs mb-1">Length</span>
-                                    <select
-                                        className="w-full bg-transparent font-bold text-charcoal focus:outline-none cursor-pointer"
-                                        defaultValue={result.breakdown.length}
-                                    >
-                                        {['Short', 'Medium', 'Long', 'XL', 'XXL'].map(l => (
-                                            <option key={l} value={l}>{l}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* New: Complexity and Colors */}
-                            <div className="grid grid-cols-1 gap-4 text-sm">
-                                <div className="bg-white p-3 rounded-lg border border-pink-100">
-                                    <span className="text-gray-500 block text-xs mb-1">Complexity</span>
-                                    <select
-                                        className="w-full bg-transparent font-bold text-charcoal focus:outline-none cursor-pointer"
-                                        defaultValue={result.breakdown.design_complexity || 'Moderate'}
-                                    >
-                                        {['Simple', 'Moderate', 'Intricate'].map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="bg-white p-3 rounded-lg border border-pink-100">
-                                    <span className="text-gray-500 block text-xs mb-2">Detected Colors</span>
-                                    <div className="flex flex-wrap gap-2">
-                                        {result.breakdown.detected_colors?.map((color, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => {
-                                                    const newColors = result.breakdown.detected_colors?.filter((_, i) => i !== idx);
-                                                    setResult({
-                                                        ...result,
-                                                        breakdown: { ...result.breakdown, detected_colors: newColors }
-                                                    });
-                                                }}
-                                                className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-medium hover:bg-red-100 hover:text-red-500 flex items-center group"
-                                            >
-                                                {color}
-                                                <X size={10} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </button>
-                                        ))}
-                                        <button
-                                            onClick={() => {
-                                                const color = prompt("Enter color name:");
-                                                if (color) {
-                                                    const newColors = [...(result.breakdown.detected_colors || []), color];
-                                                    setResult({
-                                                        ...result,
-                                                        breakdown: { ...result.breakdown, detected_colors: newColors }
-                                                    });
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-dashed border-gray-300 text-gray-400 rounded-md text-xs hover:text-pink-500 hover:border-pink-300"
-                                        >
-                                            + Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-3 mb-6">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold">Itemized Costs</p>
-
-                        {/* Base Service */}
-                        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                            <div>
-                                <p className="font-bold text-charcoal">{result.breakdown.base_service.name}</p>
-                                <p className="text-xs text-gray-400">Base Price</p>
-                            </div>
-                            <span className="font-bold">${result.breakdown.base_service.price}</span>
-                        </div>
-
-                        {/* Add-ons */}
-                        {result.breakdown.add_ons.map((addon, i: number) => (
-                            <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0 group">
-                                <div>
-                                    <div className="flex items-center space-x-2">
-                                        <p className="font-medium text-gray-700">{addon.name}</p>
-                                        {addon.count > 1 && (
-                                            <span className="bg-gray-100 text-gray-500 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                                                x{addon.count}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-gray-400 capitalize">{addon.type}</p>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                    {viewMode === 'estimate' && editingId === i ? (
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-gray-400 text-sm">$</span>
-                                            <input
-                                                type="number"
-                                                className="w-16 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-right font-bold focus:outline-none focus:border-pink-500"
-                                                defaultValue={addon.estimated_price}
-                                                onBlur={(e) => updatePrice(i, Number(e.target.value))}
-                                                autoFocus
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center">
-                                            <button
-                                                onClick={() => viewMode === 'estimate' && setEditingId(i)}
-                                                className={`font-bold transition-colors ${viewMode === 'estimate' ? 'hover:text-pink-500' : 'cursor-default'}`}
-                                            >
-                                                ${addon.estimated_price}
-                                            </button>
-                                            {viewMode === 'estimate' && (
-                                                <button
-                                                    onClick={() => {
-                                                        const updatedAddOns = result.breakdown.add_ons.filter((_, idx) => idx !== i);
-                                                        setResult({
-                                                            ...result,
-                                                            breakdown: { ...result.breakdown, add_ons: updatedAddOns },
-                                                            total_estimated_price: result.breakdown.base_service.price + updatedAddOns.reduce((sum, item) => sum + item.estimated_price, 0)
-                                                        });
-                                                    }}
-                                                    className="ml-2 text-gray-300 hover:text-red-500 transition-colors"
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Action Buttons (Estimate Mode Only) */}
-                        {viewMode === 'estimate' && (
-                            <div className="flex space-x-3 mt-4">
-                                <button
-                                    onClick={() => {
-                                        const newAddOn = {
-                                            name: "New Item",
-                                            type: "custom" as const,
-                                            count: 1,
-                                            estimated_price: 0,
-                                            confidence: 1
-                                        };
-                                        const updatedAddOns = [...result.breakdown.add_ons, newAddOn];
-                                        setResult({
-                                            ...result,
-                                            breakdown: {
-                                                ...result.breakdown,
-                                                add_ons: updatedAddOns
-                                            },
-                                            total_estimated_price: result.breakdown.base_service.price + updatedAddOns.reduce((sum, item) => sum + item.estimated_price, 0)
-                                        });
-                                        setEditingId(updatedAddOns.length - 1);
-                                    }}
-                                    className="flex-1 py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm font-bold hover:border-pink-300 hover:text-pink-500 transition-all flex items-center justify-center"
-                                >
-                                    + Add Item
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        const newDiscount = {
-                                            name: "Discount",
-                                            type: "custom" as const,
-                                            count: 1,
-                                            estimated_price: -5,
-                                            confidence: 1
-                                        };
-                                        const updatedAddOns = [...result.breakdown.add_ons, newDiscount];
-                                        setResult({
-                                            ...result,
-                                            breakdown: {
-                                                ...result.breakdown,
-                                                add_ons: updatedAddOns
-                                            },
-                                            total_estimated_price: result.breakdown.base_service.price + updatedAddOns.reduce((sum, item) => sum + item.estimated_price, 0)
-                                        });
-                                        setEditingId(updatedAddOns.length - 1);
-                                    }}
-                                    className="flex-1 py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm font-bold hover:border-green-300 hover:text-green-500 transition-all flex items-center justify-center"
-                                >
-                                    - Add Discount
-                                </button>
-                            </div>
-                        )}
+                    {/* Tech Override Toggle */}
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => setCorrectionMode(!correctionMode)}
+                            className={`text-sm font-bold underline ${correctionMode ? 'text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            {correctionMode ? 'Hide Configurator' : 'Tech Override / Correct'}
+                        </button>
                     </div>
+
+                    {/* Service Configurator */}
+                    <ServiceConfigurator
+                        initialSelection={result}
+                        onUpdate={(updatedSelection) => setResult(updatedSelection)}
+                    />
 
                     {/* Client Selection */}
-                    <div className="mb-6">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Link to Client (Optional)</p>
                         <select
                             value={selectedClientId}
@@ -650,43 +358,31 @@ export default function LacqrLens() {
                         </select>
                     </div>
 
+                    {/* Action Buttons */}
                     <div className="flex space-x-3">
-                        {viewMode === 'estimate' ? (
-                            <button
-                                onClick={saveCorrection}
-                                disabled={isSaving}
-                                className={`flex-1 py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center space-x-2 ${saveSuccess ? 'bg-green-500' : 'bg-charcoal hover:bg-black'
-                                    }`}
-                            >
-                                {saveSuccess ? (
-                                    <>
-                                        <Check size={20} />
-                                        <span>Saved!</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save size={20} />
-                                        <span>{isSaving ? 'Saving...' : 'Confirm'}</span>
-                                    </>
-                                )}
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={downloadReceipt}
-                                    className="flex-1 py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center space-x-2 bg-pink-500 hover:bg-pink-600"
-                                >
-                                    <Download size={20} />
-                                    <span>Download Receipt</span>
-                                </button>
-                                <button
-                                    onClick={shareQuote}
-                                    className="p-4 rounded-xl font-bold text-gray-500 shadow-lg transition-all flex items-center justify-center bg-white hover:text-pink-500"
-                                >
-                                    <Share2 size={20} />
-                                </button>
-                            </>
-                        )}
+                        <button
+                            onClick={saveCorrection}
+                            disabled={isSaving}
+                            className={`flex-1 py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center space-x-2 ${saveSuccess ? 'bg-green-500' : 'bg-charcoal hover:bg-black'}`}
+                        >
+                            {saveSuccess ? (
+                                <>
+                                    <Check size={20} />
+                                    <span>Saved!</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save size={20} />
+                                    <span>{isSaving ? 'Saving...' : 'Confirm'}</span>
+                                </>
+                            )}
+                        </button>
+                        <button
+                            onClick={shareQuote}
+                            className="p-4 rounded-xl font-bold text-gray-500 shadow-lg transition-all flex items-center justify-center bg-white hover:text-pink-500"
+                        >
+                            <Share2 size={20} />
+                        </button>
                     </div>
                 </div>
             )}

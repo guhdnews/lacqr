@@ -16,6 +16,7 @@ import TermsOfService from './pages/TermsOfService';
 import Onboarding from './pages/Onboarding';
 import Help from './pages/Help';
 import PublicQuote from './pages/PublicQuote';
+import LacqrTrainer from './pages/LacqrTrainer';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAppStore } from './store/useAppStore';
@@ -109,6 +110,7 @@ function App() {
         <Route path="/clients" element={<ClientList />} />
         <Route path="/clients/:id" element={<ClientProfile />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/trainer" element={<LacqrTrainer />} />
       </Route>
     </Routes>
   );

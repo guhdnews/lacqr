@@ -1,48 +1,19 @@
 import { useState } from 'react';
 import { useServiceStore } from '../store/useServiceStore';
-import { Trash2, RotateCcw, DollarSign, Clock, Tag } from 'lucide-react';
-import type { BaseService, AddOn, ServiceCategory } from '../types/serviceSchema';
+import { RotateCcw, DollarSign, Tag, Sparkles, AlertCircle } from 'lucide-react';
+import type { SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, BlingDensity, ForeignWork, PedicureType } from '../types/serviceSchema';
 
 export default function ServiceMenu() {
-    const { menu, updateService, addService, deleteService, updateAddOn, addAddOn, deleteAddOn, updateLengthUpcharge, resetMenu } = useServiceStore();
-    const [activeTab, setActiveTab] = useState<'services' | 'addons' | 'upcharges'>('services');
-
-    // Temporary state for new items
-    const [newService, setNewService] = useState<Partial<BaseService>>({
-        name: '', basePrice: 0, durationMinutes: 60, category: 'Extension', tier: 'Full Set'
-    });
-    const [newAddOn, setNewAddOn] = useState<Partial<AddOn>>({
-        name: '', price: 0, durationMinutes: 15, keywords: []
-    });
-
-    const handleAddService = () => {
-        if (newService.name) {
-            const serviceToAdd = {
-                ...newService,
-                id: `s_${Date.now()}`
-            } as BaseService;
-            addService(serviceToAdd);
-            setNewService({ name: '', basePrice: 0, durationMinutes: 60, category: 'Extension', tier: 'Full Set' });
-        }
-    };
-
-    const handleAddAddOn = () => {
-        if (newAddOn.name) {
-            const addOnToAdd = {
-                ...newAddOn,
-                id: `a_${Date.now()}`
-            } as AddOn;
-            addAddOn(addOnToAdd);
-            setNewAddOn({ name: '', price: 0, durationMinutes: 15, keywords: [] });
-        }
-    };
+    const store = useServiceStore();
+    const { menu, resetMenu } = store;
+    const [activeTab, setActiveTab] = useState<'base' | 'addons' | 'art' | 'modifiers' | 'pedicure'>('base');
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-charcoal font-display">Service Menu</h1>
-                    <p className="text-gray-600">Customize your services and prices for accurate AI quotes.</p>
+                    <p className="text-gray-600">Customize your prices for the new Pricing Engine.</p>
                 </div>
                 <button
                     onClick={() => {
@@ -58,245 +29,300 @@ export default function ServiceMenu() {
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
-                {(['services', 'addons', 'upcharges'] as const).map((tab) => (
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit overflow-x-auto">
+                {(['base', 'addons', 'art', 'modifiers', 'pedicure'] as const).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold capitalize transition-all ${activeTab === tab ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold capitalize whitespace-nowrap transition-all ${activeTab === tab ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
                     >
-                        {tab === 'addons' ? 'Add-Ons' : tab}
+                        {tab === 'art' ? 'Art & Bling' : tab}
                     </button>
                 ))}
             </div>
 
-            {/* Content */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                {activeTab === 'services' && (
-                    <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-12 gap-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-4">
-                            <div className="col-span-4">Service Name</div>
-                            <div className="col-span-2">Category</div>
-                            <div className="col-span-2">Price ($)</div>
-                            <div className="col-span-2">Time (min)</div>
-                            <div className="col-span-2 text-right">Actions</div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {activeTab === 'base' && (
+                    <div className="p-6 space-y-8">
+                        {/* Base Prices */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4 flex items-center">
+                                <Tag size={18} className="mr-2 text-pink-500" />
+                                Base System Prices
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.basePrices).map((sys) => (
+                                    <div key={sys} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{sys}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.basePrices[sys as SystemType]}
+                                                onChange={(e) => store.updateBasePrice(sys as SystemType, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {menu.services.map((service) => (
-                            <div key={service.id} className="grid grid-cols-12 gap-4 items-center p-4 bg-gray-50 rounded-xl hover:bg-pink-50/30 transition-colors group">
-                                <div className="col-span-4">
-                                    <input
-                                        type="text"
-                                        value={service.name}
-                                        onChange={(e) => updateService(service.id, { name: e.target.value })}
-                                        className="w-full bg-transparent font-bold text-charcoal focus:outline-none focus:border-b-2 border-pink-500"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <select
-                                        value={service.category}
-                                        onChange={(e) => updateService(service.id, { category: e.target.value as ServiceCategory })}
-                                        className="bg-transparent text-sm text-gray-600 focus:outline-none"
-                                    >
-                                        <option value="Extension">Extension</option>
-                                        <option value="Manicure">Manicure</option>
-                                        <option value="Pedicure">Pedicure</option>
-                                    </select>
-                                </div>
-                                <div className="col-span-2 relative">
-                                    <DollarSign size={14} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="number"
-                                        value={service.basePrice}
-                                        onChange={(e) => updateService(service.id, { basePrice: Number(e.target.value) })}
-                                        className="w-full pl-5 bg-transparent text-charcoal focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2 relative">
-                                    <Clock size={14} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="number"
-                                        value={service.durationMinutes}
-                                        onChange={(e) => updateService(service.id, { durationMinutes: Number(e.target.value) })}
-                                        className="w-full pl-5 bg-transparent text-charcoal focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2 text-right">
-                                    <button
-                                        onClick={() => deleteService(service.id)}
-                                        className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Add New Service */}
-                        <div className="border-t border-gray-100 pt-6 mt-6">
-                            <h3 className="font-bold text-charcoal mb-4">Add New Service</h3>
-                            <div className="grid grid-cols-12 gap-4 items-center p-4 border-2 border-dashed border-gray-200 rounded-xl">
-                                <div className="col-span-4">
-                                    <input
-                                        placeholder="Service Name"
-                                        value={newService.name}
-                                        onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                                        className="w-full bg-transparent focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <select
-                                        value={newService.category}
-                                        onChange={(e) => setNewService({ ...newService, category: e.target.value as ServiceCategory })}
-                                        className="w-full bg-transparent text-sm text-gray-600 focus:outline-none"
-                                    >
-                                        <option value="Extension">Extension</option>
-                                        <option value="Manicure">Manicure</option>
-                                        <option value="Pedicure">Pedicure</option>
-                                    </select>
-                                </div>
-                                <div className="col-span-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Price"
-                                        value={newService.basePrice || ''}
-                                        onChange={(e) => setNewService({ ...newService, basePrice: Number(e.target.value) })}
-                                        className="w-full bg-transparent focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={newService.durationMinutes || ''}
-                                        onChange={(e) => setNewService({ ...newService, durationMinutes: Number(e.target.value) })}
-                                        className="w-full bg-transparent focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2 text-right">
-                                    <button
-                                        onClick={handleAddService}
-                                        disabled={!newService.name}
-                                        className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
+                        {/* Length Surcharges */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4 flex items-center">
+                                <Tag size={18} className="mr-2 text-pink-500" />
+                                Length Surcharges
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                {Object.keys(menu.lengthSurcharges).map((len) => (
+                                    <div key={len} className="bg-gray-50 p-4 rounded-xl text-center">
+                                        <div className="text-sm font-bold text-gray-500 mb-2">{len}</div>
+                                        <div className="relative inline-block w-20">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.lengthSurcharges[len as NailLength]}
+                                                onChange={(e) => store.updateLengthSurcharge(len as NailLength, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-center font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'addons' && (
-                    <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-12 gap-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-4">
-                            <div className="col-span-4">Add-On Name</div>
-                            <div className="col-span-4">Keywords (for AI)</div>
-                            <div className="col-span-2">Price ($)</div>
-                            <div className="col-span-2 text-right">Actions</div>
+                    <div className="p-6 space-y-8">
+                        {/* Finish */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Finish Surcharges</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.finishSurcharges).map((finish) => (
+                                    <div key={finish} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{finish}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.finishSurcharges[finish as FinishType]}
+                                                onChange={(e) => store.updateFinishSurcharge(finish as FinishType, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {menu.addOns.map((addon) => (
-                            <div key={addon.id} className="grid grid-cols-12 gap-4 items-center p-4 bg-gray-50 rounded-xl hover:bg-pink-50/30 transition-colors">
-                                <div className="col-span-4">
-                                    <input
-                                        type="text"
-                                        value={addon.name}
-                                        onChange={(e) => updateAddOn(addon.id, { name: e.target.value })}
-                                        className="w-full bg-transparent font-bold text-charcoal focus:outline-none focus:border-b-2 border-pink-500"
-                                    />
-                                </div>
-                                <div className="col-span-4">
-                                    <input
-                                        type="text"
-                                        value={addon.keywords.join(', ')}
-                                        onChange={(e) => updateAddOn(addon.id, { keywords: e.target.value.split(',').map(k => k.trim()) })}
-                                        className="w-full bg-transparent text-sm text-gray-500 focus:outline-none focus:border-b border-gray-300"
-                                        placeholder="comma, separated, tags"
-                                    />
-                                </div>
-                                <div className="col-span-2 relative">
-                                    <DollarSign size={14} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="number"
-                                        value={addon.price}
-                                        onChange={(e) => updateAddOn(addon.id, { price: Number(e.target.value) })}
-                                        className="w-full pl-5 bg-transparent text-charcoal focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2 text-right">
-                                    <button
-                                        onClick={() => deleteAddOn(addon.id)}
-                                        className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
+                        {/* Specialty Effects */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Specialty Effects</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.specialtySurcharges).map((eff) => (
+                                    <div key={eff} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{eff}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.specialtySurcharges[eff as SpecialtyEffect]}
+                                                onChange={(e) => store.updateSpecialtySurcharge(eff as SpecialtyEffect, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
 
-                        {/* Add New Add-On */}
-                        <div className="border-t border-gray-100 pt-6 mt-6">
-                            <h3 className="font-bold text-charcoal mb-4">Add New Add-On</h3>
-                            <div className="grid grid-cols-12 gap-4 items-center p-4 border-2 border-dashed border-gray-200 rounded-xl">
-                                <div className="col-span-4">
-                                    <input
-                                        placeholder="Add-On Name"
-                                        value={newAddOn.name}
-                                        onChange={(e) => setNewAddOn({ ...newAddOn, name: e.target.value })}
-                                        className="w-full bg-transparent focus:outline-none"
-                                    />
+                        {/* Classic Design */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Classic Design</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.classicDesignSurcharges).map((des) => (
+                                    <div key={des} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{des}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.classicDesignSurcharges[des as ClassicDesign]}
+                                                onChange={(e) => store.updateClassicDesignSurcharge(des as ClassicDesign, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'art' && (
+                    <div className="p-6 space-y-8">
+                        {/* Art Levels */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4 flex items-center">
+                                <Sparkles size={18} className="mr-2 text-pink-500" />
+                                Art Complexity Levels
+                            </h3>
+                            <div className="space-y-4">
+                                {Object.keys(menu.artLevelPrices).map((level) => (
+                                    <div key={level} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <div>
+                                            <span className="font-bold text-charcoal block">{level}</span>
+                                            <span className="text-xs text-gray-500">
+                                                {level === 'Level 1' && 'Simple lines, dots, foil'}
+                                                {level === 'Level 2' && 'Marble, blooming gel, simple hand-drawn'}
+                                                {level === 'Level 3' && 'Intricate hand-drawn, Anime'}
+                                                {level === 'Level 4' && 'Encapsulated, 3D clay, mixed media'}
+                                            </span>
+                                        </div>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.artLevelPrices[level as ArtLevel]}
+                                                onChange={(e) => store.updateArtLevelPrice(level as ArtLevel, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Bling Density */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Bling Density</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.blingDensityPrices).map((density) => (
+                                    <div key={density} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{density}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.blingDensityPrices[density as BlingDensity]}
+                                                onChange={(e) => store.updateBlingDensityPrice(density as BlingDensity, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Unit Prices */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Unit Prices</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                    <span className="font-medium text-charcoal">XL Charms (Each)</span>
+                                    <div className="relative w-24">
+                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="number"
+                                            value={menu.unitPrices.xlCharms}
+                                            onChange={(e) => store.updateUnitPrice('xlCharms', Number(e.target.value))}
+                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="col-span-4">
-                                    <input
-                                        placeholder="Keywords (comma separated)"
-                                        value={newAddOn.keywords?.join(', ')}
-                                        onChange={(e) => setNewAddOn({ ...newAddOn, keywords: e.target.value.split(',').map(k => k.trim()) })}
-                                        className="w-full bg-transparent text-sm focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Price"
-                                        value={newAddOn.price || ''}
-                                        onChange={(e) => setNewAddOn({ ...newAddOn, price: Number(e.target.value) })}
-                                        className="w-full bg-transparent focus:outline-none"
-                                    />
-                                </div>
-                                <div className="col-span-2 text-right">
-                                    <button
-                                        onClick={handleAddAddOn}
-                                        disabled={!newAddOn.name}
-                                        className="bg-charcoal text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Add
-                                    </button>
+                                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                    <span className="font-medium text-charcoal">Piercings (Each)</span>
+                                    <div className="relative w-24">
+                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="number"
+                                            value={menu.unitPrices.piercings}
+                                            onChange={(e) => store.updateUnitPrice('piercings', Number(e.target.value))}
+                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {activeTab === 'upcharges' && (
+                {activeTab === 'modifiers' && (
                     <div className="p-6 space-y-8">
-                        {/* Length Upcharges */}
+                        {/* Foreign Work */}
                         <div>
                             <h3 className="font-bold text-charcoal mb-4 flex items-center">
-                                <Tag size={18} className="mr-2 text-pink-500" />
-                                Length Upcharges
+                                <AlertCircle size={18} className="mr-2 text-orange-500" />
+                                Foreign Work Surcharges
                             </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                {menu.lengthUpcharges.map((length) => (
-                                    <div key={length.length} className="bg-gray-50 p-4 rounded-xl text-center">
-                                        <div className="text-sm font-bold text-gray-500 mb-2">{length.length}</div>
-                                        <div className="relative inline-block w-20">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.modifierSurcharges).map((mod) => (
+                                    <div key={mod} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{mod}</span>
+                                        <div className="relative w-24">
                                             <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
                                             <input
                                                 type="number"
-                                                value={length.price}
-                                                onChange={(e) => updateLengthUpcharge(length.length, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-center font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                value={menu.modifierSurcharges[mod as ForeignWork]}
+                                                onChange={(e) => store.updateModifierSurcharge(mod as ForeignWork, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Repairs & Soak Off */}
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Other Services</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                    <span className="font-medium text-charcoal">Repairs (Per Nail)</span>
+                                    <div className="relative w-24">
+                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="number"
+                                            value={menu.unitPrices.repairs}
+                                            onChange={(e) => store.updateUnitPrice('repairs', Number(e.target.value))}
+                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                    <span className="font-medium text-charcoal">Soak Off Only</span>
+                                    <div className="relative w-24">
+                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="number"
+                                            value={menu.unitPrices.soakOff}
+                                            onChange={(e) => store.updateUnitPrice('soakOff', Number(e.target.value))}
+                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'pedicure' && (
+                    <div className="p-6 space-y-8">
+                        <div>
+                            <h3 className="font-bold text-charcoal mb-4">Pedicure Services</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.keys(menu.pedicurePrices).map((type) => (
+                                    <div key={type} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                                        <span className="font-medium text-charcoal">{type}</span>
+                                        <div className="relative w-24">
+                                            <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={menu.pedicurePrices[type as PedicureType]}
+                                                onChange={(e) => store.updatePedicurePrice(type as PedicureType, Number(e.target.value))}
+                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>

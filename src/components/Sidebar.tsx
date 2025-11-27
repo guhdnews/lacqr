@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Camera, Sparkles, FileText, Users, Settings, LogOut, Menu as MenuIcon, X, HelpCircle } from 'lucide-react';
+import { Camera, Sparkles, FileText, Users, Settings, LogOut, Menu as MenuIcon, X, HelpCircle, Trophy } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useState } from 'react';
 
@@ -31,6 +31,7 @@ export default function Sidebar() {
     const navItems = [
         { path: '/lacqr-lens', label: 'Lacqr Lens', icon: Camera },
         { path: '/smart-quote', label: 'Smart Quote', icon: Sparkles },
+        { path: '/trainer', label: 'Lacqr Trainer', icon: Trophy },
         { path: '/menu', label: 'Service Menu', icon: FileText },
         { path: '/clients', label: 'Clients', icon: Users },
         { path: '/settings', label: 'Settings', icon: Settings },

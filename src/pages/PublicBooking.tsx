@@ -3,12 +3,13 @@ import { Sparkles, Check, ArrowRight, Camera, Loader2 } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { AI_SERVICE } from '../services/ai';
-import type { ServiceRecommendation, QuoteAnalysis } from '../types/ai';
+import type { ServiceRecommendation } from '../types/ai';
+import type { ServiceSelection } from '../types/serviceSchema';
 
 export default function PublicBooking() {
     const [step, setStep] = useState<'upload' | 'analyzing' | 'result' | 'profile'>('upload');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [analysis, setAnalysis] = useState<QuoteAnalysis | null>(null);
+    const [analysis, setAnalysis] = useState<ServiceSelection | null>(null);
     const [recommendation, setRecommendation] = useState<ServiceRecommendation | null>(null);
 
     // Profile State
@@ -126,7 +127,7 @@ export default function PublicBooking() {
                             <img src={imagePreview!} alt="Analysis" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
                                 <div className="text-white">
-                                    <p className="font-bold text-lg">{analysis.breakdown.shape} • {analysis.breakdown.length}</p>
+                                    <p className="font-bold text-lg">{analysis.base.shape} • {analysis.base.length}</p>
                                 </div>
                             </div>
                         </div>

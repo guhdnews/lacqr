@@ -31,6 +31,7 @@ export interface QuoteAnalysis {
     };
     reasoning: string;
     visual_description?: string;
+    raw_bom?: BOM;
 }
 
 export interface ServiceRecommendation {
@@ -40,3 +41,24 @@ export interface ServiceRecommendation {
     reasoning: string;
     draft_reply: string;
 }
+
+export interface MasterAttributeSchema {
+    canvas: {
+        foundation: 'Natural' | 'Acrylic' | 'Gel-X' | 'Dip' | 'Polygel';
+        length: 'Short' | 'Medium' | 'Long' | 'XL' | 'XXL';
+        shape: 'Square' | 'Almond' | 'Coffin' | 'Stiletto' | 'Duck';
+    };
+    design: {
+        complexity_tier: 1 | 2 | 3 | 4;
+        finish: 'Glossy' | 'Matte' | 'Chrome' | 'Cat-Eye';
+        hand_painted: boolean;
+    };
+    inventory: {
+        gem_count: number;
+        charm_count: number;
+        piercing_count: number;
+    };
+}
+
+// Alias BOM to the new schema for now, but we will migrate to using MasterAttributeSchema directly
+export type BOM = MasterAttributeSchema;
