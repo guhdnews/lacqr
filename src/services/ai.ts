@@ -1,15 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage, auth } from "../lib/firebase";
-import { calculatePrice, type PricingResult } from "../utils/pricing_engine";
+import { calculatePrice } from "../utils/pricing_engine";
 import type { ServiceSelection } from '../types/serviceSchema';
 
 // Placeholder - Update this after 'modal deploy'
 const MODAL_ENDPOINT = "https://upfacedevelopment--lacqr-brain-analyze-image.modal.run";
-
-// Initialize Standard Google Gemini API (Optional Fallback)
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey || "dummy");
 
 export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
   try {
@@ -98,7 +93,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
   }
 }
 
-async function simulateAnalysis(imageFile: File): Promise<ServiceSelection> {
+async function simulateAnalysis(_imageFile: File): Promise<ServiceSelection> {
   return {
     base: { system: "Acrylic", shape: "Coffin", length: "Medium" },
     addons: { finish: "Glossy", specialtyEffect: "None", classicDesign: "None" },
