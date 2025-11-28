@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Camera, Sparkles, FileText, Users, Settings, LogOut, Menu as MenuIcon, X, HelpCircle, Trophy } from 'lucide-react';
+import { Camera, MessageSquare, FileText, Users, Settings, LogOut, Menu as MenuIcon, X, HelpCircle, LayoutDashboard } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useState } from 'react';
 
@@ -29,10 +29,10 @@ export default function Sidebar() {
     };
 
     const navItems = [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/lacqr-lens', label: 'Lacqr Lens', icon: Camera },
-        { path: '/smart-quote', label: 'Smart Quote', icon: Sparkles },
-        { path: '/trainer', label: 'Lacqr Trainer', icon: Trophy },
-        { path: '/menu', label: 'Service Menu', icon: FileText },
+        { path: '/smart-quote', label: 'Smart Quote', icon: MessageSquare },
+        { path: '/service-menu', label: 'Service Menu', icon: FileText },
         { path: '/clients', label: 'Clients', icon: Users },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/help', label: 'Help & Support', icon: HelpCircle },
@@ -43,14 +43,14 @@ export default function Sidebar() {
             {/* Mobile Toggle */}
             <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className={`md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md text-charcoal transition-opacity duration-200 ${isMobileOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                className={`md:hidden fixed top-4 left-4 z-[60] p-2 bg-white rounded-lg shadow-md text-charcoal transition-opacity duration-200 ${isMobileOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 <MenuIcon size={24} />
             </button>
 
             {/* Sidebar Container */}
             <aside className={`
-                fixed top-0 left-0 z-40 h-screen w-64 bg-white border-r border-pink-50 transition-transform duration-300 ease-in-out
+                fixed top-0 left-0 z-50 h-screen w-64 bg-white border-r border-pink-50 transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 <div className="flex flex-col h-full relative">
@@ -64,7 +64,7 @@ export default function Sidebar() {
 
                     {/* Logo */}
                     <div className="p-6 border-b border-pink-50">
-                        <Link to="/lacqr-lens" className="text-2xl font-serif font-bold tracking-tight text-charcoal">
+                        <Link to="/dashboard" className="text-2xl font-serif font-bold tracking-tight text-charcoal">
                             Lacqr
                         </Link>
                     </div>
@@ -106,7 +106,7 @@ export default function Sidebar() {
             {/* Overlay for mobile */}
             {isMobileOpen && (
                 <div
-                    className="md:hidden fixed inset-0 z-30 bg-black/20 backdrop-blur-sm"
+                    className="md:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}

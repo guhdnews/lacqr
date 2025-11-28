@@ -21,14 +21,21 @@ import PublicSmartQuote from './pages/public/PublicSmartQuote';
 import EmbedSmartQuote from './pages/public/EmbedSmartQuote';
 
 import Dashboard from './pages/Dashboard';
+import Drafts from './pages/Drafts';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAppStore } from './store/useAppStore';
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
-  const { theme, setUser } = useAppStore();
+  const { user, loading, initialize, theme, setUser } = useAppStore(); // Combined destructuring
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -112,6 +119,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/drafts" element={<Drafts />} />
         <Route path="/lacqr-lens" element={<LacqrLens />} />
 
         <Route path="/smart-quote" element={<SmartQuote />} />

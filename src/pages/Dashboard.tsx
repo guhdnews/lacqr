@@ -73,7 +73,7 @@ export default function Dashboard() {
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="font-bold text-xl text-gray-900">Recent Drafts</h2>
-                        <Link to="/lacqr-lens" className="text-sm text-pink-500 font-medium hover:text-pink-600">
+                        <Link to="/drafts" className="text-sm text-pink-500 font-medium hover:text-pink-600">
                             View All
                         </Link>
                     </div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
                                 <p className="text-xs text-indigo-700 leading-relaxed">
                                     Did you know you can share your Smart Quote link directly with clients? Check your settings to get your link!
                                 </p>
-                                <Link to="/smart-quote/settings" className="text-xs font-bold text-indigo-600 mt-3 inline-flex items-center gap-1 hover:text-indigo-800">
+                                <Link to="/settings" className="text-xs font-bold text-indigo-600 mt-3 inline-flex items-center gap-1 hover:text-indigo-800">
                                     Go to Settings <ArrowRight size={12} />
                                 </Link>
                             </div>

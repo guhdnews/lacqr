@@ -42,11 +42,17 @@ export default function ClientModal({ isOpen, mode, onClose, onClientSelected }:
         try {
             const q = query(
                 collection(db, 'clients'),
-                where('userId', '==', user.id),
-                orderBy('createdAt', 'desc')
+                where('userId', '==', user.id)
             );
             const snapshot = await getDocs(q);
-            setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client)));
+            const fetchedClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+            // Sort client-side to avoid index requirement
+            fetchedClients.sort((a, b) => {
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
+            });
+            setClients(fetchedClients);
         } catch (error) {
             console.error("Error fetching clients:", error);
         } finally {
@@ -196,7 +202,7 @@ export default function ClientModal({ isOpen, mode, onClose, onClientSelected }:
                                             onClick={() => setActiveMode('create')}
                                             className="text-pink-600 font-bold mt-2 hover:underline"
                                         >
-                                            Create "{searchQuery}"?
+                                            Create New Client
                                         </button>
                                     </div>
                                 ) : (

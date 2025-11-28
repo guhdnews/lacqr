@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { HelpCircle, ChevronDown, ChevronUp, MessageCircle, BookOpen, ExternalLink, Mail } from 'lucide-react';
+import HelpModal from '../components/HelpModal';
 
 export default function Help() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalContext, setModalContext] = useState<'lacqr_lens' | 'smart_quote'>('lacqr_lens');
 
     const faqs = [
         {
@@ -27,6 +30,11 @@ export default function Help() {
         setOpenFaq(openFaq === index ? null : index);
     };
 
+    const openHelp = (context: 'lacqr_lens' | 'smart_quote') => {
+        setModalContext(context);
+        setShowModal(true);
+    };
+
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 space-y-12">
             <div className="text-center space-y-4">
@@ -39,22 +47,28 @@ export default function Help() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-pink-200 transition-colors group cursor-pointer">
+                <button
+                    onClick={() => openHelp('lacqr_lens')}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-pink-200 transition-colors group cursor-pointer text-left"
+                >
                     <BookOpen className="text-pink-500 mb-4 group-hover:scale-110 transition-transform" size={24} />
                     <h3 className="font-bold text-lg text-charcoal mb-2">Getting Started Guide</h3>
                     <p className="text-sm text-gray-500 mb-4">Learn the basics of scanning, quoting, and managing your services.</p>
                     <span className="text-pink-500 text-sm font-bold flex items-center">
                         Read Guide <ExternalLink size={14} className="ml-1" />
                     </span>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-pink-200 transition-colors group cursor-pointer">
+                </button>
+                <button
+                    onClick={() => openHelp('smart_quote')}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-pink-200 transition-colors group cursor-pointer text-left"
+                >
                     <MessageCircle className="text-purple-500 mb-4 group-hover:scale-110 transition-transform" size={24} />
                     <h3 className="font-bold text-lg text-charcoal mb-2">Smart Quote Tips</h3>
                     <p className="text-sm text-gray-500 mb-4">Master the art of replying to DMs and converting inquiries into bookings.</p>
                     <span className="text-purple-500 text-sm font-bold flex items-center">
                         View Tips <ExternalLink size={14} className="ml-1" />
                     </span>
-                </div>
+                </button>
             </div>
 
             {/* FAQs */}
@@ -102,6 +116,12 @@ export default function Help() {
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-pink-500 rounded-full blur-3xl opacity-20"></div>
                 <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-32 h-32 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
             </div>
+
+            <HelpModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                context={modalContext}
+            />
         </div>
     );
 }
