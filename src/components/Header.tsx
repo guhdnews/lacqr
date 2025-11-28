@@ -22,7 +22,7 @@ export default function Header() {
                 <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
                     <a href="/#features" className="hover:text-pink-500 transition-colors">Features</a>
                     <a href="/#pricing" className="hover:text-pink-500 transition-colors">Pricing</a>
-                    <a href="/#about" className="hover:text-pink-500 transition-colors">About</a>
+                    <Link to="/about" className="hover:text-pink-500 transition-colors">About</Link>
                     <a href="/#faq" className="hover:text-pink-500 transition-colors">FAQ</a>
                 </div>
 
@@ -52,7 +52,7 @@ export default function Header() {
                 <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-pink-50 shadow-lg py-4 px-6 flex flex-col space-y-4">
                     <a href="/#features" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Features</a>
                     <a href="/#pricing" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Pricing</a>
-                    <a href="/#about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</a>
+                    <Link to="/about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</Link>
                     <a href="/#faq" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>FAQ</a>
                     <hr className="border-pink-50" />
                     <Link to="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>

@@ -11,6 +11,7 @@ import ClientProfile from './pages/ClientProfile';
 import { AdminPage } from './pages/AdminPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Onboarding from './pages/Onboarding';
@@ -103,6 +104,7 @@ function App() {
           <Route path="/book/:userId" element={<PublicSmartQuote />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/q/:id" element={<PublicQuote />} />

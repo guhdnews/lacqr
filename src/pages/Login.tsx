@@ -74,13 +74,13 @@ export default function Login() {
             {/* Left Side - Image */}
             <div className="hidden md:block md:w-1/2 lg:w-5/12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/20 z-10"></div>
-                <img 
-                    src="/assets/feature_image_macro.png" 
-                    alt="Detailed Nail Art" 
+                <img
+                    src="/assets/feature_image_macro.png"
+                    alt="Detailed Nail Art"
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute bottom-12 left-12 right-12 z-20 text-white">
-                    <h2 className="text-4xl font-serif font-bold mb-4">Master Your Craft.</h2>
+                    <h2 className="text-4xl font-sans font-bold mb-4">Master Your Craft.</h2>
                     <p className="text-lg text-white/90">Let AI handle the business while you focus on the art.</p>
                 </div>
             </div>
