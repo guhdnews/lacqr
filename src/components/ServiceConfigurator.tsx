@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useServiceStore } from '../store/useServiceStore';
 import { calculatePrice, calculateDuration } from '../utils/pricingCalculator';
-import type { ServiceSelection, SystemType, NailLength, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, ForeignWork, PedicureType } from '../types/serviceSchema';
+import type { ServiceSelection, SystemType, NailLength, NailShape, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, ForeignWork, PedicureType } from '../types/serviceSchema';
 import { Sparkles, AlertCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ServiceConfiguratorProps {
@@ -17,15 +17,33 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
     const [showDebug, setShowDebug] = useState(false);
 
     // Recalculate price and duration whenever selection or menu changes
+    // Recalculate price and duration whenever selection or menu changes
     useEffect(() => {
-        const newPrice = calculatePrice(selection, menu);
+        const priceResult = calculatePrice(selection, menu);
         const newDuration = calculateDuration(selection, menu);
-        setPrice(newPrice);
+        setPrice(priceResult.total);
         setDuration(newDuration);
-        if (onUpdate) {
-            onUpdate(selection);
+
+        // Update selection with new pricing details for the breakdown
+        const updatedSelection = {
+            ...selection,
+            pricingDetails: priceResult
+        };
+
+        // Only trigger update if something actually changed to avoid infinite loops
+        // We can't easily deep compare, but we can check if the total changed or if it's the initial load
+        if (onUpdate && (selection.pricingDetails?.totalPrice !== priceResult.total)) {
+            // We need to be careful here. If we call onUpdate, it might trigger a parent re-render
+            // which passes down a new initialSelection.
+            // Instead of calling onUpdate with the *derived* data, we should just update local state for display
+            // But the breakdown relies on `selection.pricingDetails`.
+            // Let's update the local selection state with the new pricing details.
+            setSelection(prev => ({ ...prev, pricingDetails: priceResult }));
+            onUpdate(updatedSelection);
+        } else if (!selection.pricingDetails) {
+            setSelection(prev => ({ ...prev, pricingDetails: priceResult }));
         }
-    }, [selection, menu, onUpdate]);
+    }, [selection.base, selection.addons, selection.art, selection.bling, selection.modifiers, selection.pedicure, menu]); // Deep dependency check instead of just 'selection'
 
     const updateBase = (field: keyof ServiceSelection['base'], value: any) => {
         setSelection(prev => ({ ...prev, base: { ...prev.base, [field]: value } }));
@@ -112,6 +130,12 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                                     <span className="font-medium">+${selection.pricingDetails.breakdown.materialCharge}</span>
                                 </div>
                             )}
+                            {selection.pricingDetails.breakdown.complexitySurcharge > 0 && (
+                                <div className="flex justify-between text-red-600 font-medium">
+                                    <span>Complexity / Time Surcharge</span>
+                                    <span>+${selection.pricingDetails.breakdown.complexitySurcharge.toFixed(2)}</span>
+                                </div>
+                            )}
                             <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between font-bold">
                                 <span>Total Estimate</span>
                                 <span>${selection.pricingDetails.totalPrice}</span>
@@ -145,10 +169,9 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                                 onChange={(e) => updateBase('shape', e.target.value)}
                                 className="w-full p-3 bg-white rounded-xl border border-pink-100 focus:ring-2 focus:ring-pink-500"
                             >
-                                <option value="Square">Square</option>
-                                <option value="Coffin">Coffin</option>
-                                <option value="Stiletto">Stiletto</option>
-                                <option value="Almond">Almond</option>
+                                {Object.keys(menu.shapeSurcharges).map(shape => (
+                                    <option key={shape} value={shape}>{shape} (+${menu.shapeSurcharges[shape as NailShape]})</option>
+                                ))}
                             </select>
                         </div>
                         <div className="md:col-span-2">
@@ -245,7 +268,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                                         const prevIndex = Math.max(0, currentIndex - 1);
                                         updateBling('density', densities[prevIndex]);
                                     }}
-                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
                                 >-</button>
                                 <span className="font-bold w-24 text-center text-sm">{selection.bling.density}</span>
                                 <button
@@ -255,7 +278,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                                         const nextIndex = Math.min(densities.length - 1, currentIndex + 1);
                                         updateBling('density', densities[nextIndex]);
                                     }}
-                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
                                 >+</button>
                             </div>
                         </div>
@@ -265,12 +288,12 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => updateBling('xlCharmsCount', Math.max(0, selection.bling.xlCharmsCount - 1))}
-                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
                                 >-</button>
                                 <span className="font-bold w-8 text-center">{selection.bling.xlCharmsCount}</span>
                                 <button
                                     onClick={() => updateBling('xlCharmsCount', selection.bling.xlCharmsCount + 1)}
-                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
                                 >+</button>
                             </div>
                         </div>
@@ -280,7 +303,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => updateBling('piercingsCount', Math.max(0, selection.bling.piercingsCount - 1))}
-                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
                                 >-</button>
                                 <span className="font-bold w-8 text-center">{selection.bling.piercingsCount}</span>
                                 <button
@@ -332,7 +355,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                             <div className="flex items-center space-x-3">
                                 <button
                                     onClick={() => updateModifiers('repairsCount', Math.max(0, selection.modifiers.repairsCount - 1))}
-                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+                                    className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
                                 >-</button>
                                 <span className="font-bold w-8 text-center">{selection.modifiers.repairsCount}</span>
                                 <button

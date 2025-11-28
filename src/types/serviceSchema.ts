@@ -1,5 +1,5 @@
 export type SystemType = 'Acrylic' | 'Gel-X' | 'Hard Gel' | 'Structure Gel';
-export type NailShape = 'Square' | 'Coffin' | 'Stiletto' | 'Almond';
+export type NailShape = 'Square' | 'Coffin' | 'Stiletto' | 'Almond' | 'Squoval' | 'Ballerina' | 'Lipstick' | 'Duck';
 export type NailLength = 'Short' | 'Medium' | 'Long' | 'XL' | 'XXL';
 export type FinishType = 'Glossy' | 'Matte';
 export type SpecialtyEffect = 'None' | 'Chrome' | 'Holo' | 'Cat Eye';
@@ -15,6 +15,7 @@ export interface ServiceSelection {
         system: SystemType;
         shape: NailShape;
         length: NailLength;
+        isFill?: boolean; // Added isFill flag
     };
     addons: {
         finish: FinishType;
@@ -38,6 +39,7 @@ export interface ServiceSelection {
         type: PedicureType;
         toeArtMatch: boolean;
     };
+    extras?: { name: string; price: number }[]; // Added Extras
     visual_description?: string;
     appointmentTime?: string; // ISO Date String
 
@@ -48,12 +50,15 @@ export interface ServiceSelection {
     confidence?: number;
     reasoning?: string;
     aiDescription?: string; // Natural language description from Moondream
+    estimatedDuration?: number; // AI estimated duration in minutes
 }
 
 // The "Menu" - Prices for each option
 export interface MasterServiceMenu {
     basePrices: Record<SystemType, number>;
+    fillPrices: Record<SystemType, number>; // Added Fill Prices
     lengthSurcharges: Record<NailLength, number>;
+    shapeSurcharges: Record<NailShape, number>; // Added Shape Surcharges
     finishSurcharges: Record<FinishType, number>;
     specialtySurcharges: Record<SpecialtyEffect, number>;
     classicDesignSurcharges: Record<ClassicDesign, number>;
@@ -71,6 +76,7 @@ export interface MasterServiceMenu {
     // Duration Constants (Minutes)
     durations: {
         base: Record<SystemType, number>;
+        fill: Record<SystemType, number>; // Added Fill Durations
         length: Record<NailLength, number>;
         art: Record<ArtLevel, number>;
         bling: Record<BlingDensity, number>;
@@ -86,12 +92,28 @@ export const DEFAULT_MENU: MasterServiceMenu = {
         'Hard Gel': 60,
         'Structure Gel': 50
     },
+    fillPrices: {
+        'Acrylic': 45,
+        'Gel-X': 55, // Gel-X usually requires full removal, but some do fills
+        'Hard Gel': 50,
+        'Structure Gel': 40
+    },
     lengthSurcharges: {
         'Short': 0,
         'Medium': 5,
         'Long': 10,
         'XL': 15,
         'XXL': 20
+    },
+    shapeSurcharges: {
+        'Square': 0,
+        'Squoval': 0,
+        'Coffin': 0,
+        'Almond': 5,
+        'Stiletto': 5,
+        'Ballerina': 5,
+        'Lipstick': 5,
+        'Duck': 10
     },
     finishSurcharges: {
         'Glossy': 0,
@@ -143,6 +165,12 @@ export const DEFAULT_MENU: MasterServiceMenu = {
             'Gel-X': 45,
             'Hard Gel': 60,
             'Structure Gel': 45
+        },
+        fill: {
+            'Acrylic': 45,
+            'Gel-X': 45,
+            'Hard Gel': 45,
+            'Structure Gel': 30
         },
         length: {
             'Short': 0,

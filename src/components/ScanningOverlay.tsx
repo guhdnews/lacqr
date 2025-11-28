@@ -16,18 +16,29 @@ const STEPS = [
 
 export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlayProps) {
     const [activeStep, setActiveStep] = useState(0);
+    const [showLongWait, setShowLongWait] = useState(false);
 
     useEffect(() => {
         if (!isVisible) {
             setActiveStep(0);
+            setShowLongWait(false);
             return;
         }
 
-        const interval = setInterval(() => {
+        // Step Animation
+        const stepInterval = setInterval(() => {
             setActiveStep(prev => (prev < STEPS.length - 1 ? prev + 1 : prev));
-        }, 1500); // Change step every 1.5s
+        }, 1500);
 
-        return () => clearInterval(interval);
+        // Long Wait Timer (10s)
+        const waitTimer = setTimeout(() => {
+            setShowLongWait(true);
+        }, 10000);
+
+        return () => {
+            clearInterval(stepInterval);
+            clearTimeout(waitTimer);
+        };
     }, [isVisible]);
 
     if (!isVisible) return null;
@@ -81,6 +92,13 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
                     >
                         Cancel Scan
                     </button>
+                )}
+
+                {/* Cold Start Warning (Time-Based) */}
+                {showLongWait && (
+                    <p className="text-xs text-amber-600 animate-in fade-in slide-in-from-bottom-2 duration-1000 mt-4 max-w-[200px] mx-auto">
+                        First scans take a little longer... hang tight! ⏳
+                    </p>
                 )}
 
                 <p className="text-xs text-gray-400 animate-pulse mt-4">

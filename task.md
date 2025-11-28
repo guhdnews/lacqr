@@ -12,4 +12,12 @@
 - [x] Fix Moondream Deployment & Improve Accuracy (Implemented Open-World Pipeline) <!-- id: 6 -->
 - [x] Final Deployment (Modal, Vercel, Git) <!-- id: 7 -->
 - [x] Debug Accuracy & Remove Simulation Fallback (Gemini-First Approach) <!-- id: 8 -->
-- [ ] Redeploy with Accuracy Fixes & AI Inspector <!-- id: 9 -->
+- [x] Redeploy with Accuracy Fixes & AI Inspector <!-- id: 9 -->
+- [x] Debug Empty Florence Results (Backend Update) <!-- id: 10 -->
+- [x] Tune Pricing & Complexity Logic (Leverage Florence Data) <!-- id: 11 -->
+- [x] Implement Time-Based Pricing (Hourly Rate Sanity Check) <!-- id: 12 -->
+- [x] Gap Analysis & Polish (Error Handling, Mobile UI) <!-- id: 13 -->
+- [x] Deep Logic Audit & Comprehensive Mapping (Shapes, Art, Finishes) <!-- id: 14 -->
+- [x] Refine Shape (Coffin vs Stiletto) & Description Detail <!-- id: 15 -->
+- [x] Implement Time-Based Loading Notification (10s threshold) <!-- id: 16 -->
+- [ ] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 17 -->

@@ -12,7 +12,7 @@ app = modal.App("lacqr-brain")
 # Define the image with all necessary dependencies
 image = (
     modal.Image.debian_slim()
-    .apt_install("git", "libglib2.0-0", "libsm6", "libxext6", "libxrender-dev", "libgl1")
+    .apt_install("git", "libglib2.0-0", "libsm6", "libxext6", "libxrender-dev", "libgl1", "wget")
     .pip_install(
         "ultralytics",
         "opencv-python-headless",
@@ -25,7 +25,7 @@ image = (
         "sahi",
         "torch",
         "torchvision",
-        "transformers", # Latest version for Florence-2
+        "transformers==4.45.2", # Downgraded to fix '_supports_sdpa' error
         "fastapi",
         "einops", 
         "timm"
@@ -45,13 +45,14 @@ zilliz_secret = modal.Secret.from_dict({
 # --- THE BRAIN ---
 @app.cls(
     image=image,
-    gpu="L4", 
+    gpu="T4",  # Downgraded from L4 to T4 for cost savings
     secrets=[zilliz_secret],
-    # keep_warm=1, # REMOVED to save credits
-    concurrency_limit=10,
+    concurrency_limit=1, # Limit concurrency to 1 to prevent cost spikes
     timeout=600 
 )
 class LacqrBrain:
+    loading_errors = {} # Class-level storage for errors
+
     @modal.enter()
     def load_models(self):
         self.yolo = None
@@ -60,6 +61,7 @@ class LacqrBrain:
         self.florence_model = None
         self.florence_processor = None
         self.dinov2 = None
+        self.loading_errors = {}
 
         try:
             print("🧠 Loading Models (Open-World Stack)...")
@@ -69,13 +71,14 @@ class LacqrBrain:
             from sam2.sam2_image_predictor import SAM2ImagePredictor
             from transformers import AutoProcessor, AutoModelForCausalLM
             from pymilvus import connections
+            import requests # Import requests for downloading
 
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
             print(f"🚀 Device: {self.device}")
 
-            # 1. Load Custom YOLOv11 (Stage 1A: The Filter/Nail Plate)
-            model_path = "/root/best.pt"
+            # 1. Load Custom YOLOv11
             try:
+                model_path = "/root/best.pt"
                 if os.path.exists(model_path):
                     print(f"✅ Loading Custom YOLOv11: {model_path}")
                     self.yolo = YOLO(model_path)
@@ -84,27 +87,35 @@ class LacqrBrain:
                     self.yolo = YOLO("yolo11m-seg.pt")
             except Exception as e:
                 print(f"❌ Failed to load Custom YOLO: {e}")
+                self.loading_errors["yolo"] = str(e)
                 self.yolo = YOLO("yolo11m-seg.pt")
 
-            # 2. Load YOLO-World (Stage 1B: The Microscope)
+            # 2. Load YOLO-World
             try:
                 print("🌍 Loading YOLO-World...")
                 self.yolo_world = YOLO("yolov8s-world.pt") 
                 self.yolo_world.set_classes(["charm", "gem", "sticker", "dried flower", "pearl", "chain", "3d art", "french tip", "chrome"])
             except Exception as e:
                 print(f"❌ Failed to load YOLO-World: {e}")
+                self.loading_errors["yolo_world"] = str(e)
 
-            # 3. Load SAM 2 (Stage 2: The Scalpel)
+            # 3. Load SAM 2
             try:
                 sam2_checkpoint = "sam2_hiera_large.pt"
                 if not os.path.exists(sam2_checkpoint):
                     print("Downloading SAM 2 Checkpoint...")
-                    os.system(f"wget https://dl.fbaipublicfiles.com/segment_anything_2/072824/{sam2_checkpoint}")
+                    # Use requests instead of os.system(wget) for reliability
+                    url = f"https://dl.fbaipublicfiles.com/segment_anything_2/072824/{sam2_checkpoint}"
+                    resp = requests.get(url)
+                    with open(sam2_checkpoint, 'wb') as f:
+                        f.write(resp.content)
+                        
                 self.sam2_predictor = SAM2ImagePredictor(build_sam2("sam2_hiera_l.yaml", sam2_checkpoint, device=self.device))
             except Exception as e:
                 print(f"❌ Failed to load SAM 2: {e}")
+                self.loading_errors["sam2"] = str(e)
 
-            # 3.5 Load Florence-2 (Stage 3.5: The Scribe)
+            # 3.5 Load Florence-2
             try:
                 print("📜 Loading Florence-2 (The Scribe)...")
                 model_id = "microsoft/Florence-2-base"
@@ -112,16 +123,18 @@ class LacqrBrain:
                 self.florence_processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
             except Exception as e:
                 print(f"❌ Failed to load Florence-2: {e}")
+                self.loading_errors["florence"] = str(e)
 
-            # 4. Load DINOv2 (Stage 3: The Physicist)
+            # 4. Load DINOv2
             try:
                 print("🦖 Loading DINOv2...")
                 self.dinov2 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14').to(self.device)
                 self.dinov2.eval()
             except Exception as e:
                 print(f"❌ Failed to load DINOv2: {e}")
+                self.loading_errors["dinov2"] = str(e)
 
-            # 5. Connect to Milvus (Stage 4: The Memory)
+            # 5. Connect to Milvus
             try:
                 print("🔌 Connecting to Zilliz...")
                 connections.connect(
@@ -131,11 +144,13 @@ class LacqrBrain:
                 )
             except Exception as e:
                 print(f"❌ Failed to connect to Zilliz: {e}")
+                self.loading_errors["milvus"] = str(e)
 
             print("✅ Open-World Stack Loaded!")
         
         except Exception as e:
             print(f"🔥 CRITICAL ERROR IN LOAD_MODELS: {e}")
+            self.loading_errors["critical"] = str(e)
             import traceback
             traceback.print_exc()
 
@@ -158,7 +173,12 @@ class LacqrBrain:
             )
             generated_text = self.florence_processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
             parsed_answer = self.florence_processor.post_process_generation(generated_text, task=task_prompt, image_size=(image.width, image.height))
+            
+            # Extract actual content from dict
+            if isinstance(parsed_answer, dict):
+                return parsed_answer.get(task_prompt, parsed_answer)
             return parsed_answer
+            
         except Exception as e:
             return f"Florence Error: {e}"
 
@@ -231,11 +251,11 @@ class LacqrBrain:
         if self.florence_model:
             try:
                 print("✍️ Generating Florence-2 Captions...")
-                # 1. Dense Captioning (Detailed description of the whole image)
+                # 1. Dense Captioning
                 dense_caption = self.run_florence(pil_image, "<MORE_DETAILED_CAPTION>")
                 florence_captions["dense"] = dense_caption
                 
-                # 2. Object Detection (Open Vocabulary check)
+                # 2. Object Detection
                 od_result = self.run_florence(pil_image, "<OD>")
                 florence_captions["od"] = od_result
                 
@@ -243,6 +263,10 @@ class LacqrBrain:
             except Exception as e:
                 print(f"❌ Florence Failed: {e}")
                 florence_captions["error"] = str(e)
+        else:
+            florence_captions["error"] = "Model not loaded"
+            if "florence" in self.loading_errors:
+                florence_captions["loading_error"] = self.loading_errors["florence"]
 
         # --- STAGE 3: THE PHYSICIST (DINOv2) ---
         if self.dinov2:
@@ -269,12 +293,13 @@ class LacqrBrain:
             "objects": detections,
             "florence": florence_captions,
             "materials": material_tags,
+            "loading_errors": self.loading_errors, # Return errors to frontend
             "meta": {
                 "gpu": "L4",
                 "stages": ["YOLOv11", "YOLO-World", "Florence-2", "DINOv2"]
             }
         }
-
+    
 @app.function(image=image)
 @modal.web_endpoint(method="POST")
 def analyze_image(item: dict):

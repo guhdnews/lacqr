@@ -8,7 +8,7 @@ import ServiceMenu from './pages/ServiceMenu';
 import PublicBooking from './pages/PublicBooking';
 import ClientList from './pages/ClientList';
 import ClientProfile from './pages/ClientProfile';
-import AdminDashboard from './pages/AdminDashboard';
+import { AdminPage } from './pages/AdminPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -17,6 +17,9 @@ import Onboarding from './pages/Onboarding';
 import Help from './pages/Help';
 import PublicQuote from './pages/PublicQuote';
 import LacqrTrainer from './pages/LacqrTrainer';
+import PublicSmartQuote from './pages/public/PublicSmartQuote';
+import EmbedSmartQuote from './pages/public/EmbedSmartQuote';
+import SmartQuoteSettings from './pages/SmartQuoteSettings';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAppStore } from './store/useAppStore';
@@ -84,10 +87,14 @@ function App() {
 
   return (
     <Routes>
+      {/* Embed Route (No Layout) */}
+      <Route path="/embed/:userId" element={<EmbedSmartQuote />} />
+
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/book" element={<PublicBooking />} />
+        <Route path="/book/:userId" element={<PublicSmartQuote />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -104,12 +111,17 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/help" element={<Help />} />
         <Route path="/lacqr-lens" element={<LacqrLens />} />
+
+
+        // ... (inside ProtectedRoute)
+
         <Route path="/smart-quote" element={<SmartQuote />} />
+        <Route path="/smart-quote/settings" element={<SmartQuoteSettings />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/menu" element={<ServiceMenu />} />
         <Route path="/clients" element={<ClientList />} />
         <Route path="/clients/:id" element={<ClientProfile />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/trainer" element={<LacqrTrainer />} />
       </Route>
     </Routes>

@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, Check, Save, Share2, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { AI_SERVICE } from '../services/ai';
 import { isImageBlurry, compressImage } from '../utils/imageProcessing';
+import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import type { ServiceSelection } from '../types/serviceSchema';
+import type { Client } from '../types/client';
 import ScanningOverlay from '../components/ScanningOverlay';
 import { useCooldown } from '../hooks/useCooldown';
 import HelpModal from '../components/HelpModal';
 import { useServiceStore } from '../store/useServiceStore';
 import { useAppStore } from '../store/useAppStore';
-import type { Client } from '../types/client';
 import ServiceConfigurator from '../components/ServiceConfigurator';
 import { calculatePrice } from '../utils/pricingCalculator';
+import { ReceiptBuilder } from '../components/admin/ReceiptBuilder';
+import ClientModal from '../components/ClientModal';
+import FeedbackModal from '../components/FeedbackModal';
+
+type LensStep = 'scan' | 'configure' | 'receipt';
 
 export default function LacqrLens() {
     const { menu } = useServiceStore();
@@ -21,11 +26,16 @@ export default function LacqrLens() {
     const [result, setResult] = useState<ServiceSelection | null>(null);
     const [isBlurry, setIsBlurry] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
-    const [isSaving, setIsSaving] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
-    const [correctionMode, setCorrectionMode] = useState(false);
+    const [step, setStep] = useState<LensStep>('scan');
+
+    // Client Modal State
+    const [clientModalOpen, setClientModalOpen] = useState(false);
+    const [clientModalMode, setClientModalMode] = useState<'create' | 'assign'>('create');
+
+    // Feedback Modal State
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
     const { isCoolingDown, remainingTime, startCooldown } = useCooldown({
         cooldownTime: 10000, // 10 seconds cooldown between scans
@@ -35,29 +45,6 @@ export default function LacqrLens() {
     const [error, setError] = useState<string | null>(null);
 
     const { user } = useAppStore();
-    const [clients, setClients] = useState<Client[]>([]);
-    const [selectedClientId, setSelectedClientId] = useState<string>("");
-
-    useEffect(() => {
-        if (user && user.id) {
-            const fetchClients = async () => {
-                try {
-                    const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore');
-                    const { db } = await import('../lib/firebase');
-                    const q = query(
-                        collection(db, 'clients'),
-                        where('userId', '==', user.id),
-                        orderBy('createdAt', 'desc')
-                    );
-                    const snapshot = await getDocs(q);
-                    setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client)));
-                } catch (error) {
-                    console.error("Error fetching clients", error);
-                }
-            };
-            fetchClients();
-        }
-    }, [user]);
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -89,15 +76,15 @@ export default function LacqrLens() {
 
             setIsAnalyzing(true);
             setResult(null);
-            setSaveSuccess(false);
             setError(null);
-            setCorrectionMode(false);
+            setStep('scan'); // Reset step
 
             try {
                 // Compress image before sending to AI
                 const compressedFile = await compressImage(file);
                 const analysis = await AI_SERVICE.analyzeImage(compressedFile); // No longer passing menu, AI returns ServiceSelection
                 setResult(analysis);
+                setStep('configure'); // Move to configure step
                 startCooldown();
             } catch (error: any) {
                 console.error("Analysis failed", error);
@@ -115,92 +102,73 @@ export default function LacqrLens() {
         setIsAnalyzing(false);
         setIsBlurry(false);
         setZoomLevel(1);
-        setSaveSuccess(false);
-        setCorrectionMode(false);
+        setStep('scan');
     };
 
     const toggleZoom = () => {
         setZoomLevel(prev => prev === 1 ? 2.5 : 1);
     };
 
-    const saveCorrection = async () => {
-        if (!result || !image) return;
-        setIsSaving(true);
+    // --- Receipt Actions ---
+    const handleSaveDraft = async (finalSelection: ServiceSelection) => {
+        if (!user) {
+            alert("Please log in to save drafts.");
+            return;
+        }
+
         try {
-            // Upload Image to Firebase Storage
-            const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
-            const { storage } = await import('../lib/firebase');
+            const totalPrice = calculatePrice(finalSelection, menu);
 
-            const filename = `training/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-            const storageRef = ref(storage, filename);
-
-            // Upload base64 string
-            await uploadString(storageRef, image, 'data_url');
-            const imageUrl = await getDownloadURL(storageRef);
-
-            await addDoc(collection(db, 'training_data'), {
-                finalSelection: result,
-                imageUrl: imageUrl,
-                timestamp: serverTimestamp(),
-                deviceInfo: {
-                    userAgent: navigator.userAgent,
-                    screenSize: `${window.innerWidth}x${window.innerHeight}`
-                },
-                correctionType: ['smart_configurator']
+            await addDoc(collection(db, 'quotes'), {
+                type: 'draft',
+                data: finalSelection,
+                totalPrice: totalPrice,
+                createdAt: new Date(),
+                salonName: user.name || "Your Salon",
+                userId: user.id,
+                status: 'draft'
             });
 
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
+            alert("Draft saved successfully!");
+            reset(); // Go back to scan
         } catch (error) {
-            console.error("Error saving correction:", error);
-            alert("Failed to save correction. Please try again.");
-        } finally {
-            setIsSaving(false);
+            console.error("Error saving draft:", error);
+            alert("Failed to save draft.");
         }
     };
 
-    const shareQuote = async () => {
-        if (!result) return;
+    const handleAssignClient = () => {
+        setClientModalMode('assign');
+        setClientModalOpen(true);
+    };
+
+    const handleCreateClient = () => {
+        setClientModalMode('create');
+        setClientModalOpen(true);
+    };
+
+    const handleClientSelected = async (client: Client) => {
+        if (!result || !user) return;
+
         try {
-            const { addDoc, collection } = await import('firebase/firestore');
-            const { db } = await import('../lib/firebase');
-
             const totalPrice = calculatePrice(result, menu);
-
-            const quoteData = {
-                type: 'lens_v2',
+            await addDoc(collection(db, 'quotes'), {
+                type: 'assigned',
                 data: result,
                 totalPrice: totalPrice,
                 createdAt: new Date(),
-                salonName: user?.name || "Your Salon",
-                clientId: selectedClientId || null,
-                clientName: selectedClientId ? clients.find(c => c.id === selectedClientId)?.name : null
-            };
+                salonName: user.name || "Your Salon",
+                userId: user.id,
+                clientId: client.id,
+                clientName: client.name,
+                status: 'pending'
+            });
 
-            const docRef = await addDoc(collection(db, 'quotes'), quoteData);
-
-            // If a client is selected, update their history
-            if (selectedClientId) {
-                const clientRef = doc(db, 'clients', selectedClientId);
-                await updateDoc(clientRef, {
-                    lastVisit: new Date(),
-                    history: arrayUnion({
-                        id: docRef.id,
-                        date: new Date(),
-                        service: `${result.base.system} ${result.base.length}`,
-                        price: totalPrice,
-                        notes: "Generated via Lacqr Lens V2",
-                        image: image
-                    })
-                });
-            }
-
-            const url = `${window.location.origin}/q/${docRef.id}`;
-            await navigator.clipboard.writeText(url);
-            alert("Link copied to clipboard! Send it to your client.");
+            alert(`Quote saved for ${client.name}!`);
+            reset();
         } catch (error) {
-            console.error("Error sharing quote:", error);
-            alert("Failed to create share link.");
+            console.error("Error saving quote:", error);
+            alert("Failed to save quote.");
         }
     };
 
@@ -231,9 +199,29 @@ export default function LacqrLens() {
                         <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
                         <div className="flex-1">
                             <h3 className="text-sm font-bold text-red-800 mb-1">Analysis Failed</h3>
-                            <p className="text-xs text-red-700 break-words mb-2">
+                            <p className="text-xs text-red-700 break-words mb-3">
                                 {error}
                             </p>
+                            <button
+                                onClick={() => {
+                                    setError(null);
+                                    // Create a default empty selection
+                                    setResult({
+                                        base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
+                                        addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
+                                        art: { level: null },
+                                        bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
+                                        modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
+                                        pedicure: { type: 'None', toeArtMatch: false },
+                                        estimatedDuration: 0,
+                                        aiDescription: "Manual Configuration"
+                                    });
+                                    setStep('configure');
+                                }}
+                                className="text-xs font-bold bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                            >
+                                Configure Manually
+                            </button>
                         </div>
                         <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 ml-2">
                             <X size={16} />
@@ -251,125 +239,102 @@ export default function LacqrLens() {
                 }}
             />
 
-            {/* Upload Area */}
-            {!image ? (
-                <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
-                    <input type="file" ref={fileInputRef} accept="image/*" onChange={handleUpload} className="hidden" />
-                    <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Camera size={32} className="text-pink-500" />
-                    </div>
-                    <span className="font-medium text-gray-500 group-hover:text-pink-500 transition-colors">Tap to Scan Design</span>
-                    <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
-                </label>
-            ) : (
-                <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
-                    <div
-                        className="w-full h-full overflow-hidden cursor-zoom-in"
-                        onClick={toggleZoom}
-                    >
-                        <img
-                            src={image}
-                            alt="Uploaded"
-                            className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
-                            style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
-                        />
+            {/* Upload Area (Only show in 'scan' or 'configure' step) */}
+            {step !== 'receipt' && (
+                !image ? (
+                    <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
+                        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleUpload} className="hidden" />
+                        <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <Camera size={32} className="text-pink-500" />
+                        </div>
+                        <span className="font-medium text-gray-500 group-hover:text-pink-500 transition-colors">Tap to Scan Design</span>
+                        <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
+                    </label>
+                ) : (
+                    <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
+                        <div
+                            className="w-full h-full overflow-hidden cursor-zoom-in"
+                            onClick={toggleZoom}
+                        >
+                            <img
+                                src={image}
+                                alt="Uploaded"
+                                className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
+                                style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
+                            />
+                        </div>
 
-                        {/* Bounding Box Overlay */}
-                        {!isAnalyzing && result?.modalResult?.objects && (
-                            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}>
-                                {result.modalResult.objects.map((_obj: any, _i: number) => {
-                                    // Convert normalized coordinates (if needed) or use pixel values
-                                    // Assuming box is [x1, y1, x2, y2] in pixels relative to the original image
-                                    // We need to map this to the displayed image size. 
-                                    // For simplicity in this "contain" mode, we might need more complex mapping.
-                                    // BUT, if the backend returns normalized coordinates (0-1), it's easier.
-                                    // Let's assume pixel values for now and try to render them directly if possible, 
-                                    // or just render a simple overlay if we can't map perfectly without image dimensions.
+                        {/* Enlarge Button */}
+                        {!isAnalyzing && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowFullImage(true);
+                                }}
+                                className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
+                            >
+                                <ZoomIn size={20} />
+                            </button>
+                        )}
 
-                                    // Actually, let's use a simpler approach: Just show the label if we can't map perfectly yet.
-                                    // Or better: The backend returns pixel values. We need the original image size to map to the rendered size.
-                                    // Since we don't have easy access to naturalWidth/Height here without an onLoad handler,
-                                    // let's try to render them assuming the SVG matches the image aspect ratio (which it might not in 'object-contain').
+                        {!isAnalyzing && (
+                            <button
+                                onClick={reset}
+                                className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
+                            >
+                                <X size={20} />
+                            </button>
+                        )}
 
-                                    // STRATEGY: Use a percentage-based approach if possible, or just render the boxes 
-                                    // if we assume the image fills the container (which it doesn't always).
+                        {/* Zoom Hint */}
+                        {!isAnalyzing && (
+                            <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
+                                {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
+                                <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
+                            </div>
+                        )}
 
-                                    // For this iteration, let's just add a "Debug" list of detections below the image 
-                                    // if we can't do perfect boxes, OR try to do boxes if we assume the image is 640x640 (YOLO standard).
-
-                                    // Let's try to render them assuming the backend sends normalized coordinates? 
-                                    // No, YOLO sends pixels. 
-
-                                    // Let's skip the complex SVG for a second and add the "Itemized Breakdown" the user asked for first,
-                                    // as that is easier and high value.
-
-                                    return null;
-                                })}
-                            </svg>
+                        {/* Blurry Warning Overlay */}
+                        {!isAnalyzing && isBlurry && (
+                            <div className="absolute bottom-4 left-4 right-16 bg-yellow-500/90 backdrop-blur-md p-3 rounded-xl flex items-center text-white shadow-lg animate-in slide-in-from-bottom-2 pointer-events-none">
+                                <AlertTriangle size={20} className="mr-3 flex-shrink-0" />
+                                <p className="text-xs font-bold">Image appears blurry. Results may be less accurate.</p>
+                            </div>
                         )}
                     </div>
-
-                    {/* Enlarge Button */}
-                    {!isAnalyzing && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowFullImage(true);
-                            }}
-                            className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                        >
-                            <ZoomIn size={20} />
-                        </button>
-                    )}
-
-                    {!isAnalyzing && (
-                        <button
-                            onClick={reset}
-                            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                        >
-                            <X size={20} />
-                        </button>
-                    )}
-
-                    {/* Zoom Hint */}
-                    {!isAnalyzing && (
-                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                            {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
-                            <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
-                        </div>
-                    )}
-
-                    {/* Blurry Warning Overlay */}
-                    {!isAnalyzing && isBlurry && (
-                        <div className="absolute bottom-4 left-4 right-16 bg-yellow-500/90 backdrop-blur-md p-3 rounded-xl flex items-center text-white shadow-lg animate-in slide-in-from-bottom-2 pointer-events-none">
-                            <AlertTriangle size={20} className="mr-3 flex-shrink-0" />
-                            <p className="text-xs font-bold">Image appears blurry. Results may be less accurate.</p>
-                        </div>
-                    )}
-                </div>
+                )
             )}
 
-            {/* Results Card */}
-            {result && (
+            {/* STEP 2: Configuration */}
+            {step === 'configure' && result && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500">
 
                     {/* Visual Description Card */}
                     {result.visual_description && (
-                        <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
+                        <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl relative">
                             <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">AI Visual Analysis</h4>
-                            <p className="text-sm text-indigo-900 italic">"{result.visual_description}"</p>
+                            <p className="text-sm text-indigo-900 italic mb-3">"{result.visual_description}"</p>
+
+                            {/* Feedback Buttons */}
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    onClick={() => setFeedbackModalOpen(true)}
+                                    className="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors"
+                                    title="Good analysis"
+                                >
+                                    <ThumbsUp size={16} />
+                                </button>
+                                <button
+                                    onClick={() => setFeedbackModalOpen(true)}
+                                    className="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors"
+                                    title="Bad analysis"
+                                >
+                                    <ThumbsDown size={16} />
+                                </button>
+                            </div>
                         </div>
                     )}
 
-                    {/* Tech Override Toggle */}
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => setCorrectionMode(!correctionMode)}
-                            className={`text-sm font-bold underline ${correctionMode ? 'text-pink-500' : 'text-gray-400 hover:text-gray-600'}`}
-                        >
-                            {correctionMode ? 'Hide Configurator' : 'Tech Override / Correct'}
-                        </button>
-                    </div>
 
                     {/* Service Configurator */}
                     <ServiceConfigurator
@@ -377,47 +342,35 @@ export default function LacqrLens() {
                         onUpdate={(updatedSelection) => setResult(updatedSelection)}
                     />
 
-                    {/* Client Selection */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Link to Client (Optional)</p>
-                        <select
-                            value={selectedClientId}
-                            onChange={(e) => setSelectedClientId(e.target.value)}
-                            className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium text-charcoal focus:outline-none focus:border-pink-300"
+                    {/* Next Button */}
+                    <button
+                        onClick={() => setStep('receipt')}
+                        className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                        <span>Generate Receipt</span>
+                        <ArrowRight size={20} />
+                    </button>
+                </div>
+            )}
+
+            {/* STEP 3: Final Receipt */}
+            {step === 'receipt' && result && (
+                <div className="space-y-6 animate-in slide-in-from-right-10 fade-in duration-500">
+                    <div className="flex items-center gap-2 mb-4">
+                        <button
+                            onClick={() => setStep('configure')}
+                            className="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-sm font-medium"
                         >
-                            <option value="">Select a client...</option>
-                            {clients.map(client => (
-                                <option key={client.id} value={client.id}>{client.name}</option>
-                            ))}
-                        </select>
+                            <ArrowLeft size={16} /> Back to Edit
+                        </button>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex space-x-3">
-                        <button
-                            onClick={saveCorrection}
-                            disabled={isSaving}
-                            className={`flex-1 py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center space-x-2 ${saveSuccess ? 'bg-green-500' : 'bg-charcoal hover:bg-black'}`}
-                        >
-                            {saveSuccess ? (
-                                <>
-                                    <Check size={20} />
-                                    <span>Saved!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={20} />
-                                    <span>{isSaving ? 'Saving...' : 'Confirm'}</span>
-                                </>
-                            )}
-                        </button>
-                        <button
-                            onClick={shareQuote}
-                            className="p-4 rounded-xl font-bold text-gray-500 shadow-lg transition-all flex items-center justify-center bg-white hover:text-pink-500"
-                        >
-                            <Share2 size={20} />
-                        </button>
-                    </div>
+                    <ReceiptBuilder
+                        initialSelection={result}
+                        onSaveDraft={handleSaveDraft}
+                        onAssignClient={handleAssignClient}
+                        onCreateClient={handleCreateClient}
+                    />
                 </div>
             )}
 
@@ -438,6 +391,22 @@ export default function LacqrLens() {
                     />
                 </div>
             )}
+
+            {/* Client Modal */}
+            <ClientModal
+                isOpen={clientModalOpen}
+                mode={clientModalMode}
+                onClose={() => setClientModalOpen(false)}
+                onClientSelected={handleClientSelected}
+            />
+
+            {/* Feedback Modal */}
+            <FeedbackModal
+                isOpen={feedbackModalOpen}
+                onClose={() => setFeedbackModalOpen(false)}
+                context="lacqr_lens"
+                aiResult={result}
+            />
         </div>
     );
 }

@@ -1,47 +1,102 @@
 import type { ServiceSelection, MasterServiceMenu } from '../types/serviceSchema';
 
-export function calculatePrice(selection: ServiceSelection, menu: MasterServiceMenu): number {
-    let total = 0;
+export interface PriceResult {
+    total: number;
+    breakdown: {
+        base: number;
+        length: number;
+        shape: number; // Added Shape
+        addons: number;
+        art: number;
+        bling: number;
+        modifiers: number;
+        pedicure: number;
+        extras: number; // Added Extras
+        complexitySurcharge: number;
+    };
+}
 
-    // 1. Base Price
-    total += menu.basePrices[selection.base.system] || 0;
+export function calculatePrice(selection: ServiceSelection, menu: MasterServiceMenu): PriceResult {
+    let breakdown = {
+        base: 0,
+        length: 0,
+        shape: 0, // Added Shape
+        addons: 0,
+        art: 0,
+        bling: 0,
+        modifiers: 0,
+        pedicure: 0,
+        extras: 0, // Added Extras
+        complexitySurcharge: 0
+    };
+
+    // 1. Base Price (Full Set vs Fill)
+    if (selection.base.isFill) {
+        breakdown.base += menu.fillPrices[selection.base.system] || 0;
+    } else {
+        breakdown.base += menu.basePrices[selection.base.system] || 0;
+    }
 
     // 2. Length Surcharge
-    total += menu.lengthSurcharges[selection.base.length] || 0;
+    breakdown.length += menu.lengthSurcharges[selection.base.length] || 0;
 
-    // 3. Global Add-ons
-    total += menu.finishSurcharges[selection.addons.finish] || 0;
-    total += menu.specialtySurcharges[selection.addons.specialtyEffect] || 0;
-    total += menu.classicDesignSurcharges[selection.addons.classicDesign] || 0;
+    // 3. Shape Surcharge
+    breakdown.shape += menu.shapeSurcharges[selection.base.shape] || 0;
 
-    // 4. Art Complexity
+    // 4. Global Add-ons
+    breakdown.addons += menu.finishSurcharges[selection.addons.finish] || 0;
+    breakdown.addons += menu.specialtySurcharges[selection.addons.specialtyEffect] || 0;
+    breakdown.addons += menu.classicDesignSurcharges[selection.addons.classicDesign] || 0;
+
+    // 5. Art Complexity
     if (selection.art.level) {
-        total += menu.artLevelPrices[selection.art.level] || 0;
+        breakdown.art += menu.artLevelPrices[selection.art.level] || 0;
     }
 
-    // 5. Bling & Hardware
-    total += menu.blingDensityPrices[selection.bling.density] || 0;
-    total += (selection.bling.xlCharmsCount || 0) * menu.unitPrices.xlCharms;
-    total += (selection.bling.piercingsCount || 0) * menu.unitPrices.piercings;
+    // 6. Bling & Hardware
+    breakdown.bling += menu.blingDensityPrices[selection.bling.density] || 0;
+    breakdown.bling += (selection.bling.xlCharmsCount || 0) * menu.unitPrices.xlCharms;
+    breakdown.bling += (selection.bling.piercingsCount || 0) * menu.unitPrices.piercings;
 
-    // 6. Modifiers
-    total += menu.modifierSurcharges[selection.modifiers.foreignWork] || 0;
-    total += (selection.modifiers.repairsCount || 0) * menu.unitPrices.repairs;
+    // 7. Modifiers
+    breakdown.modifiers += menu.modifierSurcharges[selection.modifiers.foreignWork] || 0;
+    breakdown.modifiers += (selection.modifiers.repairsCount || 0) * menu.unitPrices.repairs;
 
     if (selection.modifiers.soakOffOnly) {
-        total += menu.unitPrices.soakOff;
+        breakdown.modifiers += menu.unitPrices.soakOff;
     }
 
-    // 7. Pedicure
-    total += menu.pedicurePrices[selection.pedicure.type] || 0;
+    // 8. Pedicure
+    breakdown.pedicure += menu.pedicurePrices[selection.pedicure.type] || 0;
 
     // Pedicure Art Match Logic: (Hand_Art_Tier_Price * 0.5)
     if (selection.pedicure.type !== 'None' && selection.pedicure.toeArtMatch && selection.art.level) {
         const handArtPrice = menu.artLevelPrices[selection.art.level] || 0;
-        total += handArtPrice * 0.5;
+        breakdown.pedicure += handArtPrice * 0.5;
     }
 
-    return total;
+    // 9. Extras
+    if (selection.extras) {
+        breakdown.extras = selection.extras.reduce((sum, item) => sum + item.price, 0);
+    }
+
+    let total = breakdown.base + breakdown.length + breakdown.shape + breakdown.addons + breakdown.art + breakdown.bling + breakdown.modifiers + breakdown.pedicure + breakdown.extras;
+
+    // 10. Time-Based Sanity Check (Hourly Rate)
+    // User Note: Techs are "faster", user requested $45/hr base rate.
+    const HOURLY_RATE = 45; // $45/hour
+    if (selection.estimatedDuration) {
+        const timeBasedPrice = (selection.estimatedDuration / 60) * HOURLY_RATE;
+        if (timeBasedPrice > total) {
+            breakdown.complexitySurcharge = timeBasedPrice - total;
+            total = timeBasedPrice;
+        }
+    }
+
+    return {
+        total: Math.ceil(total),
+        breakdown
+    };
 }
 
 export function calculateDuration(selection: ServiceSelection, menu: MasterServiceMenu): number {

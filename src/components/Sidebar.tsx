@@ -45,7 +45,7 @@ export default function Sidebar() {
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
                 className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md text-charcoal"
             >
-                {isMobileOpen ? <X size={24} /> : <MenuIcon size={24} />}
+                <MenuIcon size={24} />
             </button>
 
             {/* Sidebar Container */}
@@ -53,7 +53,15 @@ export default function Sidebar() {
                 fixed top-0 left-0 z-40 h-screen w-64 bg-white border-r border-pink-50 transition-transform duration-300 ease-in-out
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full relative">
+                    {/* Close Button (Mobile Only) */}
+                    <button
+                        onClick={() => setIsMobileOpen(false)}
+                        className="md:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-charcoal"
+                    >
+                        <X size={24} />
+                    </button>
+
                     {/* Logo */}
                     <div className="p-6 border-b border-pink-50">
                         <Link to="/lacqr-lens" className="text-2xl font-serif font-bold tracking-tight text-charcoal">

@@ -29,12 +29,12 @@ export default function ServiceMenu() {
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit overflow-x-auto">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-full overflow-x-auto no-scrollbar">
                 {(['base', 'addons', 'art', 'modifiers', 'pedicure'] as const).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold capitalize whitespace-nowrap transition-all ${activeTab === tab ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold capitalize whitespace-nowrap transition-all flex-shrink-0 ${activeTab === tab ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
                     >
                         {tab === 'art' ? 'Art & Bling' : tab}
                     </button>
