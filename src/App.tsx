@@ -31,11 +31,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
-  const { user, loading, initialize, theme, setUser } = useAppStore(); // Combined destructuring
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
+  const { theme, setUser } = useAppStore(); // Combined destructuring
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -94,44 +90,47 @@ function App() {
   }, [setUser]);
 
   return (
-    <Routes>
-      {/* Embed Route (No Layout) */}
-      <Route path="/embed/:userId" element={<EmbedSmartQuote />} />
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Embed Route (No Layout) */}
+        <Route path="/embed/:userId" element={<EmbedSmartQuote />} />
 
-      {/* Public Routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/book" element={<PublicBooking />} />
-        <Route path="/book/:userId" element={<PublicSmartQuote />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/q/:id" element={<PublicQuote />} />
-      </Route>
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/book" element={<PublicBooking />} />
+          <Route path="/book/:userId" element={<PublicSmartQuote />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/q/:id" element={<PublicQuote />} />
+        </Route>
 
-      {/* Protected Dashboard Routes */}
-      <Route element={
-        <ProtectedRoute>
-          <DashboardLayout />
-        </ProtectedRoute>
-      }>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/drafts" element={<Drafts />} />
-        <Route path="/lacqr-lens" element={<LacqrLens />} />
+        {/* Protected Dashboard Routes */}
+        <Route element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/drafts" element={<Drafts />} />
+          <Route path="/lacqr-lens" element={<LacqrLens />} />
 
-        <Route path="/smart-quote" element={<SmartQuote />} />
+          <Route path="/smart-quote" element={<SmartQuote />} />
 
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/menu" element={<ServiceMenu />} />
-        <Route path="/clients" element={<ClientList />} />
-        <Route path="/clients/:id" element={<ClientProfile />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/trainer" element={<LacqrTrainer />} />
-      </Route>
-    </Routes>
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/menu" element={<ServiceMenu />} />
+          <Route path="/clients" element={<ClientList />} />
+          <Route path="/clients/:id" element={<ClientProfile />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/trainer" element={<LacqrTrainer />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, UserPlus, Search, Check, User } from 'lucide-react';
-import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Client } from '../types/client';
 import { useAppStore } from '../store/useAppStore';

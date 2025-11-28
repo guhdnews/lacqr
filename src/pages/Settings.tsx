@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { User, CreditCard, LogOut, Copy, Check, ExternalLink, Code, Sparkles, Save, AlertCircle } from 'lucide-react';
+import { User, CreditCard, LogOut, Copy, Check, ExternalLink, Sparkles, Save, AlertCircle } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import { FLAGS } from '../config/flags';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
