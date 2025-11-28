@@ -164,7 +164,7 @@ export default function Settings() {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     {activeTab === 'profile' && (
                         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
                             <h3 className="text-xl font-bold text-charcoal">Profile Details</h3>

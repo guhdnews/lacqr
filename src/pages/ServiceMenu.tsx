@@ -8,6 +8,24 @@ export default function ServiceMenu() {
     const { menu, resetMenu } = store;
     const [activeTab, setActiveTab] = useState<'base' | 'addons' | 'art' | 'modifiers' | 'pedicure'>('base');
 
+    if (!menu || !menu.basePrices) {
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+                <h1 className="text-2xl font-bold text-charcoal mb-4">Loading Menu...</h1>
+                <p className="text-gray-600 mb-6">If this takes too long, your settings might be corrupted.</p>
+                <button
+                    onClick={() => {
+                        resetMenu();
+                        window.location.reload();
+                    }}
+                    className="bg-red-50 text-red-500 px-6 py-3 rounded-xl font-bold hover:bg-red-100 transition-colors"
+                >
+                    Reset to Defaults
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
