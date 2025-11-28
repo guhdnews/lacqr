@@ -70,14 +70,29 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
-            <div className="flex items-center justify-center py-6 md:py-12 px-6 bg-pink-50 min-h-[calc(100dvh-80px)]">
-                <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">
+        <div className="min-h-screen bg-white font-sans text-charcoal flex">
+            {/* Left Side - Image */}
+            <div className="hidden md:block md:w-1/2 lg:w-5/12 relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/20 z-10"></div>
+                <img 
+                    src="/assets/feature_image_macro.png" 
+                    alt="Detailed Nail Art" 
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute bottom-12 left-12 right-12 z-20 text-white">
+                    <h2 className="text-4xl font-serif font-bold mb-4">Master Your Craft.</h2>
+                    <p className="text-lg text-white/90">Let AI handle the business while you focus on the art.</p>
+                </div>
+            </div>
+
+            {/* Right Side - Form */}
+            <div className="w-full md:w-1/2 lg:w-7/12 flex items-center justify-center p-6 md:p-12 bg-white">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="text-center md:text-left">
+                        <h2 className="text-3xl font-bold text-gray-900 font-serif">
                             {isResetMode ? 'Reset Password' : 'Welcome back'}
                         </h2>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-gray-500 mt-2">
                             {isResetMode
                                 ? 'Enter your email to receive a reset link.'
                                 : 'Enter your details to access your account.'}

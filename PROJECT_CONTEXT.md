@@ -77,3 +77,28 @@
 *   **Deploy Backend:** `python -m modal deploy lacqr_modal/main.py`
 *   **Start Frontend:** `npm run dev`
 *   **Deploy Frontend:** `npx vercel --prod`
+
+## 7. RECENT SPRINTS & CURRENT STATUS
+### Sprint 3: Polish & Fixes (Completed)
+*   **Goal:** Address user feedback and fix critical UI/UX bugs.
+*   **Key Deliverables:**
+    *   **Help & Support:** Functional "Read Guide" / "View Tips" buttons using `HelpModal`.
+    *   **Settings Overhaul:** Restored detailed profile/account settings.
+    *   **Drafts System:** Dedicated page for saved quotes.
+    *   **Deployment:** Successfully deployed to Vercel (Production).
+
+### Sprint 4: Visual Polish & Assets (In Progress)
+*   **Goal:** Source high-quality visual assets to replace placeholders and achieve a "Minimalist Luxury" aesthetic.
+*   **Current Status:** Assets have been sourced (Stock Photos), but the user is considering pivoting to AI-generated images (Nano Banana Pro).
+*   **Sourced Asset Candidates (Stock):**
+    *   **Hero Image (Salon):** `https://images.unsplash.com/photo-1595944024804-733665a112db`
+    *   **Feature Image (Macro):** `https://plus.unsplash.com/premium_photo-1754759082639-2e1eda42c5f4?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bmFpbCUyMGFydCUyMG1hY3JvfGVufDB8fDB8fHww`
+    *   **Portraits (Social Proof):**
+        *   `https://images.unsplash.com/photo-1758598304332-94b40ce7c7b4`
+        *   `https://images.unsplash.com/photo-1758691737587-7630b4d31d16`
+        *   `https://plus.unsplash.com/premium_photo-1670884442927-e647436e12ff`
+        *   `https://plus.unsplash.com/premium_photo-1663126908366-d4da73f9b25b`
+*   **Next Steps:**
+    *   Decide between Stock vs. AI Generation.
+    *   Implement "Split Layout" for Login/Signup using the chosen Feature Image.
+    *   Update Landing Page Hero and Avatars.

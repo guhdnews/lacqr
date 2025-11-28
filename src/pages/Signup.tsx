@@ -52,12 +52,27 @@ export default function Signup() {
     };
 
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
-            <div className="flex items-center justify-center py-12 px-6 bg-pink-50 min-h-[calc(100vh-80px)]">
-                <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
-                        <p className="text-gray-500 text-sm">Start your 5 free scans today.</p>
+        <div className="min-h-screen bg-white font-sans text-charcoal flex">
+            {/* Left Side - Image */}
+            <div className="hidden md:block md:w-1/2 lg:w-5/12 relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/20 z-10"></div>
+                <img
+                    src="/assets/feature_image_macro.png"
+                    alt="Detailed Nail Art"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute bottom-12 left-12 right-12 z-20 text-white">
+                    <h2 className="text-4xl font-serif font-bold mb-4">Start Your Empire.</h2>
+                    <p className="text-lg text-white/90">Join 500+ nail techs automating their business with Lacqr.</p>
+                </div>
+            </div>
+
+            {/* Right Side - Form */}
+            <div className="w-full md:w-1/2 lg:w-7/12 flex items-center justify-center p-6 md:p-12 bg-white">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="text-center md:text-left">
+                        <h2 className="text-3xl font-bold text-gray-900 font-serif">Create your account</h2>
+                        <p className="text-gray-500 mt-2">Start your 5 free scans today.</p>
                     </div>
 
                     <div className="bg-pink-50/50 p-4 rounded-xl mb-6 border border-pink-100">

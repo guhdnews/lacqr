@@ -46,15 +46,6 @@ export default function LandingPage() {
                                 Watch Demo
                             </button>
                         </div>
-
-                        <div className="pt-8 flex items-center justify-center md:justify-start space-x-4 text-sm text-gray-400">
-                            <div className="flex -space-x-2">
-                                {[1, 2, 3, 4].map(i => (
-                                    <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white"></div>
-                                ))}
-                            </div>
-                            <p>Trusted by 500+ Nail Techs</p>
-                        </div>
                     </div>
 
                     {/* Hero Image Placeholder */}
@@ -62,7 +53,11 @@ export default function LandingPage() {
                         <div className="absolute inset-0 bg-pink-200 rounded-[3rem] transform rotate-3 opacity-30 blur-3xl"></div>
                         <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-4 transform -rotate-2 hover:rotate-0 transition-transform duration-500">
                             <div className="aspect-[4/5] bg-gray-50 rounded-[2rem] overflow-hidden flex items-center justify-center">
-                                <p className="text-gray-400 font-serif italic">App Screenshot / Aesthetic Image</p>
+                                <img
+                                    src="/assets/hero_image_salon.png"
+                                    alt="Minimalist Luxury Salon"
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
                         </div>
                     </div>
