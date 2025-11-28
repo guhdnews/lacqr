@@ -19,7 +19,8 @@ import PublicQuote from './pages/PublicQuote';
 import LacqrTrainer from './pages/LacqrTrainer';
 import PublicSmartQuote from './pages/public/PublicSmartQuote';
 import EmbedSmartQuote from './pages/public/EmbedSmartQuote';
-import SmartQuoteSettings from './pages/SmartQuoteSettings';
+
+import Dashboard from './pages/Dashboard';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAppStore } from './store/useAppStore';
@@ -108,15 +109,13 @@ function App() {
           <DashboardLayout />
         </ProtectedRoute>
       }>
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/help" element={<Help />} />
         <Route path="/lacqr-lens" element={<LacqrLens />} />
 
-
-        // ... (inside ProtectedRoute)
-
         <Route path="/smart-quote" element={<SmartQuote />} />
-        <Route path="/smart-quote/settings" element={<SmartQuoteSettings />} />
+
         <Route path="/settings" element={<Settings />} />
         <Route path="/menu" element={<ServiceMenu />} />
         <Route path="/clients" element={<ClientList />} />

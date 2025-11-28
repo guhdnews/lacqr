@@ -38,13 +38,12 @@ export default function PublicSmartQuote() {
                 }
 
                 // Fetch Menu
-                // We need to find the active menu for this user.
-                const menusRef = collection(db, 'users', userId, 'menus');
-                const q = query(menusRef, limit(1)); // Just get the first one for now
-                const menuSnapshot = await getDocs(q);
+                // The menu is stored in the root 'serviceMenus' collection with the user's ID
+                const menuDocRef = doc(db, 'serviceMenus', userId);
+                const menuDoc = await getDoc(menuDocRef);
 
-                if (!menuSnapshot.empty) {
-                    setMenu(menuSnapshot.docs[0].data() as MasterServiceMenu);
+                if (menuDoc.exists()) {
+                    setMenu(menuDoc.data() as MasterServiceMenu);
                 } else {
                     setError("This technician hasn't set up their menu yet.");
                 }

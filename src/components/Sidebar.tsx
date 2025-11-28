@@ -43,7 +43,7 @@ export default function Sidebar() {
             {/* Mobile Toggle */}
             <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md text-charcoal"
+                className={`md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md text-charcoal transition-opacity duration-200 ${isMobileOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 <MenuIcon size={24} />
             </button>

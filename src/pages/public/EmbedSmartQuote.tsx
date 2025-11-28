@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { collection, getDocs, query, limit } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import SmartQuoteView from '../../components/SmartQuoteView';
 import type { MasterServiceMenu } from '../../types/serviceSchema';
@@ -21,12 +21,11 @@ export default function EmbedSmartQuote() {
 
             try {
                 // Fetch Menu
-                const menusRef = collection(db, 'users', userId, 'menus');
-                const q = query(menusRef, limit(1));
-                const menuSnapshot = await getDocs(q);
+                const menuDocRef = doc(db, 'serviceMenus', userId);
+                const menuDoc = await getDoc(menuDocRef);
 
-                if (!menuSnapshot.empty) {
-                    setMenu(menuSnapshot.docs[0].data() as MasterServiceMenu);
+                if (menuDoc.exists()) {
+                    setMenu(menuDoc.data() as MasterServiceMenu);
                 } else {
                     setError("Menu not configured.");
                 }

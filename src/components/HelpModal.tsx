@@ -3,10 +3,13 @@ import { X, HelpCircle, Camera, DollarSign, Edit2 } from 'lucide-react';
 interface HelpModalProps {
     isOpen: boolean;
     onClose: () => void;
+    context?: 'lacqr_lens' | 'smart_quote';
 }
 
-export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
+export default function HelpModal({ isOpen, onClose, context = 'lacqr_lens' }: HelpModalProps) {
     if (!isOpen) return null;
+
+    const isSmartQuote = context === 'smart_quote';
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -22,8 +25,12 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3">
                         <HelpCircle size={24} className="text-pink-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-charcoal">How to use Lacqr Lens</h3>
-                    <p className="text-sm text-gray-500">Get accurate quotes in seconds</p>
+                    <h3 className="text-xl font-bold text-charcoal">
+                        {isSmartQuote ? 'How to use Service Sorter' : 'How to use Lacqr Lens'}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                        {isSmartQuote ? 'Get service recommendations instantly' : 'Get accurate quotes in seconds'}
+                    </p>
                 </div>
 
                 <div className="space-y-6">
@@ -44,9 +51,11 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             <Edit2 size={20} className="text-charcoal" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-sm text-charcoal">2. Review & Edit</h4>
+                            <h4 className="font-bold text-sm text-charcoal">2. AI Analysis</h4>
                             <p className="text-xs text-gray-500 mt-1">
-                                Our AI detects shape, length, and designs. You can manually adjust any details, add missed items, or change prices.
+                                {isSmartQuote
+                                    ? 'Our AI analyzes the design to recommend the best services from the menu.'
+                                    : 'Our AI detects shape, length, and designs. You can manually adjust any details.'}
                             </p>
                         </div>
                     </div>
@@ -56,9 +65,11 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             <DollarSign size={20} className="text-charcoal" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-sm text-charcoal">3. Quote & Receipt</h4>
+                            <h4 className="font-bold text-sm text-charcoal">3. {isSmartQuote ? 'Book It' : 'Quote & Receipt'}</h4>
                             <p className="text-xs text-gray-500 mt-1">
-                                See the estimated total instantly. Switch to "Receipt" mode to download a professional breakdown for your client.
+                                {isSmartQuote
+                                    ? 'Copy the generated booking text to send to your nail tech.'
+                                    : 'See the estimated total instantly. Switch to "Receipt" mode to download a professional breakdown.'}
                             </p>
                         </div>
                     </div>

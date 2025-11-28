@@ -60,7 +60,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.basePrices[sys as SystemType]}
                                                 onChange={(e) => store.updateBasePrice(sys as SystemType, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -84,7 +84,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.lengthSurcharges[len as NailLength]}
                                                 onChange={(e) => store.updateLengthSurcharge(len as NailLength, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-center font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-center font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -109,7 +109,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.finishSurcharges[finish as FinishType]}
                                                 onChange={(e) => store.updateFinishSurcharge(finish as FinishType, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -130,7 +130,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.specialtySurcharges[eff as SpecialtyEffect]}
                                                 onChange={(e) => store.updateSpecialtySurcharge(eff as SpecialtyEffect, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -151,7 +151,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.classicDesignSurcharges[des as ClassicDesign]}
                                                 onChange={(e) => store.updateClassicDesignSurcharge(des as ClassicDesign, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -187,7 +187,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.artLevelPrices[level as ArtLevel]}
                                                 onChange={(e) => store.updateArtLevelPrice(level as ArtLevel, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -208,7 +208,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.blingDensityPrices[density as BlingDensity]}
                                                 onChange={(e) => store.updateBlingDensityPrice(density as BlingDensity, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -228,7 +228,7 @@ export default function ServiceMenu() {
                                             type="number"
                                             value={menu.unitPrices.xlCharms}
                                             onChange={(e) => store.updateUnitPrice('xlCharms', Number(e.target.value))}
-                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                         />
                                     </div>
                                 </div>
@@ -240,7 +240,7 @@ export default function ServiceMenu() {
                                             type="number"
                                             value={menu.unitPrices.piercings}
                                             onChange={(e) => store.updateUnitPrice('piercings', Number(e.target.value))}
-                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                         />
                                     </div>
                                 </div>
@@ -267,7 +267,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.modifierSurcharges[mod as ForeignWork]}
                                                 onChange={(e) => store.updateModifierSurcharge(mod as ForeignWork, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>
@@ -287,7 +287,7 @@ export default function ServiceMenu() {
                                             type="number"
                                             value={menu.unitPrices.repairs}
                                             onChange={(e) => store.updateUnitPrice('repairs', Number(e.target.value))}
-                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                         />
                                     </div>
                                 </div>
@@ -299,7 +299,7 @@ export default function ServiceMenu() {
                                             type="number"
                                             value={menu.unitPrices.soakOff}
                                             onChange={(e) => store.updateUnitPrice('soakOff', Number(e.target.value))}
-                                            className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                            className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                         />
                                     </div>
                                 </div>
@@ -322,7 +322,7 @@ export default function ServiceMenu() {
                                                 type="number"
                                                 value={menu.pedicurePrices[type as PedicureType]}
                                                 onChange={(e) => store.updatePedicurePrice(type as PedicureType, Number(e.target.value))}
-                                                className="w-full pl-6 py-1 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
+                                                className="w-full pl-8 py-2 bg-white rounded-lg border border-gray-200 text-right font-bold text-charcoal focus:outline-none focus:border-pink-500"
                                             />
                                         </div>
                                     </div>

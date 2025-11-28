@@ -35,8 +35,7 @@ export default function ClientList() {
         try {
             const q = query(
                 collection(db, 'clients'),
-                where('userId', '==', user.id),
-                orderBy('createdAt', 'desc')
+                where('userId', '==', user.id)
             );
 
             const querySnapshot = await getDocs(q);
@@ -46,17 +45,17 @@ export default function ClientList() {
                 fetchedClients.push({
                     id: doc.id,
                     ...data,
-                    // Convert timestamps to Date objects if needed, or keep as is
                     createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
                     lastVisit: data.lastVisit?.toDate ? data.lastVisit.toDate() : (data.lastVisit ? new Date(data.lastVisit) : undefined)
                 } as Client);
             });
 
+            // Client-side sort
+            fetchedClients.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
             setClients(fetchedClients);
         } catch (error) {
             console.error("Error fetching clients:", error);
-            // Fallback to mock data only if empty and in dev/demo mode? 
-            // For now, let's just show empty state if fetch fails or returns nothing
         } finally {
             setLoading(false);
         }

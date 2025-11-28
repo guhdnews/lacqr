@@ -42,7 +42,7 @@ export default function Signup() {
                 tiers: []
             });
 
-            navigate('/lacqr-lens');
+            navigate('/dashboard');
         } catch (err: any) {
             console.error("Signup Error:", err);
             setError(err.message || 'Failed to create account.');

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { AI_SERVICE } from '../services/ai';
 import { isImageBlurry, compressImage } from '../utils/imageProcessing';
@@ -29,6 +30,17 @@ export default function LacqrLens() {
     const [showHelp, setShowHelp] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
     const [step, setStep] = useState<LensStep>('scan');
+
+    // Resume Draft Logic
+    const location = useLocation();
+    useEffect(() => {
+        if (location.state?.initialSelection) {
+            setResult(location.state.initialSelection);
+            setStep('configure');
+            // Clear state to prevent re-triggering on refresh (optional but good practice)
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     // Client Modal State
     const [clientModalOpen, setClientModalOpen] = useState(false);
@@ -190,7 +202,7 @@ export default function LacqrLens() {
                 )}
             </div>
 
-            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} context="lacqr_lens" />
 
             {/* Error Message */}
             {error && (

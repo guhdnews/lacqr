@@ -18,7 +18,7 @@ export default function Login() {
     // Fix for double login: Wait for store to update before redirecting
     useEffect(() => {
         if (user.isAuthenticated) {
-            navigate('/lacqr-lens');
+            navigate('/dashboard');
         }
     }, [user.isAuthenticated, navigate]);
 

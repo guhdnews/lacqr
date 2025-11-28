@@ -137,8 +137,8 @@ export default function SmartQuoteView({
                         <HelpCircle size={20} />
                     </button>
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight">Smart Quote</h2>
-                <p className="text-sm text-gray-600">Upload inspo, get booking text.</p>
+                <h2 className="text-2xl font-bold tracking-tight">Service Sorter</h2>
+                <p className="text-sm text-gray-600">Upload inspo, get service recommendations.</p>
                 {isCoolingDown && (
                     <p className="text-xs text-amber-600 font-medium animate-pulse">
                         Cooling down... {remainingTime}s
@@ -325,7 +325,7 @@ export default function SmartQuoteView({
                 </div>
             )}
             {/* Help Modal */}
-            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} context="smart_quote" />
 
             {/* Feedback Modal */}
             <FeedbackModal
