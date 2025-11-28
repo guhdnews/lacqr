@@ -38,8 +38,8 @@ image = (
 
 # Secrets for Zilliz
 zilliz_secret = modal.Secret.from_dict({
-    "ZILLIZ_URI": "https://in03-f9edfb5087d38bd.serverless.gcp-us-west1.cloud.zilliz.com",
-    "ZILLIZ_TOKEN": "92beb916dedda4db2aa5aeee305e9e56ce655c1916bcd85602a7a59bd1827cc99667bfcef30a9f76335b1996215ce7224bb3a80d"
+    "ZILLIZ_URI": os.environ.get("ZILLIZ_URI", "YOUR_ZILLIZ_URI"),
+    "ZILLIZ_TOKEN": os.environ.get("ZILLIZ_TOKEN", "YOUR_ZILLIZ_TOKEN")
 })
 
 # --- THE BRAIN ---
