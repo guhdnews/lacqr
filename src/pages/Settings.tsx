@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Bell, Shield, CreditCard, LogOut, Copy, Check, ExternalLink, Code } from 'lucide-react';
+import { User, CreditCard, LogOut, Copy, Check, ExternalLink, Code } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { FLAGS } from '../config/flags';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -70,7 +70,6 @@ export default function Settings() {
     };
 
     const publicLink = user?.id ? `${window.location.origin}/book/${user.id}` : '';
-    const embedCode = user?.id ? `<script src="${window.location.origin}/widget.js" data-user="${user.id}"></script>` : '';
     const iframeCode = user?.id ? `<iframe src="${window.location.origin}/embed/${user.id}" width="100%" height="600" frameborder="0"></iframe>` : '';
 
     const copyToClipboard = (text: string, setCopied: (val: boolean) => void) => {

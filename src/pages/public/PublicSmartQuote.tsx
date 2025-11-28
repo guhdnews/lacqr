@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, query, limit } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import SmartQuoteView from '../../components/SmartQuoteView';
 import type { MasterServiceMenu } from '../../types/serviceSchema';

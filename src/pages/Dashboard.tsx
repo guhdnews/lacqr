@@ -1,5 +1,5 @@
 import { useAppStore } from '../store/useAppStore';
-import { Camera, Sparkles, Users, Settings, ArrowRight } from 'lucide-react';
+import { Camera, Sparkles, Users, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DraftsList from '../components/DraftsList';
 

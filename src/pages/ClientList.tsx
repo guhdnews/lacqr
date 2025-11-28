@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Loader2, X, Save, ChevronRight, Instagram, Phone } from 'lucide-react';
-import { collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { type Client } from '../types/client';
 import { useAppStore } from '../store/useAppStore';
