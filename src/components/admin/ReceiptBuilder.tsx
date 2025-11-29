@@ -356,7 +356,13 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
             </div>
 
             {/* Print View (Hidden on Screen) */}
-            <div className="hidden print:block p-8 max-w-2xl mx-auto">
+            <div className="hidden print:block p-8 max-w-2xl mx-auto h-auto overflow-visible">
+                <style type="text/css" media="print">
+                    {`
+                        @page { size: auto; margin: 20mm; }
+                        body { -webkit-print-color-adjust: exact; }
+                    `}
+                </style>
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-black text-gray-900 tracking-tighter mb-2">LACQR</h1>
                     <p className="text-sm text-gray-500 uppercase tracking-widest">Premium Nail Service</p>

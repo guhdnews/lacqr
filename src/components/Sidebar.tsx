@@ -33,7 +33,7 @@ export default function Sidebar() {
         { path: '/lacqr-lens', label: 'Lacqr Lens', icon: Camera },
         { path: '/smart-quote', label: 'Smart Quote', icon: MessageSquare },
         { path: '/service-menu', label: 'Service Menu', icon: FileText },
-        { path: '/clients', label: 'Clients', icon: Users },
+        { path: '/crm', label: 'CRM', icon: Users },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/help', label: 'Help & Support', icon: HelpCircle },
     ];

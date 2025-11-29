@@ -1,178 +1,268 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Phone, Mail, Calendar, Clock, Loader2, ArrowLeft, Instagram, Edit } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { MOCK_CLIENTS, type Client } from '../types/client';
+import { useAppStore } from '../store/useAppStore';
+import { ArrowLeft, Phone, Mail, Save, Loader2, Instagram, Cake, Calendar, Clock, DollarSign } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function ClientProfile() {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams();
+    const { user } = useAppStore();
     const navigate = useNavigate();
-    const [client, setClient] = useState<Client | null>(null);
+    const [client, setClient] = useState<any>(null);
+    const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
+
+    // Editable Fields
+    const [notes, setNotes] = useState('');
+    const [preferences, setPreferences] = useState('');
+    const [instagram, setInstagram] = useState('');
+    const [birthday, setBirthday] = useState('');
+
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const fetchClient = async () => {
-            if (!id) return;
-            setLoading(true);
+        const fetchData = async () => {
+            if (!user.id || !id) return;
             try {
-                const docRef = doc(db, 'clients', id);
+                // Fetch Client
+                const docRef = doc(db, 'users', user.id, 'clients', id);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    setClient({
-                        id: docSnap.id,
-                        ...data,
-                        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-                        lastVisit: data.lastVisit?.toDate ? data.lastVisit.toDate() : (data.lastVisit ? new Date(data.lastVisit) : undefined)
-                    } as Client);
+                    setClient({ id: docSnap.id, ...data });
+                    setNotes(data.notes || '');
+                    setPreferences(data.preferences || '');
+                    setInstagram(data.instagram || '');
+                    setBirthday(data.birthday || '');
+
+                    // Fetch Appointments
+                    // In a real app, we'd filter by clientId. For now, we'll fetch all and filter client-side if needed, 
+                    // but ideally we should have a compound index or subcollection structure.
+                    // Let's assume we query by clientId if we had the index, or just fetch all for this user and filter.
+                    // For simplicity/speed without index creation, let's fetch recent ones.
+                    // BETTER: Store appointments in a subcollection of the client? Or root collection?
+                    // The plan said `users/{userId}/appointments`. We need an index to query by clientId.
+                    // Let's just fetch all for now (assuming small data) or use a client-subcollection approach if we want to be safe.
+                    // Actually, let's just show a placeholder if we can't easily query without index.
+                    // Wait, I can query by clientId if I don't sort.
+                    const q = query(collection(db, 'users', user.id, 'appointments'), orderBy('date', 'desc'));
+                    // This might fail without index if we filter by clientId too.
+                    // Let's try to just get them all and filter in JS for this prototype to avoid index creation delays.
+                    const apptsSnap = await getDocs(q);
+                    const clientAppts = apptsSnap.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() }))
+                        .filter((a: any) => a.clientId === id);
+
+                    setAppointments(clientAppts);
                 } else {
-                    // Fallback to mock data if not found in DB (for demo purposes)
-                    const mockClient = MOCK_CLIENTS.find(c => c.id === id);
-                    if (mockClient) {
-                        setClient(mockClient);
-                    } else {
-                        console.error("Client not found");
-                    }
+                    alert("Client not found");
+                    navigate('/clients');
                 }
             } catch (error) {
-                console.error("Error fetching client:", error);
+                console.error("Error fetching client data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchClient();
-    }, [id]);
+        fetchData();
+    }, [user.id, id, navigate]);
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="animate-spin text-pink-500" size={48} />
-            </div>
-        );
-    }
+    const handleSave = async () => {
+        if (!user.id || !id) return;
+        setSaving(true);
+        try {
+            const docRef = doc(db, 'users', user.id, 'clients', id);
+            await updateDoc(docRef, {
+                notes,
+                preferences,
+                instagram,
+                birthday
+            });
+            // Optional: Show toast
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("Failed to save profile.");
+        } finally {
+            setSaving(false);
+        }
+    };
 
-    if (!client) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen text-gray-500">
-                <p className="mb-4">Client not found.</p>
-                <button
-                    onClick={() => navigate('/clients')}
-                    className="text-pink-600 font-bold hover:underline"
-                >
-                    Back to Clients
-                </button>
-            </div>
-        );
-    }
+    if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>;
+    if (!client) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
-            <div className="max-w-4xl mx-auto">
-                <button
-                    onClick={() => navigate('/clients')}
-                    className="flex items-center text-gray-500 hover:text-charcoal mb-6 transition-colors"
-                >
-                    <ArrowLeft size={20} className="mr-2" />
-                    Back to Clients
-                </button>
+        <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+            <button
+                onClick={() => navigate('/clients')}
+                className="flex items-center text-gray-500 hover:text-charcoal transition-colors font-bold"
+            >
+                <ArrowLeft size={20} className="mr-2" />
+                Back to Clients
+            </button>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-pink-100 overflow-hidden">
-                    <div className="p-6 border-b border-pink-50 flex flex-col md:flex-row justify-between items-start md:items-center bg-pink-50/30 gap-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold text-3xl">
-                                {client.avatar ? <img src={client.avatar} alt={client.name} className="w-full h-full rounded-full object-cover" /> : client.name.charAt(0).toUpperCase()}
+            {/* Header */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-6">
+                <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold text-3xl">
+                    {client.name.charAt(0)}
+                </div>
+                <div className="flex-1 space-y-2">
+                    <h1 className="text-3xl font-bold text-charcoal font-display">{client.name}</h1>
+                    <div className="flex flex-wrap gap-4 text-gray-600 text-sm">
+                        {client.phone && (
+                            <div className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                                <Phone size={14} className="mr-2" />
+                                {client.phone}
                             </div>
-                            <div>
-                                <h1 className="text-3xl font-serif font-bold text-charcoal">{client.name}</h1>
-                                <div className="flex items-center space-x-2 mt-1">
-                                    {client.tags && client.tags.map(tag => (
-                                        <span key={tag} className="px-2 py-1 bg-white border border-pink-100 rounded-full text-xs font-bold text-pink-600 uppercase tracking-wide">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
+                        )}
+                        {client.email && (
+                            <div className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                                <Mail size={14} className="mr-2" />
+                                {client.email}
                             </div>
-                        </div>
-                        <div className="text-right hidden md:block">
-                            <p className="text-sm text-gray-500">Total Spent</p>
-                            <p className="text-2xl font-bold text-charcoal">${client.totalSpent || 0}</p>
-                        </div>
-                    </div>
-
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="space-y-8 col-span-1">
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                    <h3 className="font-bold text-gray-900">Contact Info</h3>
-                                    <button className="text-gray-400 hover:text-pink-500">
-                                        <Edit size={16} />
-                                    </button>
-                                </div>
-
-                                {client.phone && (
-                                    <div className="flex items-center space-x-3 text-gray-600">
-                                        <Phone size={18} />
-                                        <span>{client.phone}</span>
-                                    </div>
-                                )}
-                                {client.instagram && (
-                                    <div className="flex items-center space-x-3 text-gray-600">
-                                        <Instagram size={18} />
-                                        <a href={`https://instagram.com/${client.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-pink-600 hover:underline">
-                                            {client.instagram}
-                                        </a>
-                                    </div>
-                                )}
-                                {client.email && (
-                                    <div className="flex items-center space-x-3 text-gray-600">
-                                        <Mail size={18} />
-                                        <span className="truncate">{client.email}</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center space-x-3 text-gray-600">
-                                    <Calendar size={18} />
-                                    <span>Joined {new Date(client.createdAt).toLocaleDateString()}</span>
-                                </div>
-                            </div>
-
-                            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                                <h4 className="font-bold text-yellow-800 mb-2 text-sm uppercase tracking-wide">Notes</h4>
-                                <p className="text-sm text-yellow-900 leading-relaxed whitespace-pre-wrap">
-                                    {client.notes || "No notes yet."}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="col-span-1 md:col-span-2 space-y-6">
-                            <h3 className="font-bold text-lg flex items-center border-b border-gray-100 pb-2">
-                                <Clock size={20} className="mr-2 text-pink-500" />
-                                Visit History
-                            </h3>
-                            <div className="space-y-4">
-                                {client.history && client.history.length > 0 ? (
-                                    client.history.map(visit => (
-                                        <div key={visit.id} className="flex items-start justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-pink-200 transition-colors">
-                                            <div>
-                                                <p className="font-bold text-charcoal">{visit.service}</p>
-                                                <p className="text-sm text-gray-500">{new Date(visit.date).toLocaleDateString()}</p>
-                                                {visit.notes && <p className="text-sm text-gray-600 mt-2 italic">"{visit.notes}"</p>}
-                                            </div>
-                                            <span className="font-mono font-bold text-gray-900">${visit.price}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-400 text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                        No history yet.
-                                    </p>
-                                )}
-                            </div>
+                        )}
+                        <div className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
+                            <Calendar size={14} className="mr-2" />
+                            Since {client.createdAt?.toDate ? format(client.createdAt.toDate(), 'MMM yyyy') : 'Unknown'}
                         </div>
                     </div>
                 </div>
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-black transition-colors disabled:opacity-70"
+                >
+                    {saving ? <Loader2 className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />}
+                    {saving ? 'Saving...' : 'Save Changes'}
+                </button>
             </div>
+
+            {/* Tabs */}
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
+                >
+                    Overview
+                </button>
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-white text-charcoal shadow-sm' : 'text-gray-500 hover:text-charcoal'}`}
+                >
+                    History
+                </button>
+            </div>
+
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Details Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                        <h3 className="font-bold text-charcoal text-lg">Details</h3>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Instagram</label>
+                                <div className="relative">
+                                    <Instagram size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={instagram}
+                                        onChange={(e) => setInstagram(e.target.value)}
+                                        className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 focus:border-pink-500 focus:ring-0 text-sm"
+                                        placeholder="@username"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Birthday</label>
+                                <div className="relative">
+                                    <Cake size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={birthday}
+                                        onChange={(e) => setBirthday(e.target.value)}
+                                        className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 focus:border-pink-500 focus:ring-0 text-sm"
+                                        placeholder="MM/DD"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Preferences Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                        <h3 className="font-bold text-charcoal text-lg">Preferences</h3>
+                        <textarea
+                            value={preferences}
+                            onChange={(e) => setPreferences(e.target.value)}
+                            className="w-full h-32 p-3 rounded-lg border border-gray-200 focus:border-pink-500 focus:ring-0 resize-none text-sm"
+                            placeholder="e.g. Loves almond shape, hates drilling, sensitive cuticles..."
+                        />
+                    </div>
+
+                    {/* Private Notes Card */}
+                    <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                        <h3 className="font-bold text-charcoal text-lg">Private Notes</h3>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="w-full h-32 p-3 rounded-lg border border-gray-200 focus:border-pink-500 focus:ring-0 resize-none text-sm"
+                            placeholder="Internal notes about this client..."
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* History Tab */}
+            {activeTab === 'history' && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-100">
+                        <h3 className="font-bold text-charcoal text-lg">Appointment History</h3>
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                        {appointments.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">
+                                No past appointments found.
+                            </div>
+                        ) : (
+                            appointments.map((appt) => (
+                                <div key={appt.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                                            <Calendar size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-charcoal">
+                                                {appt.serviceDetails?.base?.system || 'Service'}
+                                            </h4>
+                                            <p className="text-sm text-gray-500 flex items-center">
+                                                <Clock size={12} className="mr-1" />
+                                                {appt.date?.toDate ? format(appt.date.toDate(), 'MMM d, yyyy') : 'Unknown Date'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-charcoal flex items-center justify-end">
+                                            <DollarSign size={14} />
+                                            {appt.totalPrice}
+                                        </p>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${appt.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                            appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                'bg-yellow-100 text-yellow-700'
+                                            }`}>
+                                            {appt.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

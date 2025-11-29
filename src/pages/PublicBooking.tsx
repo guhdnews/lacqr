@@ -1,229 +1,329 @@
-import { useState } from 'react';
-import { Sparkles, Check, ArrowRight, Camera, Loader2 } from 'lucide-react';
-import { collection, addDoc } from 'firebase/firestore';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { AI_SERVICE } from '../services/ai';
-import type { ServiceRecommendation } from '../types/ai';
-import type { ServiceSelection } from '../types/serviceSchema';
+import { Loader2, MapPin, Check, Clock, ChevronRight, ArrowLeft } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 
 export default function PublicBooking() {
-    const [step, setStep] = useState<'upload' | 'analyzing' | 'result' | 'profile'>('upload');
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [analysis, setAnalysis] = useState<ServiceSelection | null>(null);
-    const [recommendation, setRecommendation] = useState<ServiceRecommendation | null>(null);
+    const { handle } = useParams();
+    const [salon, setSalon] = useState<any>(null);
+    const [menu, setMenu] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    // Profile State
+    // Booking State
+    const [step, setStep] = useState<'service' | 'datetime' | 'details' | 'confirmation'>('service');
+    const [selectedSystem, setSelectedSystem] = useState<any>(null);
+    const [selectedAddons] = useState<any[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+    // Client Details
     const [clientName, setClientName] = useState('');
     const [clientPhone, setClientPhone] = useState('');
     const [clientEmail, setClientEmail] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setImagePreview(URL.createObjectURL(file));
-            setStep('analyzing');
-
+    useEffect(() => {
+        const fetchSalonAndMenu = async () => {
             try {
-                // Call Real AI Service
-                const recResult = await AI_SERVICE.recommendService(file);
-                const anaResult = await AI_SERVICE.analyzeImage(file);
+                // 1. Find user by bookingHandle
+                const q = query(collection(db, 'users'), where('bookingHandle', '==', handle));
+                const querySnapshot = await getDocs(q);
 
-                setRecommendation(recResult);
-                setAnalysis(anaResult);
-                setStep('result');
-            } catch (error) {
-                console.error("AI Error", error);
-                alert("Something went wrong with the analysis. Please try again.");
-                setStep('upload');
+                if (querySnapshot.empty) {
+                    // Fallback: Try to find by ID if handle matches an ID (legacy)
+                    const docRef = doc(db, 'users', handle!);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        setSalon({ id: docSnap.id, ...docSnap.data() });
+                        // Fetch Menu
+                        const menuRef = doc(db, 'users', docSnap.id, 'serviceMenu', 'default');
+                        const menuSnap = await getDoc(menuRef);
+                        if (menuSnap.exists()) {
+                            setMenu(menuSnap.data());
+                        }
+                        setLoading(false);
+                        return;
+                    }
+
+                    setError('Salon not found.');
+                    setLoading(false);
+                    return;
+                }
+
+                const salonDoc = querySnapshot.docs[0];
+                setSalon({ id: salonDoc.id, ...salonDoc.data() });
+
+                // 2. Fetch Service Menu
+                const menuRef = doc(db, 'users', salonDoc.id, 'serviceMenu', 'default');
+                const menuSnap = await getDoc(menuRef);
+                if (menuSnap.exists()) {
+                    setMenu(menuSnap.data());
+                }
+
+            } catch (err) {
+                console.error("Error fetching salon:", err);
+                setError('Failed to load salon details.');
+            } finally {
+                setLoading(false);
             }
-        }
+        };
+
+        if (handle) fetchSalonAndMenu();
+    }, [handle]);
+
+    const handleSystemSelect = (system: any) => {
+        setSelectedSystem(system);
+        setStep('datetime');
     };
 
-    const [consent, setConsent] = useState(false);
+    const handleDateSelect = (date: Date) => {
+        setSelectedDate(date);
+        setSelectedTime(null); // Reset time when date changes
+    };
 
-    const handleSubmitProfile = async () => {
-        if (!clientName || !clientPhone || !clientEmail || !consent) {
-            alert("Please fill in all fields and accept the terms.");
-            return;
+    const generateTimeSlots = () => {
+        const slots = [];
+        for (let i = 9; i <= 17; i++) {
+            slots.push(`${i}:00`);
+            slots.push(`${i}:30`);
         }
+        return slots;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setSubmitting(true);
 
         try {
-            const newClient = {
+            // 1. Create/Find Client in Salon's CRM
+            // Ideally check for duplicates by phone/email, but for now just add
+            const clientData = {
                 name: clientName,
-                email: clientEmail,
                 phone: clientPhone,
-                notes: `Requested: ${recommendation?.booking_codes.join(', ')}`,
-                tags: ['New', 'Online Booking'],
-                joinedDate: new Date().toISOString(),
-                history: []
+                email: clientEmail,
+                createdAt: new Date(),
+                lastVisit: new Date()
             };
 
-            // Save to Firestore
-            await addDoc(collection(db, 'clients'), newClient);
+            const clientRef = await addDoc(collection(db, 'users', salon.id, 'clients'), clientData);
 
-            alert("Booking request sent! The nail tech will contact you shortly.");
+            // 2. Create Appointment
+            const appointmentData = {
+                clientId: clientRef.id,
+                clientName: clientName,
+                date: new Date(), // Should combine selectedDate and selectedTime
+                serviceDetails: {
+                    base: selectedSystem,
+                    addons: selectedAddons
+                },
+                totalPrice: selectedSystem.price, // + addons
+                status: 'pending',
+                createdAt: new Date()
+            };
 
-            // Reset
-            setStep('upload');
-            setImagePreview(null);
-            setClientName('');
-            setClientPhone('');
-            setClientEmail('');
-            setConsent(false);
-        } catch (error) {
-            console.error("Error saving booking:", error);
-            alert("Failed to send request. Please try again.");
+            await addDoc(collection(db, 'users', salon.id, 'appointments'), appointmentData);
+
+            setStep('confirmation');
+        } catch (err) {
+            console.error("Booking failed:", err);
+            alert("Booking failed. Please try again.");
         } finally {
             setSubmitting(false);
         }
     };
 
+    if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
+        <div className="min-h-screen bg-gray-50 pb-12">
             {/* Header */}
-            <header className="p-6 border-b border-pink-50 flex justify-center">
-                <h1 className="text-2xl font-serif font-bold text-charcoal">Jessica's Nail Studio</h1>
-            </header>
-
-            <main className="max-w-md mx-auto p-6 pb-24">
-                {step === 'upload' && (
-                    <div className="space-y-8 text-center mt-10">
-                        <div>
-                            <h2 className="text-3xl font-serif font-bold mb-4">Find Your Perfect Set</h2>
-                            <p className="text-gray-500">Upload a photo of the nails you want, and I'll tell you exactly what to book.</p>
-                        </div>
-
-                        <label className="block w-full aspect-[4/5] bg-pink-50 rounded-3xl border-2 border-dashed border-pink-200 flex flex-col items-center justify-center cursor-pointer hover:bg-pink-100 transition-colors group">
-                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                            <div className="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
-                                <Camera size={32} className="text-pink-500" />
-                            </div>
-                            <span className="font-medium text-pink-900">Upload Inspiration</span>
-                            <span className="text-sm text-pink-400 mt-1">or take a photo</span>
-                        </label>
-                    </div>
-                )}
-
-                {step === 'analyzing' && (
-                    <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-24 h-24 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Sparkles className="text-pink-400 animate-pulse" size={32} />
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold mb-2">Analyzing Design...</h3>
-                            <p className="text-gray-500">Identifying length, shape, and art complexity.</p>
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+                <div className="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-xl font-bold text-charcoal">{salon.salonName}</h1>
+                        <div className="flex items-center text-sm text-gray-500">
+                            <MapPin size={14} className="mr-1" />
+                            <span>{salon.location || 'Online'}</span>
                         </div>
                     </div>
-                )}
+                </div>
+            </div>
 
-                {step === 'result' && analysis && recommendation && (
-                    <div className="space-y-6 animate-in slide-in-from-bottom fade-in duration-500">
-                        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-md">
-                            <img src={imagePreview!} alt="Analysis" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                                <div className="text-white">
-                                    <p className="font-bold text-lg">{analysis.base.shape} • {analysis.base.length}</p>
+            <div className="max-w-3xl mx-auto px-6 py-8">
+                {step === 'confirmation' ? (
+                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center space-y-6 animate-in fade-in zoom-in-95">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600">
+                            <Check size={40} />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-charcoal mb-2">Booking Confirmed!</h2>
+                            <p className="text-gray-500">Thanks {clientName}, we'll see you soon.</p>
+                        </div>
+                        <div className="bg-gray-50 p-6 rounded-xl text-left space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Service</span>
+                                <span className="font-bold text-charcoal">{selectedSystem?.system}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Date</span>
+                                <span className="font-bold text-charcoal">
+                                    {selectedDate ? format(selectedDate, 'MMM d, yyyy') : ''} at {selectedTime}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="text-pink-600 font-bold hover:underline"
+                        >
+                            Book Another Appointment
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        {/* Progress */}
+                        <div className="flex items-center space-x-2 text-sm font-medium text-gray-400">
+                            <span className={step === 'service' ? 'text-pink-600' : ''}>Service</span>
+                            <ChevronRight size={14} />
+                            <span className={step === 'datetime' ? 'text-pink-600' : ''}>Date & Time</span>
+                            <ChevronRight size={14} />
+                            <span className={step === 'details' ? 'text-pink-600' : ''}>Details</span>
+                        </div>
+
+                        {/* Step 1: Service Selection */}
+                        {step === 'service' && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4">
+                                <h2 className="text-2xl font-bold text-charcoal">Select a Service</h2>
+                                <div className="grid gap-4">
+                                    {menu?.systems?.map((sys: any, idx: number) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSystemSelect(sys)}
+                                            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-pink-500 hover:shadow-md transition-all text-left flex justify-between items-center group"
+                                        >
+                                            <div>
+                                                <h3 className="font-bold text-lg text-charcoal group-hover:text-pink-600 transition-colors">{sys.system}</h3>
+                                                <p className="text-gray-500 text-sm">{sys.description || 'Full set including cuticle care.'}</p>
+                                                <div className="flex items-center mt-2 text-sm text-gray-400">
+                                                    <Clock size={14} className="mr-1" />
+                                                    <span>{sys.duration || 90} mins</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="block font-bold text-xl text-charcoal">${sys.price}</span>
+                                                <span className="text-xs text-gray-400">Starting at</span>
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div className="bg-pink-50 rounded-2xl p-6 border border-pink-100">
-                            <h3 className="font-serif font-bold text-xl mb-4 text-charcoal">You Should Book:</h3>
-                            <div className="space-y-3">
-                                {recommendation.booking_codes.map((code, i) => (
-                                    <div key={i} className="flex items-center space-x-3 bg-white p-3 rounded-xl shadow-sm">
-                                        <div className="bg-pink-100 p-2 rounded-full">
-                                            <Check size={16} className="text-pink-600" />
-                                        </div>
-                                        <span className="font-bold text-lg">{code}</span>
+                        {/* Step 2: Date & Time */}
+                        {step === 'datetime' && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4">
+                                <button onClick={() => setStep('service')} className="text-gray-500 flex items-center hover:text-charcoal"><ArrowLeft size={16} className="mr-1" /> Back</button>
+                                <h2 className="text-2xl font-bold text-charcoal">Choose a Time</h2>
+
+                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                    {/* Simple Date Picker Mock */}
+                                    <div className="flex space-x-2 overflow-x-auto pb-4">
+                                        {[0, 1, 2, 3, 4].map((offset) => {
+                                            const date = addDays(new Date(), offset);
+                                            const isSelected = selectedDate?.toDateString() === date.toDateString();
+                                            return (
+                                                <button
+                                                    key={offset}
+                                                    onClick={() => handleDateSelect(date)}
+                                                    className={`flex-shrink-0 w-20 h-24 rounded-xl flex flex-col items-center justify-center border transition-all ${isSelected ? 'bg-charcoal text-white border-charcoal' : 'bg-white text-gray-600 border-gray-200 hover:border-pink-300'}`}
+                                                >
+                                                    <span className="text-xs font-bold uppercase">{format(date, 'EEE')}</span>
+                                                    <span className="text-2xl font-bold">{format(date, 'd')}</span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                ))}
-                            </div>
-                            <p className="text-sm text-gray-600 mt-4 leading-relaxed">
-                                {recommendation.reasoning}
-                            </p>
-                        </div>
 
-                        <button
-                            onClick={() => setStep('profile')}
-                            className="w-full bg-charcoal text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition-all shadow-lg flex items-center justify-center space-x-2"
-                        >
-                            <span>Continue to Booking</span>
-                            <ArrowRight size={20} />
-                        </button>
-                    </div>
-                )}
-
-                {step === 'profile' && (
-                    <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
-                        <div>
-                            <h2 className="text-2xl font-serif font-bold mb-2">One Last Thing!</h2>
-                            <p className="text-gray-500">Create your profile so I can save this design to your history.</p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
-                                <input
-                                    type="text"
-                                    value={clientName}
-                                    onChange={(e) => setClientName(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-pink-300 focus:ring-0 transition-all"
-                                    placeholder="e.g. Jessica Smith"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    value={clientPhone}
-                                    onChange={(e) => setClientPhone(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-pink-300 focus:ring-0 transition-all"
-                                    placeholder="(555) 123-4567"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={clientEmail}
-                                    onChange={(e) => setClientEmail(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-pink-300 focus:ring-0 transition-all"
-                                    placeholder="jessica@example.com"
-                                />
-                            </div>
-                            <div className="flex items-start space-x-3 pt-2">
-                                <div className="flex items-center h-5">
-                                    <input
-                                        id="consent"
-                                        type="checkbox"
-                                        checked={consent}
-                                        onChange={(e) => setConsent(e.target.checked)}
-                                        className="w-4 h-4 border-gray-300 rounded text-pink-600 focus:ring-pink-500"
-                                    />
+                                    {selectedDate && (
+                                        <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-gray-100">
+                                            {generateTimeSlots().map((time) => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => { setSelectedTime(time); setStep('details'); }}
+                                                    className={`py-3 rounded-lg text-sm font-bold border transition-all ${selectedTime === time ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-charcoal border-gray-200 hover:border-pink-500'}`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <label htmlFor="consent" className="text-sm text-gray-600">
-                                    I agree to the processing of my personal data for the purpose of this booking request.
-                                </label>
                             </div>
-                        </div>
+                        )}
 
-                        <button
-                            onClick={handleSubmitProfile}
-                            disabled={submitting || !consent}
-                            className="w-full bg-charcoal text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50"
-                        >
-                            {submitting && <Loader2 className="animate-spin" size={20} />}
-                            <span>{submitting ? 'Sending...' : 'Send to Tech & Book'}</span>
-                        </button>
+                        {/* Step 3: Details */}
+                        {step === 'details' && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4">
+                                <button onClick={() => setStep('datetime')} className="text-gray-500 flex items-center hover:text-charcoal"><ArrowLeft size={16} className="mr-1" /> Back</button>
+                                <h2 className="text-2xl font-bold text-charcoal">Your Details</h2>
+
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={clientName}
+                                                onChange={(e) => setClientName(e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-500 focus:ring-0"
+                                                placeholder="Jane Doe"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={clientPhone}
+                                                onChange={(e) => setClientPhone(e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-500 focus:ring-0"
+                                                placeholder="(555) 123-4567"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">Email (Optional)</label>
+                                            <input
+                                                type="email"
+                                                value={clientEmail}
+                                                onChange={(e) => setClientEmail(e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-500 focus:ring-0"
+                                                placeholder="jane@example.com"
+                                            />
+                                        </div>
+
+                                        <div className="pt-4">
+                                            <button
+                                                type="submit"
+                                                disabled={submitting}
+                                                className="w-full bg-charcoal text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition-all flex items-center justify-center disabled:opacity-70"
+                                            >
+                                                {submitting ? <Loader2 className="animate-spin" /> : 'Confirm Booking'}
+                                            </button>
+                                            <p className="text-center text-xs text-gray-400 mt-4">
+                                                By booking, you agree to {salon.salonName}'s policies.
+                                            </p>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
-            </main>
+            </div>
         </div>
     );
 }

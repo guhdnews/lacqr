@@ -1,21 +1,16 @@
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { Heart, Users, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function About() {
     const navigate = useNavigate();
 
-    const team = [
-        { name: "Sarah Jenkins", role: "Founder & CEO", image: "/assets/portrait_image_1.png" },
-        { name: "David Chen", role: "Head of Product", image: "/assets/portrait_image_2.png" },
-        { name: "Maria Rodriguez", role: "Lead Developer", image: "/assets/portrait_image_3.png" },
-        { name: "Jessica Kim", role: "Community Manager", image: "/assets/portrait_image_4.png" }
-    ];
-
     return (
         <div className="min-h-screen bg-white font-sans text-charcoal">
-            <Header />
+            {/* Header is already in PublicLayout, so we don't need it here if wrapped. 
+                However, if this page is standalone, we might need it. 
+                The user said "duplicated again", implying it's in the layout. 
+                I will REMOVE it based on the plan. 
+            */}
 
             {/* Hero */}
             <div className="bg-pink-50 py-24 px-6 text-center relative overflow-hidden">
@@ -85,25 +80,6 @@ export default function About() {
                     </div>
                 </div>
 
-                {/* Team */}
-                <div className="space-y-12">
-                    <div className="text-center max-w-2xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Meet the Team</h2>
-                        <p className="text-gray-600 text-lg">The people behind the pixels.</p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {team.map((member, idx) => (
-                            <div key={idx} className="group text-center">
-                                <div className="aspect-square rounded-2xl overflow-hidden mb-4 shadow-md group-hover:shadow-xl transition-all">
-                                    <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                </div>
-                                <h3 className="font-bold text-lg">{member.name}</h3>
-                                <p className="text-sm text-pink-500 font-medium">{member.role}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
                 {/* CTA */}
                 <div className="bg-charcoal rounded-[3rem] p-12 md:p-24 text-center text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500 rounded-full blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2"></div>
@@ -119,7 +95,6 @@ export default function About() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }

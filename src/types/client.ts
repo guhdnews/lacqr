@@ -14,8 +14,10 @@ export interface Client {
     email?: string;
     phone?: string;
     instagram?: string;
+    birthday?: string; // MM/DD format
     avatar?: string; // Initials or image URL
     notes?: string; // Private notes for the tech
+    preferences?: string; // e.g., "Loves almond shape"
     history?: ClientHistory[];
     tags?: string[]; // e.g., "VIP", "Nail Biter", "Late"
     createdAt: any; // Firestore Timestamp

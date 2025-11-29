@@ -22,11 +22,11 @@ export default function Dashboard() {
             link: "/smart-quote"
         },
         {
-            title: "Clients",
+            title: "CRM",
             desc: "Manage your book",
             icon: <Users size={24} className="text-white" />,
             bg: "bg-purple-500",
-            link: "/clients"
+            link: "/crm"
         }
     ];
 

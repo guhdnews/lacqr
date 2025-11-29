@@ -17,19 +17,38 @@ import { calculatePrice } from '../utils/pricingCalculator';
 import { ReceiptBuilder } from '../components/admin/ReceiptBuilder';
 import ClientModal from '../components/ClientModal';
 import FeedbackModal from '../components/FeedbackModal';
+import GettingStartedWidget from '../components/GettingStartedWidget';
 
 type LensStep = 'scan' | 'configure' | 'receipt';
 
 export default function LacqrLens() {
     const { menu } = useServiceStore();
-    const [image, setImage] = useState<string | null>(null);
+    const [image, setImage] = useState<string | null>(() => localStorage.getItem('lacqr_lens_image'));
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<ServiceSelection | null>(null);
+    const [result, setResult] = useState<ServiceSelection | null>(() => {
+        const saved = localStorage.getItem('lacqr_lens_result');
+        return saved ? JSON.parse(saved) : null;
+    });
     const [isBlurry, setIsBlurry] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
     const [showHelp, setShowHelp] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
-    const [step, setStep] = useState<LensStep>('scan');
+    const [step, setStep] = useState<LensStep>(() => (localStorage.getItem('lacqr_lens_step') as LensStep) || 'scan');
+
+    // Persistence Effects
+    useEffect(() => {
+        if (image) localStorage.setItem('lacqr_lens_image', image);
+        else localStorage.removeItem('lacqr_lens_image');
+    }, [image]);
+
+    useEffect(() => {
+        if (result) localStorage.setItem('lacqr_lens_result', JSON.stringify(result));
+        else localStorage.removeItem('lacqr_lens_result');
+    }, [result]);
+
+    useEffect(() => {
+        localStorage.setItem('lacqr_lens_step', step);
+    }, [step]);
 
     // Resume Draft Logic
     const location = useLocation();
@@ -115,6 +134,10 @@ export default function LacqrLens() {
         setIsBlurry(false);
         setZoomLevel(1);
         setStep('scan');
+        // Clear persistence
+        localStorage.removeItem('lacqr_lens_image');
+        localStorage.removeItem('lacqr_lens_result');
+        localStorage.removeItem('lacqr_lens_step');
     };
 
     const toggleZoom = () => {
@@ -186,6 +209,7 @@ export default function LacqrLens() {
 
     return (
         <div className="space-y-6 max-w-md mx-auto">
+            <GettingStartedWidget />
             <div className="text-center space-y-2 relative">
                 <button
                     onClick={() => setShowHelp(true)}

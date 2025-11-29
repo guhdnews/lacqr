@@ -36,7 +36,13 @@ export const useAppStore = create<AppState>()(
             setAuthReady: (ready) => set({ isAuthReady: ready }),
             setUser: (user) => set({ user }),
             logout: () => set({
-                user: { id: null, name: null, email: null, isAuthenticated: false, onboardingComplete: false }
+                user: {
+                    id: null,
+                    name: null,
+                    email: null,
+                    isAuthenticated: false,
+                    onboardingComplete: false
+                }
             }),
             notifications: [],
             addNotification: (message, type) => set((state) => ({

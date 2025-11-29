@@ -28,7 +28,10 @@
 *   **Service Sorter:** `src/pages/SmartQuote.tsx` - DM Reply & Booking tool.
     *   **Public View:** `src/pages/public/PublicSmartQuote.tsx` - For clients.
 *   **Settings:** `src/pages/Settings.tsx` - Profile & Config.
-*   **Clients:** `src/pages/ClientList.tsx` - Simple CRM.
+*   **CRM:** `src/pages/CRMDashboard.tsx` - Client stats & actions.
+    *   **Client List:** `src/pages/ClientList.tsx` - Client directory.
+    *   **Client Profile:** `src/pages/ClientProfile.tsx` - Detailed view & history.
+*   **Booking:** `src/pages/PublicBooking.tsx` - Public booking page.
 
 ## 4. BUSINESS LOGIC RULES (The "Source of Truth")
 ### 📏 Length Pricing (Aspect Ratio)
@@ -97,7 +100,14 @@
         *   `https://images.unsplash.com/photo-1758598304332-94b40ce7c7b4`
         *   `https://images.unsplash.com/photo-1758691737587-7630b4d31d16`
         *   `https://plus.unsplash.com/premium_photo-1670884442927-e647436e12ff`
-        *   `https://plus.unsplash.com/premium_photo-1663126908366-d4da73f9b25b`
+### Sprint 5: CRM & Booking Expansion (Completed)
+*   **Goal:** Build a comprehensive CRM and client-facing booking system.
+*   **Key Deliverables:**
+    *   **Onboarding 2.0:** Simplified 4-step wizard (Profile -> Salon -> Menu -> Payments) and "Getting Started" widget.
+    *   **CRM Dashboard:** Central hub (`/crm`) with client stats, recent activity, and quick actions.
+    *   **Enhanced Client Profiles:** Tabs for "Overview" (Instagram, Birthday, Preferences) and "History" (past appointments).
+    *   **Public Booking Page:** Client-facing booking flow (`/book/:handle`) with service selection and appointment creation.
+    *   **Client List:** Improved table layout with "Last Visit" tracking.
 *   **Next Steps:**
     *   Decide between Stock vs. AI Generation.
     *   Implement "Split Layout" for Login/Signup using the chosen Feature Image.

@@ -18,7 +18,17 @@ export default function LandingPage() {
 
             {/* Hero Section */}
             <section className="relative pt-4 pb-12 md:pt-8 md:pb-20 px-6 overflow-hidden">
-                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+                {/* Mobile Background Image */}
+                <div className="absolute inset-0 md:hidden z-0">
+                    <img
+                        src="/assets/hero_image_salon.png"
+                        alt="Background"
+                        className="w-full h-full object-cover opacity-20 blur-sm"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/50 to-white/90"></div>
+                </div>
+
+                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
                     <div className="space-y-8 text-center md:text-left">
                         <div className="inline-flex items-center space-x-2 bg-pink-50 px-4 py-2 rounded-full text-pink-600 text-sm font-medium animate-fade-in-up border border-pink-100">
                             <Sparkles size={16} />
@@ -41,9 +51,6 @@ export default function LandingPage() {
                             >
                                 <span>Try Lacqr Lens Free</span>
                                 <ArrowRight size={20} />
-                            </button>
-                            <button className="text-gray-500 hover:text-charcoal font-medium px-6 py-4 w-full sm:w-auto">
-                                Watch Demo
                             </button>
                         </div>
                     </div>

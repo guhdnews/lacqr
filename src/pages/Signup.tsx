@@ -68,7 +68,7 @@ export default function Signup() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full md:w-1/2 lg:w-7/12 flex items-center justify-center p-6 md:p-12 bg-white">
+            <div className="w-full md:w-1/2 lg:w-7/12 flex items-start justify-center p-6 md:p-12 bg-white pt-24 md:pt-32">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-center md:text-left">
                         <h2 className="text-3xl font-bold text-gray-900 font-serif">Create your account</h2>

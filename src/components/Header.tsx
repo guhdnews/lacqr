@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { useAppStore } from '../store/useAppStore';
 
 export default function Header() {
     const navigate = useNavigate();
+    const { user } = useAppStore();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -54,17 +56,37 @@ export default function Header() {
                     <a href="/#pricing" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Pricing</a>
                     <Link to="/about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</Link>
                     <a href="/#faq" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>FAQ</a>
-                    <hr className="border-pink-50" />
-                    <Link to="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>
-                    <button
-                        onClick={() => {
-                            navigate('/signup');
-                            toggleMenu();
-                        }}
-                        className="bg-charcoal text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-black transition-all shadow-md w-full"
-                    >
-                        Get Started
-                    </button>
+                    {user.isAuthenticated ? (
+                        <>
+                            <hr className="border-pink-50" />
+                            <div className="flex flex-col space-y-2">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Signed in as {user.name}</span>
+                                <button
+                                    onClick={() => {
+                                        import('../lib/firebase').then(({ auth }) => auth.signOut());
+                                        toggleMenu();
+                                    }}
+                                    className="text-red-500 hover:text-red-600 font-medium text-left"
+                                >
+                                    Sign Out
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <hr className="border-pink-50" />
+                            <Link to="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>
+                            <button
+                                onClick={() => {
+                                    navigate('/signup');
+                                    toggleMenu();
+                                }}
+                                className="bg-charcoal text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-black transition-all shadow-md w-full"
+                            >
+                                Get Started
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
         </nav>

@@ -1,28 +1,38 @@
 import { useState, useEffect } from 'react';
-import { User, CreditCard, LogOut, Copy, Check, ExternalLink, Sparkles, Save, AlertCircle } from 'lucide-react';
+import { User, CreditCard, LogOut, Store, DollarSign, Sparkles, Save, AlertCircle, ExternalLink, Check, Copy } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Settings() {
     const { user, setUser } = useAppStore();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'profile' | 'smart-quote' | 'subscription'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'salon' | 'smart-quote' | 'payments'>('profile');
 
     // Profile State
     const [displayName, setDisplayName] = useState(user?.name || "");
+    const [phone, setPhone] = useState("");
     const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-    // Smart Quote State
+    // Salon State
+    const [salonName, setSalonName] = useState("");
+    const [currency, setCurrency] = useState("USD");
+    const [isSavingSalon, setIsSavingSalon] = useState(false);
+
+    // Smart Quote / Booking State
     const [welcomeMessage, setWelcomeMessage] = useState("");
     const [slug, setSlug] = useState("");
     const [originalSlug, setOriginalSlug] = useState("");
     const [slugError, setSlugError] = useState("");
     const [isSavingQuote, setIsSavingQuote] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
     const [copiedLink, setCopiedLink] = useState(false);
-    const [copiedEmbed, setCopiedEmbed] = useState(false);
+
+    // Payments State
+    const [isStripeConnected, setIsStripeConnected] = useState(false);
+    const [isSavingPayments, setIsSavingPayments] = useState(false);
+
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     // Fetch Settings
     useEffect(() => {
@@ -33,10 +43,14 @@ export default function Settings() {
                     const snapshot = await getDoc(docRef);
                     if (snapshot.exists()) {
                         const data = snapshot.data();
-                        setWelcomeMessage(data.smartQuoteSettings?.welcomeMessage || "");
-                        setSlug(data.slug || user.id); // Default to ID if no slug
-                        setOriginalSlug(data.slug || user.id);
                         setDisplayName(data.name || user.name || "");
+                        setPhone(data.phone || "");
+                        setSalonName(data.salonName || "");
+                        setCurrency(data.currency || "USD");
+                        setWelcomeMessage(data.smartQuoteSettings?.welcomeMessage || "");
+                        setSlug(data.bookingHandle || data.slug || user.id);
+                        setOriginalSlug(data.bookingHandle || data.slug || user.id);
+                        setIsStripeConnected(data.isStripeConnected || false);
                     }
                 } catch (error) {
                     console.error("Error fetching settings:", error);
@@ -51,15 +65,35 @@ export default function Settings() {
         setIsSavingProfile(true);
         try {
             const docRef = doc(db, 'users', user.id);
-            await updateDoc(docRef, { name: displayName });
-            setUser({ ...user, name: displayName }); // Update local store
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 2000);
+            await updateDoc(docRef, {
+                name: displayName,
+                phone: phone
+            });
+            setUser({ ...user, name: displayName });
+            showSuccess();
         } catch (error) {
             console.error("Error saving profile:", error);
             alert("Failed to save profile.");
         } finally {
             setIsSavingProfile(false);
+        }
+    };
+
+    const handleSaveSalon = async () => {
+        if (!user?.id) return;
+        setIsSavingSalon(true);
+        try {
+            const docRef = doc(db, 'users', user.id);
+            await updateDoc(docRef, {
+                salonName,
+                currency
+            });
+            showSuccess();
+        } catch (error) {
+            console.error("Error saving salon:", error);
+            alert("Failed to save salon settings.");
+        } finally {
+            setIsSavingSalon(false);
         }
     };
 
@@ -69,12 +103,11 @@ export default function Settings() {
         setIsSavingQuote(true);
 
         try {
-            // Check slug uniqueness if changed
             if (slug !== originalSlug) {
-                const slugQuery = query(collection(db, 'users'), where('slug', '==', slug));
+                const slugQuery = query(collection(db, 'users'), where('bookingHandle', '==', slug));
                 const slugSnapshot = await getDocs(slugQuery);
                 if (!slugSnapshot.empty) {
-                    setSlugError("This link is already taken. Please choose another.");
+                    setSlugError("This handle is already taken.");
                     setIsSavingQuote(false);
                     return;
                 }
@@ -83,17 +116,38 @@ export default function Settings() {
             const docRef = doc(db, 'users', user.id);
             await updateDoc(docRef, {
                 'smartQuoteSettings.welcomeMessage': welcomeMessage,
-                slug: slug
+                bookingHandle: slug,
+                slug: slug // Keep legacy slug field synced for now
             });
             setOriginalSlug(slug);
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 2000);
+            showSuccess();
         } catch (error) {
             console.error("Error saving settings:", error);
             alert("Failed to save settings.");
         } finally {
             setIsSavingQuote(false);
         }
+    };
+
+    const handleToggleStripe = async () => {
+        if (!user?.id) return;
+        setIsSavingPayments(true);
+        try {
+            const newState = !isStripeConnected;
+            const docRef = doc(db, 'users', user.id);
+            await updateDoc(docRef, { isStripeConnected: newState });
+            setIsStripeConnected(newState);
+            showSuccess();
+        } catch (error) {
+            console.error("Error updating stripe:", error);
+        } finally {
+            setIsSavingPayments(false);
+        }
+    };
+
+    const showSuccess = () => {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
     };
 
     const handleLogout = async () => {
@@ -113,19 +167,18 @@ export default function Settings() {
     };
 
     const publicLink = `${window.location.origin}/book/${slug || user?.id}`;
-    const iframeCode = `<iframe src="${window.location.origin}/embed/${user?.id}" width="100%" height="600" frameborder="0"></iframe>`;
 
-    const copyToClipboard = (text: string, setCopied: (val: boolean) => void) => {
+    const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight font-serif text-charcoal">Settings</h2>
-                <p className="text-gray-500 mt-2">Manage your account, profile, and Smart Quote preferences.</p>
+                <p className="text-gray-500 mt-2">Manage your account and business preferences.</p>
             </div>
 
             <div className="flex flex-col md:flex-row gap-8">
@@ -139,6 +192,13 @@ export default function Settings() {
                         <span>Profile</span>
                     </button>
                     <button
+                        onClick={() => setActiveTab('salon')}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'salon' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <Store size={20} />
+                        <span>Salon Details</span>
+                    </button>
+                    <button
                         onClick={() => setActiveTab('smart-quote')}
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'smart-quote' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
@@ -146,13 +206,21 @@ export default function Settings() {
                         <span>Smart Quote</span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('subscription')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'subscription' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        onClick={() => setActiveTab('payments')}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'payments' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
                         <CreditCard size={20} />
-                        <span>Subscription</span>
+                        <span>Payments</span>
                     </button>
+
                     <div className="pt-4 border-t border-gray-100 mt-4">
+                        <Link
+                            to="/service-menu"
+                            className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                        >
+                            <ExternalLink size={20} />
+                            <span>Edit Service Menu</span>
+                        </Link>
                         <button
                             onClick={handleLogout}
                             className="w-full flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
@@ -165,21 +233,10 @@ export default function Settings() {
 
                 {/* Content Area */}
                 <div className="flex-1 min-w-0">
+                    {/* PROFILE TAB */}
                     {activeTab === 'profile' && (
                         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
                             <h3 className="text-xl font-bold text-charcoal">Profile Details</h3>
-
-                            <div className="flex items-center space-x-6">
-                                <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold text-2xl uppercase">
-                                    {displayName.substring(0, 2) || 'JD'}
-                                </div>
-                                <div>
-                                    <button className="text-sm font-bold text-pink-500 hover:text-pink-600 border border-pink-200 px-4 py-2 rounded-lg hover:bg-pink-50 transition-colors">
-                                        Change Avatar
-                                    </button>
-                                </div>
-                            </div>
-
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
@@ -188,6 +245,16 @@ export default function Settings() {
                                         value={displayName}
                                         onChange={(e) => setDisplayName(e.target.value)}
                                         className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500"
+                                        placeholder="(555) 123-4567"
                                     />
                                 </div>
                                 <div>
@@ -200,127 +267,182 @@ export default function Settings() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="pt-4 flex justify-end">
+                            <div className="flex justify-end">
                                 <button
                                     onClick={handleSaveProfile}
                                     disabled={isSavingProfile}
-                                    className="flex items-center space-x-2 bg-charcoal text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-50"
+                                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors flex items-center disabled:opacity-70"
                                 >
-                                    {isSavingProfile ? <span>Saving...</span> : <> <Save size={18} /> <span>Save Profile</span> </>}
+                                    {isSavingProfile ? <span className="animate-pulse">Saving...</span> : (
+                                        <>
+                                            <Save size={18} className="mr-2" />
+                                            Save Changes
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {activeTab === 'smart-quote' && (
-                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-8">
-                            <div>
-                                <h3 className="text-xl font-bold text-charcoal mb-2">Smart Quote Integration</h3>
-                                <p className="text-gray-500 text-sm">Customize how clients book with you.</p>
-                            </div>
-
-                            {/* Custom Link */}
-                            <div className="bg-pink-50/50 p-6 rounded-2xl border border-pink-100">
-                                <label className="block text-sm font-bold text-gray-900 mb-2">Your Custom Booking Link</label>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-gray-500 font-mono text-sm">{window.location.origin}/book/</span>
+                    {/* SALON TAB */}
+                    {activeTab === 'salon' && (
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-xl font-bold text-charcoal">Salon Details</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Salon Name</label>
                                     <input
                                         type="text"
-                                        value={slug}
-                                        onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                                        placeholder="your-salon-name"
-                                        className="flex-1 p-2 border border-gray-200 rounded-lg font-mono text-sm focus:outline-none focus:border-pink-500"
+                                        value={salonName}
+                                        onChange={(e) => setSalonName(e.target.value)}
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500"
+                                        placeholder="e.g. Luxe Nails"
                                     />
                                 </div>
-                                {slugError && (
-                                    <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
-                                        <AlertCircle size={12} /> {slugError}
-                                    </p>
-                                )}
-                                <div className="flex items-center justify-between mt-4">
-                                    <a href={publicLink} target="_blank" rel="noopener noreferrer" className="text-sm text-pink-500 font-bold hover:underline flex items-center gap-1">
-                                        Test Link <ExternalLink size={14} />
-                                    </a>
-                                    <button
-                                        onClick={() => copyToClipboard(publicLink, setCopiedLink)}
-                                        className="text-sm text-gray-500 hover:text-charcoal flex items-center gap-1"
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                    <select
+                                        value={currency}
+                                        onChange={(e) => setCurrency(e.target.value)}
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500 bg-white"
                                     >
-                                        {copiedLink ? <Check size={14} /> : <Copy size={14} />} Copy Link
-                                    </button>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="CAD">CAD ($)</option>
+                                        <option value="AUD">AUD ($)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={handleSaveSalon}
+                                    disabled={isSavingSalon}
+                                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors flex items-center disabled:opacity-70"
+                                >
+                                    {isSavingSalon ? <span className="animate-pulse">Saving...</span> : (
+                                        <>
+                                            <Save size={18} className="mr-2" />
+                                            Save Changes
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SMART QUOTE TAB */}
+                    {activeTab === 'smart-quote' && (
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-xl font-bold text-charcoal">Smart Quote Settings</h3>
+
+                            <div className="bg-pink-50 p-4 rounded-xl flex items-start space-x-3">
+                                <Sparkles className="text-pink-500 mt-1 flex-shrink-0" size={20} />
+                                <div>
+                                    <h4 className="font-bold text-pink-800 text-sm">Your Booking Link</h4>
+                                    <p className="text-pink-700 text-sm mb-2">Share this link with clients to let them get an instant quote and book.</p>
+                                    <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border border-pink-200">
+                                        <code className="text-xs text-gray-600 flex-1 truncate">{publicLink}</code>
+                                        <button
+                                            onClick={() => copyToClipboard(publicLink)}
+                                            className="text-pink-500 hover:text-pink-700 p-1"
+                                        >
+                                            {copiedLink ? <Check size={16} /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Welcome Message */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-900 mb-2">Welcome Message</label>
-                                <p className="text-xs text-gray-500 mb-2">This text appears above the upload button on your public page.</p>
-                                <textarea
-                                    value={welcomeMessage}
-                                    onChange={(e) => setWelcomeMessage(e.target.value)}
-                                    placeholder="e.g., Upload your inspo pic to get an instant quote!"
-                                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500 min-h-[100px] text-sm"
-                                />
-                            </div>
-
-                            {/* Embed Code */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-900 mb-2">Website Embed Code</label>
-                                <div className="relative">
-                                    <pre className="bg-gray-900 text-gray-300 rounded-xl p-4 text-xs font-mono overflow-x-auto">
-                                        {iframeCode}
-                                    </pre>
-                                    <button
-                                        onClick={() => copyToClipboard(iframeCode, setCopiedEmbed)}
-                                        className="absolute top-2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded text-white transition-colors"
-                                    >
-                                        {copiedEmbed ? <Check size={14} /> : <Copy size={14} />}
-                                    </button>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Booking Handle</label>
+                                    <div className="flex items-center">
+                                        <span className="text-gray-400 mr-2">lacqr.com/book/</span>
+                                        <input
+                                            type="text"
+                                            value={slug}
+                                            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                                            className="flex-1 p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500"
+                                        />
+                                    </div>
+                                    {slugError && <p className="text-red-500 text-sm mt-1 flex items-center"><AlertCircle size={14} className="mr-1" /> {slugError}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
+                                    <textarea
+                                        value={welcomeMessage}
+                                        onChange={(e) => setWelcomeMessage(e.target.value)}
+                                        rows={3}
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500"
+                                        placeholder="e.g. Welcome to Luxe Nails! Upload your inspo pic to get started."
+                                    />
                                 </div>
                             </div>
-
-                            <div className="pt-4 flex justify-end border-t border-gray-100">
+                            <div className="flex justify-end">
                                 <button
                                     onClick={handleSaveSmartQuote}
                                     disabled={isSavingQuote}
-                                    className="flex items-center space-x-2 bg-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-pink-600 transition-colors disabled:opacity-50"
+                                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors flex items-center disabled:opacity-70"
                                 >
-                                    {isSavingQuote ? <span>Saving...</span> : saveSuccess ? <span>Saved!</span> : <> <Save size={18} /> <span>Save Changes</span> </>}
+                                    {isSavingQuote ? <span className="animate-pulse">Saving...</span> : (
+                                        <>
+                                            <Save size={18} className="mr-2" />
+                                            Save Changes
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {activeTab === 'subscription' && (
-                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-                            <h3 className="text-xl font-bold text-charcoal mb-6">Subscription Plan</h3>
+                    {/* PAYMENTS TAB */}
+                    {activeTab === 'payments' && (
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-xl font-bold text-charcoal">Payment Integration</h3>
 
-                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border border-pink-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <p className="font-bold text-charcoal text-2xl">Beta Founder Plan</p>
-                                        <p className="text-pink-600 font-medium">Active</p>
+                            <div className="border border-gray-200 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <DollarSign className="text-gray-600" size={24} />
                                     </div>
-                                    <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-bold">
-                                        Free
-                                    </span>
+                                    <div>
+                                        <h4 className="font-bold text-lg text-charcoal">Stripe</h4>
+                                        <p className="text-gray-500 text-sm">Accept credit cards and automated deposits.</p>
+                                    </div>
                                 </div>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Thank you for being an early adopter! You have full access to all features during the beta period.
-                                    We will notify you before any billing changes occur.
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-                                    <Check size={16} className="text-green-500" /> Unlimited Scans
-                                    <span className="mx-2">•</span>
-                                    <Check size={16} className="text-green-500" /> Smart Quote
-                                    <span className="mx-2">•</span>
-                                    <Check size={16} className="text-green-500" /> Client Management
-                                </div>
+                                <button
+                                    onClick={handleToggleStripe}
+                                    disabled={isSavingPayments}
+                                    className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center space-x-2 ${isStripeConnected ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-[#635BFF] text-white hover:bg-[#534be0]'}`}
+                                >
+                                    {isStripeConnected ? (
+                                        <>
+                                            <Check size={18} />
+                                            <span>Connected</span>
+                                        </>
+                                    ) : (
+                                        <span>Connect Stripe</span>
+                                    )}
+                                </button>
                             </div>
+
+                            {isStripeConnected && (
+                                <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600">
+                                    <p>Your Stripe account is active. Payouts are scheduled daily.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Success Toast */}
+            {saveSuccess && (
+                <div className="fixed bottom-8 right-8 bg-charcoal text-white px-6 py-3 rounded-xl shadow-lg flex items-center animate-in slide-in-from-bottom-4 fade-in">
+                    <Check size={20} className="mr-2 text-green-400" />
+                    <span className="font-bold">Settings saved successfully!</span>
+                </div>
+            )}
         </div>
     );
 }

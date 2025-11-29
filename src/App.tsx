@@ -22,6 +22,7 @@ import PublicSmartQuote from './pages/public/PublicSmartQuote';
 import EmbedSmartQuote from './pages/public/EmbedSmartQuote';
 
 import Dashboard from './pages/Dashboard';
+import CRMDashboard from './pages/CRMDashboard';
 import Drafts from './pages/Drafts';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -96,6 +97,7 @@ function App() {
       <Routes>
         {/* Embed Route (No Layout) */}
         <Route path="/embed/:userId" element={<EmbedSmartQuote />} />
+        <Route path="/book/:handle" element={<PublicBooking />} />
 
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
@@ -117,15 +119,14 @@ function App() {
           </ProtectedRoute>
         }>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/crm" element={<CRMDashboard />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/help" element={<Help />} />
           <Route path="/drafts" element={<Drafts />} />
           <Route path="/lacqr-lens" element={<LacqrLens />} />
-
           <Route path="/smart-quote" element={<SmartQuote />} />
-
+          <Route path="/service-menu" element={<ServiceMenu />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/menu" element={<ServiceMenu />} />
           <Route path="/clients" element={<ClientList />} />
           <Route path="/clients/:id" element={<ClientProfile />} />
           <Route path="/admin" element={<AdminPage />} />
