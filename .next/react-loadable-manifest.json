@@ -82,31 +82,15 @@
   },
   "components\\AuthProvider.tsx -> @/lib/firebase": {
     "id": 89506,
-    "files": [
-      "static/chunks/bc9e92e6-db1e3998744b1ccb.js",
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-2b1436e1e79ccdb5.js",
-      "static/chunks/9144-9fe2fca636448d04.js",
-      "static/chunks/5623-40b8c81ad53a7e8b.js",
-      "static/chunks/9506.681d402bc6103211.js"
-    ]
+    "files": []
   },
   "components\\AuthProvider.tsx -> firebase/auth": {
     "id": 5186,
-    "files": [
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/9144-9fe2fca636448d04.js"
-    ]
+    "files": []
   },
   "components\\AuthProvider.tsx -> firebase/firestore": {
     "id": 69842,
-    "files": [
-      "static/chunks/bc9e92e6-db1e3998744b1ccb.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-2b1436e1e79ccdb5.js"
-    ]
+    "files": []
   },
   "components\\Sidebar.tsx -> ../lib/firebase": {
     "id": 89506,

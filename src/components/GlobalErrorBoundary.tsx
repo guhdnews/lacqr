@@ -3,6 +3,7 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logError } from '@/services/logger';
 
 interface Props {
     children: ReactNode;
@@ -25,6 +26,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('Uncaught error:', error, errorInfo);
+        logError("GlobalErrorBoundary caught error", { error, errorInfo });
     }
 
     public render() {

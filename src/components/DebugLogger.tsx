@@ -11,6 +11,7 @@ interface LogEntry {
 }
 
 import { useSearchParams } from 'next/navigation';
+import { logError } from '@/services/logger';
 
 export default function DebugLogger() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -50,11 +51,15 @@ export default function DebugLogger() {
 
         // Capture unhandled errors
         const handleError = (event: ErrorEvent) => {
-            addLog('error', [event.message, event.error?.stack]);
+            const msg = `[Global Error] ${event.message}`;
+            addLog('error', [msg, event.error?.stack]);
+            logError(msg, event.error);
         };
 
         const handleRejection = (event: PromiseRejectionEvent) => {
-            addLog('error', ['Unhandled Promise Rejection:', event.reason]);
+            const msg = `[Unhandled Rejection] ${event.reason}`;
+            addLog('error', [msg]);
+            logError(msg, event.reason);
         };
 
         window.addEventListener('error', handleError);
