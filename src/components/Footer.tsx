@@ -19,51 +19,35 @@ export default function Footer() {
                 </div>
 
                 {/* Product */}
-                <div>
-                    <h4 className="font-bold mb-4">Product</h4>
-                    <ul className="space-y-2 text-sm text-gray-500">
-                        <li><Link to="/lacqr-lens" className="hover:text-pink-500 transition-colors">Lacqr Lens</Link></li>
-                        <li><Link to="/smart-quote" className="hover:text-pink-500 transition-colors">Smart Quote</Link></li>
-                        <li><Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
-                        <li><Link to="/login" className="hover:text-pink-500 transition-colors">Log In</Link></li>
-                        <li><Link to="/signup" className="hover:text-pink-500 transition-colors">Sign Up</Link></li>
-                    </ul>
-                </div>
+                <li><Link to="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+                <li><Link to="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
+            </ul>
+        </div>
 
-                {/* Company */}
-                <div>
-                    <h4 className="font-bold mb-4">Company</h4>
-                    <ul className="space-y-2 text-sm text-gray-500">
-                        <li><Link to="/about" className="hover:text-pink-500 transition-colors">About Us</Link></li>
-                        <li><Link to="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
-                        <li><Link to="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
-                    </ul>
-                </div>
+                {/* Newsletter */ }
+    <div>
+        <h4 className="font-bold mb-4">Stay Updated</h4>
+        <p className="text-xs text-gray-400 mb-4">Get the latest tips on pricing and business growth.</p>
+        <div className="flex">
+            <input
+                type="email"
+                placeholder="Email address"
+                className="bg-gray-50 border border-gray-200 rounded-l-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-pink-300"
+            />
+            <button className="bg-charcoal text-white px-4 py-2 rounded-r-lg text-sm font-medium hover:bg-black transition-colors">
+                Join
+            </button>
+        </div>
+    </div>
+            </div >
 
-                {/* Newsletter */}
-                <div>
-                    <h4 className="font-bold mb-4">Stay Updated</h4>
-                    <p className="text-xs text-gray-400 mb-4">Get the latest tips on pricing and business growth.</p>
-                    <div className="flex">
-                        <input
-                            type="email"
-                            placeholder="Email address"
-                            className="bg-gray-50 border border-gray-200 rounded-l-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-pink-300"
-                        />
-                        <button className="bg-charcoal text-white px-4 py-2 rounded-r-lg text-sm font-medium hover:bg-black transition-colors">
-                            Join
-                        </button>
-                    </div>
-                </div>
+        <div className="max-w-7xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+            <p>© 2024 Lacqr. All rights reserved.</p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+                <Link to="/privacy" className="hover:text-charcoal transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="hover:text-charcoal transition-colors">Terms of Service</Link>
             </div>
-
-            <div className="max-w-7xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
-                <p>© 2024 Lacqr. All rights reserved.</p>
-                <div className="flex space-x-6 mt-4 md:mt-0">
-                    <Link to="/privacy" className="hover:text-charcoal transition-colors">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-charcoal transition-colors">Terms of Service</Link>
-                </div>
-            </div>
-        </footer>
+        </div>
+        </footer >
     );
 }

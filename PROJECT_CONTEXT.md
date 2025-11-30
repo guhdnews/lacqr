@@ -108,7 +108,19 @@
     *   **Enhanced Client Profiles:** Tabs for "Overview" (Instagram, Birthday, Preferences) and "History" (past appointments).
     *   **Public Booking Page:** Client-facing booking flow (`/book/:handle`) with service selection and appointment creation.
     *   **Client List:** Improved table layout with "Last Visit" tracking.
-*   **Next Steps:**
-    *   Decide between Stock vs. AI Generation.
-    *   Implement "Split Layout" for Login/Signup using the chosen Feature Image.
-    *   Update Landing Page Hero and Avatars.
+    *   **Lacqr Lens Stability:** Fixed "Blank Screen" crash with Error Boundaries.
+    *   **Drafts System:** Implemented 14-day retention policy and auto-cleanup logic.
+    *   **PDF Generation:** Replaced `window.print()` with robust `html2canvas` + `jspdf` solution.
+    *   **Onboarding Refinements:** Added "Skip" button, optional fields, and improved flow.
+
+### Sprint 6: Advanced CRM & Customization (Completed)
+*   **Goal:** Deepen CRM capabilities and allow users to customize their booking pages.
+*   **Key Deliverables:**
+    *   **Interaction History:** Full CRUD (Create, Read, Update, Delete) for client notes, calls, texts, and emails.
+    *   **Booking Page Builder:** New Settings tab to customize booking page theme, background (Solid, Gradient, Image), and layout (Centered, Split).
+    *   **Dynamic Booking Page:** `PublicBooking.tsx` now adapts to user-defined settings for a branded experience.
+    *   **UI/UX Polish:** Integrated builder into Settings and ensured mobile responsiveness.
+
+## 8. NEXT STEPS
+*   **Dashboard Overhaul:** Redesign the main dashboard for better aesthetics and utility.
+*   **Documentation:** Ensure all new features are fully documented in the codebase.

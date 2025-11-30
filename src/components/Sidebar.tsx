@@ -40,10 +40,10 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Mobile Toggle */}
+            {/* Mobile Toggle - Floating Button */}
             <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className={`md:hidden fixed top-4 left-4 z-[60] p-2 bg-white rounded-lg shadow-md text-charcoal transition-opacity duration-200 ${isMobileOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                className={`md:hidden fixed bottom-6 right-6 z-[60] p-4 bg-charcoal text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${isMobileOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 <MenuIcon size={24} />
             </button>
