@@ -58,6 +58,25 @@ export const useAppStore = create<AppState>()(
         {
             name: 'lacqr-storage', // unique name for localStorage key
             partialize: (state) => ({ theme: state.theme, user: state.user }), // Only persist theme and user
+            version: 1,
+            migrate: (persistedState: any, version: number) => {
+                if (version === 0) {
+                    // if the stored value is in version 0, we discard the persisted state
+                    // and return the default state
+                    return {
+                        theme: 'light',
+                        user: {
+                            id: null,
+                            name: null,
+                            email: null,
+                            salonName: null,
+                            isAuthenticated: false,
+                            onboardingComplete: false,
+                        }
+                    } as AppState;
+                }
+                return persistedState as AppState;
+            },
         }
     )
 );

@@ -43,6 +43,15 @@ function App() {
     }
   }, [theme]);
 
+  // Validation Effect: Check for corrupted state
+  useEffect(() => {
+    const { user, logout } = useAppStore.getState();
+    if (user && (typeof user.isAuthenticated === 'undefined' || user.isAuthenticated === null)) {
+      console.warn("Corrupted user state detected, resetting.");
+      logout();
+    }
+  }, []);
+
   useEffect(() => {
     const initAuth = async () => {
       try {
