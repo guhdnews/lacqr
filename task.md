@@ -20,4 +20,10 @@
 - [x] Deep Logic Audit & Comprehensive Mapping (Shapes, Art, Finishes) <!-- id: 14 -->
 - [x] Refine Shape (Coffin vs Stiletto) & Description Detail <!-- id: 15 -->
 - [x] Implement Time-Based Loading Notification (10s threshold) <!-- id: 16 -->
-- [ ] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 17 -->
+- [ ] Debug Persistent `lengthTier` Error & Logs Access <!-- id: 17 -->
+    - [x] Create Remote Logger & Admin Page
+    - [x] Fix Firestore Rules (User Applied)
+    - [x] Fix Storage Rules (User Applied)
+    - [ ] Verify Firestore Write/Read (Diagnostic Page)
+    - [ ] Fix `lengthTier` Root Cause (ServiceConfigurator/AI Service)
+- [ ] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 18 -->

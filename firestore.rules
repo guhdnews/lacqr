@@ -34,6 +34,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Logs: Public create (for error reporting), Admin read
+    match /app_logs/{logId} {
+      allow create: if true;
+      allow read: if true; // Temporarily allow public read for debugging
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;
