@@ -4,6 +4,7 @@ import "./globals.css";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import AuthProvider from "@/components/AuthProvider";
 import DebugLogger from "@/components/DebugLogger";
+import ServiceWorkerKiller from "@/components/ServiceWorkerKiller";
 import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -17,24 +18,6 @@ export const metadata: Metadata = {
         apple: "/favicon.png?v=2",
     },
 };
-
-import { Suspense, useEffect } from "react";
-
-// ... imports
-
-function ServiceWorkerKiller() {
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                for (let registration of registrations) {
-                    console.log('Unregistering SW:', registration.scope);
-                    registration.unregister();
-                }
-            });
-        }
-    }, []);
-    return null;
-}
 
 export default function RootLayout({
     children,
