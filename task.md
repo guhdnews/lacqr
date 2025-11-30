@@ -24,9 +24,10 @@
     - [x] Create Remote Logger & Admin Page
     - [x] Fix Firestore Rules (User Applied)
     - [x] Fix Storage Rules (User Applied)
-    - [x] Verify Firestore Write/Read (Diagnostic Page) - FAILED (Blank Page)
-    - [ ] Debug Blank Page Issue (Global Crash?)
-        - [ ] Inspect Browser Console Logs
-        - [ ] Verify Root Layout & Firebase Init
+    - [x] Verify Firestore Write/Read (Diagnostic Page) - FAILED (404/Blank)
+    - [ ] Debug Blank Page & 404 Issue
+        - [ ] Check for Stale Service Worker (Vite PWA Legacy)
+        - [ ] Implement Service Worker Killer in RootLayout
+        - [ ] Verify Route Generation in Build
     - [ ] Fix `lengthTier` Root Cause (ServiceConfigurator/AI Service)
 - [ ] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 18 -->

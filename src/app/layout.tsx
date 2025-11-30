@@ -18,6 +18,24 @@ export const metadata: Metadata = {
     },
 };
 
+import { Suspense, useEffect } from "react";
+
+// ... imports
+
+function ServiceWorkerKiller() {
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    console.log('Unregistering SW:', registration.scope);
+                    registration.unregister();
+                }
+            });
+        }
+    }, []);
+    return null;
+}
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -28,6 +46,7 @@ export default function RootLayout({
             <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-white text-charcoal`}>
                 <GlobalErrorBoundary>
                     <AuthProvider>
+                        <ServiceWorkerKiller />
                         <Suspense fallback={null}>
                             <DebugLogger />
                         </Suspense>
