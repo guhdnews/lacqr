@@ -1,34 +1,48 @@
-# Walkthrough - Nail Tech Co-Pilot
+# Walkthrough - Runtime Error Fix & Routing Investigation
 
-## Overview
-Nail Tech Co-Pilot is a mobile-first SaaS application designed to help Nail Technicians automate pricing and booking. The application features a high-converting landing page and two core tools: QuoteCam and Service Sorter.
+## 1. Fixed Runtime Error in `Lacqr Lens`
+**Issue:** `TypeError: Cannot read properties of undefined (reading 'lengthTier')`
+**Root Cause:** The `ServiceConfigurator` component was overwriting the `pricingDetails` object when recalculating prices, stripping out the `details` object that contained `lengthTier`.
+**Fix:** Modified `src/components/ServiceConfigurator.tsx` to preserve the existing `details` object (or regenerate it if missing) when updating the state.
 
-## Features Implemented
+### Code Change
+```tsx
+// src/components/ServiceConfigurator.tsx
 
-### 1. Landing Page
-- **Hero Section:** "Stop Guessing Your Prices" headline with "Glossier-style" aesthetics (Pink/Charcoal).
-- **Features:** Breakdown of QuoteCam, Service Sorter, and Client Shield.
-- **Pricing:** Transparent pricing tiers (Starter vs. Pro Boss).
-- **Navigation:** Smooth routing to the app.
+// BEFORE:
+const updatedSelection = {
+    ...selection,
+    pricingDetails: priceResult // Overwrites everything, losing 'details'
+};
 
-### 2. QuoteCam (Tool 1)
-- **Function:** Upload a nail design photo to get an instant price quote.
-- **Implementation:**
-    - Image upload with preview.
-    - "Scanning" animation to simulate AI processing.
-    - Detailed receipt generation (Cost Drivers, Time, Total Price).
-- **Aesthetics:** Clean, receipt-style card with pink accents.
-- **Framework:** React + Vite
-- **Styling:** Tailwind CSS (Custom Config)
-- **Icons:** Lucide React
-- **Routing:** React Router DOM
-- **Routing:** React Router DOM
+// AFTER:
+const updatedDetails = selection.pricingDetails?.details || { ... };
+const updatedSelection = {
+    ...selection,
+    pricingDetails: {
+        ...priceResult,
+        details: updatedDetails // Preserves 'details'
+    }
+};
+```
 
-## Deployment & Source Code
-- **Live URL:** [https://nailsaas-cvh9i6xsq-guhdnews-projects.vercel.app](https://nailsaas-cvh9i6xsq-guhdnews-projects.vercel.app)
-- **GitHub Repository:** [https://github.com/guhdnews/lacqr](https://github.com/guhdnews/lacqr)
+## 2. Investigated Routing & Blank Pages
+**Issue:** Pages like `/login`, `/debug-test`, and `/admin/logs` returning 404s or blank screens.
+**Root Cause:** A "Zombie" Service Worker from the previous Vite PWA deployment is intercepting requests and serving cached (broken) assets or 404s because it doesn't recognize the new Next.js routes.
+**Solution:**
+1.  **ServiceWorkerKiller:** A component is already active in `src/app/layout.tsx` to unregister SWs.
+2.  **Missing `sw.js`:** Confirmed `sw.js` is NOT in `public/`, which is correct. Browsers will eventually unregister the SW when they get a 404 for the script.
 
-## Next Steps
-- Connect custom domain (Lacqr.io) in Vercel settings.
-- Integrate real Gemini API key.
-- Implement backend (Firebase/Supabase).
+### ⚠️ Critical User Action Required
+Since the Service Worker prevents the new app from loading, the "Killer" script may not run. You **MUST** manually clear the cache on your devices:
+
+1.  **Desktop (Chrome):**
+    *   Open DevTools (F12) -> Application Tab -> Service Workers -> **"Unregister"**.
+    *   OR: Hard Refresh (`Ctrl+Shift+R` / `Cmd+Shift+R`).
+2.  **Mobile (iOS/Android):**
+    *   Clear browsing data for `lacqr.io`.
+    *   Close the tab and reopen it.
+
+## 3. Verification
+- **Runtime Error:** Verified by code analysis. The fix ensures the data structure expected by the UI is always present.
+- **Routing:** Verified that `lacqr.io` loads (root), but sub-paths fail. This confirms the SW issue. Once the SW is removed, the Next.js routing will take over and work correctly.

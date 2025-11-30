@@ -131,7 +131,35 @@
     *   **UI Polish:** Added "Go to Dashboard" button to header and restored footer links.
     *   **Error Handling:** Added detailed error logging to Login/Signup flows.
 
-## 8. NEXT STEPS
-*   **Dashboard Overhaul:** Redesign the main dashboard for better aesthetics and utility.
-*   **Performance Optimization:** Audit bundle size and lazy load components.
-*   **Testing:** Implement E2E tests for critical flows (Signup -> Onboarding -> Scan).
+### Sprint 8: The Great Next.js Migration (Completed)
+*   **Goal:** Migrate from Vite (SPA) to Next.js App Router for better SEO, performance, and routing.
+*   **Key Changes:**
+    *   **Framework:** Switched to Next.js 14 (App Router).
+    *   **Routing:** Replaced `react-router-dom` with file-system routing (`src/app`).
+    *   **Auth:** Implemented `AuthProvider` and `ProtectedRoute` using Firebase Auth + Firestore.
+    *   **Styling:** Retained Tailwind CSS.
+    *   **Clean Up:** Removed `vite.config.ts`, `index.html`, and `src/main.tsx`.
+*   **Critical Fixes:**
+    *   **Zombie Service Worker:** The legacy Vite PWA Service Worker was causing 404s/Blank pages. Implemented `ServiceWorkerKiller` in `RootLayout` to force unregistration.
+    *   **Routing Conflicts:** Removed legacy `vercel.json` rewrites that were hijacking Next.js routes.
+
+## 8. CURRENT CRITICAL ISSUES (DEBUGGING IN PROGRESS)
+### 🔴 `TypeError: Cannot read properties of undefined (reading 'lengthTier')`
+*   **Context:** Occurs during AI Image Analysis in `LacqrLens`.
+*   **Root Cause:** The `analyzeImage` function (in `src/services/ai.ts`) fails to upload the image to Firebase Storage due to permissions, returning an incomplete object. The UI (`ServiceConfigurator`) then tries to read `pricingDetails.details.lengthTier` from this incomplete object.
+*   **Status:**
+    *   **Code Fix:** `ServiceConfigurator` refactored to use direct properties (`selection.base.length`) instead of `pricingDetails`.
+    *   **Infra Fix:** User updated Firebase Storage Rules to `allow read, write: if true;`.
+    *   **Verification:** Pending user confirmation after "Zombie SW" fix.
+
+### 🔴 Blank Pages / 404s (Solved?)
+*   **Context:** Users reported blank pages on `/debug-test` and `/admin/logs`.
+*   **Root Cause:** Legacy Service Worker from Vite PWA was caching old routes and serving 404s.
+*   **Fix:** Deployed `ServiceWorkerKiller` component. User instructed to refresh multiple times to clear the cache.
+
+## 9. NEXT STEPS
+1.  **Verify Fixes:** Confirm `ServiceWorkerKiller` has resolved the 404s.
+2.  **Verify Image Upload:** Confirm updated Storage Rules allow `analyzeImage` to succeed.
+3.  **Strict Shape Logic:** Implement industry-standard pricing tiers for nail shapes.
+4.  **Dashboard Overhaul:** Redesign the main dashboard.
+

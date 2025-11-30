@@ -25,23 +25,32 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
         setDuration(newDuration);
 
         // Update selection with new pricing details for the breakdown
+        // IMPORTANT: We must PRESERVE the existing 'details' object from the AI analysis
+        // or re-generate it if it's missing, otherwise the UI crashes.
+        const updatedDetails = selection.pricingDetails?.details || {
+            lengthTier: selection.base.length,
+            densityTier: selection.bling.density,
+            artTier: selection.art.level || 'None',
+            materialNotes: []
+        };
+
         const updatedSelection = {
             ...selection,
-            pricingDetails: priceResult
+            pricingDetails: {
+                ...priceResult,
+                details: updatedDetails // Merge preserved details back in
+            }
         };
 
         // Only trigger update if something actually changed to avoid infinite loops
         // We can't easily deep compare, but we can check if the total changed or if it's the initial load
         if (onUpdate && (selection.pricingDetails?.totalPrice !== priceResult.total)) {
-            // We need to be careful here. If we call onUpdate, it might trigger a parent re-render
-            // which passes down a new initialSelection.
-            // Instead of calling onUpdate with the *derived* data, we should just update local state for display
-            // But the breakdown relies on `selection.pricingDetails`.
-            // Let's update the local selection state with the new pricing details.
-            setSelection(prev => ({ ...prev, pricingDetails: priceResult }));
+            // Update local state AND notify parent
+            setSelection(prev => ({ ...prev, pricingDetails: updatedSelection.pricingDetails }));
             onUpdate(updatedSelection);
         } else if (!selection.pricingDetails) {
-            setSelection(prev => ({ ...prev, pricingDetails: priceResult }));
+            // Initial hydration
+            setSelection(prev => ({ ...prev, pricingDetails: updatedSelection.pricingDetails }));
         }
     }, [selection.base, selection.addons, selection.art, selection.bling, selection.modifiers, selection.pedicure, menu]); // Deep dependency check instead of just 'selection'
 
