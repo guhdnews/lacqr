@@ -120,7 +120,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
           complexitySurcharge: priceResult.breakdown.complexitySurcharge
         },
         details: {
-          lengthTier: selection.base.length,
+          lengthTier: selection.base?.length || 'Short',
           densityTier: selection.bling.density,
           artTier: selection.art.level || 'None',
           materialNotes: []
