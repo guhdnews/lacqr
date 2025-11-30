@@ -55,9 +55,12 @@ export function AdminPage() {
                 {activeTab === 'receipt' && (
                     <ReceiptBuilder
                         initialSelection={{
-                            base: { system: 'Gel X', length: 'Medium', shape: 'Almond', isFill: false },
-                            art: { level: 'Level 1', price: 5 },
-                            bling: { density: 'None', xlCharmsCount: 0 },
+                            base: { system: 'Gel-X', length: 'Medium', shape: 'Almond', isFill: false },
+                            art: { level: 'Level 1' },
+                            bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
+                            addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
+                            modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
+                            pedicure: { type: 'None', toeArtMatch: false },
                             extras: []
                         }}
                         onSaveDraft={(selection) => console.log('Save Draft', selection)}
