@@ -63,7 +63,7 @@ export const isImageBlurry = async (imageSrc: string): Promise<boolean> => {
             // LOWERED to 2 to avoid blocking high quality images that might have smooth gradients (like gel nails).
             const BLUR_THRESHOLD = 2;
 
-            console.log(`Image Sharpness Score: ${avgDiff.toFixed(2)}`);
+
             resolve(avgDiff < BLUR_THRESHOLD);
         };
 

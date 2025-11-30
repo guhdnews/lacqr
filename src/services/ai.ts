@@ -14,10 +14,10 @@ const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "
 
 export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
   try {
-    console.log("🚀 Starting Analysis Pipeline...");
+
 
     // 1. Upload to Firebase Storage
-    console.log("📤 Uploading to Firebase...");
+
     const userId = auth.currentUser?.uid;
 
     // Rate Limiting Check
@@ -64,10 +64,10 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
 
     await uploadBytes(storageRef, imageFile);
     const downloadURL = await getDownloadURL(storageRef);
-    console.log("✅ Uploaded:", downloadURL);
+
 
     // 2. Parallel Execution: Modal (YOLO/Florence) + Gemini (Vision)
-    console.log("🧠 Calling Modal Brain & Gemini...");
+
 
     const modalResponse = await fetch(MODAL_ENDPOINT, {
       method: "POST",
@@ -81,7 +81,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
     }
 
     const modalResult = modalResponse.ok ? await modalResponse.json() : {};
-    console.log("✅ Modal Result:", modalResult);
+
 
     // Safe access to Modal data
     const florenceData = modalResult.florence || {};
@@ -89,7 +89,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
 
     const geminiPromise = analyzeWithGemini(imageFile, florenceData);
     const geminiResult = await geminiPromise;
-    console.log("✨ Gemini Result:", geminiResult);
+
 
     // 3. Map Detections to Service Selection (Merging YOLO + Gemini)
     // Find nail plate for length calculation
