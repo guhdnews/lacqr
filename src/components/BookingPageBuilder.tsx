@@ -1,14 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useAppStore } from '../store/useAppStore';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Palette, Layout, Image as ImageIcon, Save, Check, Loader2, Smartphone } from 'lucide-react';
-
-interface BookingSettings {
-    themeColor: string;
-    backgroundType: 'solid' | 'gradient' | 'image';
-    backgroundValue: string;
-    layout: 'centered' | 'split';
+layout: 'centered' | 'split';
 }
 
 const DEFAULT_SETTINGS: BookingSettings = {

@@ -52,7 +52,19 @@ export function AdminPage() {
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {activeTab === 'inspector' && <AIInspector />}
                 {activeTab === 'pricing' && <PricingSandbox />}
-                {activeTab === 'receipt' && <ReceiptBuilder />}
+                {activeTab === 'receipt' && (
+                    <ReceiptBuilder
+                        initialSelection={{
+                            base: { system: 'Gel X', length: 'Medium', shape: 'Almond', isFill: false },
+                            art: { level: 'Level 1', price: 5 },
+                            bling: { density: 'None', xlCharmsCount: 0 },
+                            extras: []
+                        }}
+                        onSaveDraft={(selection) => console.log('Save Draft', selection)}
+                        onAssignClient={() => console.log('Assign Client')}
+                        onCreateClient={() => console.log('Create Client')}
+                    />
+                )}
                 {activeTab === 'training' && (
                     <div className="text-center py-20">
                         <Database className="w-12 h-12 text-gray-300 mx-auto mb-4" />
