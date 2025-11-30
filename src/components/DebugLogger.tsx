@@ -10,17 +10,20 @@ interface LogEntry {
     stack?: string;
 }
 
+import { useSearchParams } from 'next/navigation';
+
 export default function DebugLogger() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isVisible, setIsVisible] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const searchParams = useSearchParams();
 
     useEffect(() => {
-        // Check for debug mode flag
-        const isDebug = typeof window !== 'undefined' && (
-            window.location.search.includes('debug=true') ||
-            localStorage.getItem('lacqr_debug') === 'true'
-        );
+        // Check for debug mode flag via searchParams or localStorage
+        const debugParam = searchParams.get('debug');
+        const isDebug = debugParam === 'true' ||
+            (typeof window !== 'undefined' && localStorage.getItem('lacqr_debug') === 'true');
+
         setIsVisible(isDebug);
 
         if (!isDebug) return;
@@ -124,8 +127,8 @@ export default function DebugLogger() {
                     )}
                     {logs.map((log, i) => (
                         <div key={i} className={`p-2 rounded border-l-2 ${log.level === 'error' ? 'bg-red-900/20 border-red-500 text-red-200' :
-                                log.level === 'warn' ? 'bg-yellow-900/20 border-yellow-500 text-yellow-200' :
-                                    'bg-gray-800/50 border-blue-500 text-gray-300'
+                            log.level === 'warn' ? 'bg-yellow-900/20 border-yellow-500 text-yellow-200' :
+                                'bg-gray-800/50 border-blue-500 text-gray-300'
                             }`}>
                             <div className="flex gap-2 opacity-50 mb-1 text-[10px]">
                                 <span>{log.timestamp}</span>
