@@ -22,10 +22,13 @@ export default function InteractionHistory({ clientId }: InteractionHistoryProps
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
 
-    // New Interaction State
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState('');
+
+    // New Interaction State
+    const [newContent, setNewContent] = useState('');
+    const [newType, setNewType] = useState<Interaction['type']>('note');
 
     useEffect(() => {
         if (!user?.id || !clientId) return;
