@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Client } from '../types/client';
-import { Appointment } from '../types/appointment';
-import { ArrowLeft, Phone, Mail, Calendar, MapPin, Edit2, Save, Instagram, Gift, StickyNote } from 'lucide-react';
+import type { Client } from '../types/client';
+import type { Appointment } from '../types/appointment';
+import { ArrowLeft, Phone, Mail, Edit2, Save, Instagram, Gift, StickyNote } from 'lucide-react';
 import { format } from 'date-fns';
 import InteractionHistory from '../components/InteractionHistory';
 
