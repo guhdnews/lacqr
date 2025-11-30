@@ -87,7 +87,9 @@ export default function Login() {
             // Navigation handled by useEffect
         } catch (err: any) {
             console.error("Google Login Error:", err);
-            setError("Failed to sign in with Google.");
+            console.error("Error Code:", err.code);
+            console.error("Error Message:", err.message);
+            setError(`Failed to sign in: ${err.message}`);
             setLoading(false);
         }
     };

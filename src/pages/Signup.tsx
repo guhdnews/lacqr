@@ -91,7 +91,9 @@ export default function Signup() {
             navigate('/dashboard');
         } catch (err: any) {
             console.error("Google Signup Error:", err);
-            setError("Failed to sign up with Google.");
+            console.error("Error Code:", err.code);
+            console.error("Error Message:", err.message);
+            setError(`Failed to sign up: ${err.message}`);
             setLoading(false);
         }
     };
