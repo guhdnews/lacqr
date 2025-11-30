@@ -11,7 +11,8 @@ export const metadata: Metadata = {
     title: "Lacqr | Nail Tech Co-Pilot",
     description: "The AI-powered assistant for modern nail technicians.",
     icons: {
-        icon: "/favicon.png",
+        icon: "/favicon.png?v=2",
+        apple: "/favicon.png?v=2",
     },
 };
 
