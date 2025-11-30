@@ -20,6 +20,9 @@ import PublicQuote from './pages/PublicQuote';
 import LacqrTrainer from './pages/LacqrTrainer';
 import PublicSmartQuote from './pages/public/PublicSmartQuote';
 import EmbedSmartQuote from './pages/public/EmbedSmartQuote';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
+import FAQ from './pages/FAQ';
 
 import Dashboard from './pages/Dashboard';
 import CRMDashboard from './pages/CRMDashboard';
@@ -130,6 +133,9 @@ function App() {
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/book" element={<PublicBooking />} />
           <Route path="/book/:userId" element={<PublicSmartQuote />} />
           <Route path="/login" element={<Login />} />

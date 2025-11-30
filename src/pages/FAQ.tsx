@@ -1,38 +1,97 @@
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import { ChevronDown } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { useState } from 'react';
 
 export default function FAQ() {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const faqs = [
+        {
+            category: "General",
+            questions: [
+                { q: "What exactly does Lacqr do?", a: "Lacqr is an AI-powered assistant for nail technicians. It analyzes photos of nail designs to help you price them accurately, generates booking instructions for clients, and manages your client history." },
+                { q: "Is Lacqr a booking site?", a: "Lacqr integrates with your existing booking flow. While we provide a public profile and service menu, our main goal is to help you quote prices and direct clients to book the correct services on whatever platform you use (GlossGenius, Vagaro, DM, etc.)." },
+                { q: "Do I need to download an app?", a: "No, Lacqr is a web application. You can access it from any browser on your phone, tablet, or laptop. It works just like an app but without the download." }
+            ]
+        },
+        {
+            category: "Pricing & AI",
+            questions: [
+                { q: "How accurate is the AI pricing?", a: "Our AI is trained on thousands of nail sets and is highly accurate at identifying components like length, shape, and art complexity. However, YOU control the base prices. The AI suggests a total based on your settings, but you can always edit the final quote before sending it." },
+                { q: "Can I customize my prices?", a: "Yes! On the Pro plan, you can set your specific prices for every variable—how much you charge for XL length, for chrome, for 3D charms, etc. The AI uses YOUR price list to generate quotes." },
+                { q: "Does it work for acrylic and gel?", a: "Yes, Lacqr works for all nail systems including Gel-X, Acrylic, Hard Gel, and natural nails." }
+            ]
+        },
+        {
+            category: "Account & Billing",
+            questions: [
+                { q: "Is there a free trial?", a: "We offer a 'Starter' plan that is free forever. It includes 5 AI scans per month so you can try it out risk-free." },
+                { q: "How do I upgrade to Pro?", a: "You can upgrade to the Pro Boss plan anytime from your Settings page. It unlocks unlimited scans and advanced customization." },
+                { q: "Can I cancel my subscription?", a: "Yes, you can cancel at any time. You will retain access to Pro features until the end of your current billing period." }
+            ]
+        }
+    ];
+
+    const filteredFaqs = faqs.map(cat => ({
+        ...cat,
+        questions: cat.questions.filter(q =>
+            q.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            q.a.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    })).filter(cat => cat.questions.length > 0);
+
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
-            <Header />
+        <div className="font-sans text-charcoal min-h-screen bg-gray-50">
+            {/* Header */}
+            <section className="bg-white border-b border-gray-100 py-20 px-6 text-center">
+                <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">How can we help?</h1>
+                <div className="max-w-xl mx-auto relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                        type="text"
+                        placeholder="Search for answers..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 rounded-full border border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-100 outline-none transition-all shadow-sm"
+                    />
+                </div>
+            </section>
 
-            <div className="bg-pink-50 py-24 px-6 text-center">
-                <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">Frequently Asked Questions</h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Everything you need to know about Lacqr.
-                </p>
-            </div>
-
-            <div className="max-w-3xl mx-auto px-6 py-24 space-y-6">
-                {[
-                    { q: "How does the AI pricing work?", a: "Our AI analyzes photos of nail designs to identify components like length, shape, chrome, gems, and art complexity. It then calculates a price based on your customizable service menu." },
-                    { q: "Can I use my own prices?", a: "Yes! The Pro plan allows you to upload your specific price list. The AI will map its findings to your prices, ensuring quotes are accurate for your salon." },
-                    { q: "Is my data private?", a: "Absolutely. Your photos and business data are encrypted and never shared. We use them only to improve the accuracy of your personal AI model." },
-                    { q: "Do I need to be tech-savvy?", a: "Not at all. Lacqr is designed to be as easy as posting to Instagram. If you can take a photo, you can use Lacqr." },
-                    { q: "Can I cancel anytime?", a: "Yes, there are no long-term contracts. You can cancel your subscription at any time from your account settings." },
-                    { q: "Does it work for acrylic and gel?", a: "Yes, our AI is trained on all major nail systems including Acrylic, Gel-X, Hard Gel, and Polygel." }
-                ].map((item, i) => (
-                    <div key={i} className="bg-white border border-gray-200 p-6 rounded-2xl hover:border-pink-200 transition-colors cursor-pointer group">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-bold text-lg">{item.q}</h3>
-                            <ChevronDown className="text-gray-400 group-hover:text-pink-500 transition-colors" size={20} />
+            {/* FAQ Grid */}
+            <section className="py-20 px-6">
+                <div className="max-w-4xl mx-auto space-y-12">
+                    {filteredFaqs.length > 0 ? (
+                        filteredFaqs.map((category, i) => (
+                            <div key={i}>
+                                <h3 className="text-2xl font-bold mb-6 text-pink-600">{category.category}</h3>
+                                <div className="grid gap-6">
+                                    {category.questions.map((item, j) => (
+                                        <div key={j} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                                            <h4 className="text-lg font-bold mb-3">{item.q}</h4>
+                                            <p className="text-gray-600 leading-relaxed">{item.a}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-12 text-gray-500">
+                            No results found for "{searchQuery}". Try a different keyword.
                         </div>
-                        <p className="text-gray-600 leading-relaxed">{item.a}</p>
-                    </div>
-                ))}
-            </div>
-            <Footer />
+                    )}
+                </div>
+            </section>
+
+            {/* Contact CTA */}
+            <section className="py-20 px-6 text-center">
+                <h3 className="text-2xl font-bold mb-4">Still have questions?</h3>
+                <p className="text-gray-600 mb-8">We're here to help you get set up.</p>
+                <a
+                    href="mailto:hello@lacqr.io"
+                    className="inline-block bg-white border border-gray-200 text-charcoal px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
+                >
+                    Contact Support
+                </a>
+            </section>
         </div>
     );
 }

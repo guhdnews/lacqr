@@ -1,117 +1,166 @@
-import { CheckCircle, Smartphone, Zap, Clock, DollarSign, MessageCircle } from 'lucide-react';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
+import { Camera, Sparkles, Users, BarChart3, Image as ImageIcon, Zap, Clock, Shield, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Features() {
+    const navigate = useNavigate();
+
     return (
-        <div className="min-h-screen bg-white font-sans text-charcoal">
-            <Header />
-
+        <div className="font-sans text-charcoal">
             {/* Hero */}
-            <div className="bg-pink-50 py-24 px-6 text-center">
-                <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6">The Toolkit for Modern Nail Techs</h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Stop using five different apps to run your business. Lacqr combines AI pricing, booking intelligence, and client management into one seamless workflow.
-                </p>
-            </div>
+            <section className="bg-pink-50 py-20 px-6">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">
+                        Everything You Need to Run a <span className="text-pink-600">Modern Salon</span>
+                    </h1>
+                    <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                        Lacqr isn't just a booking app. It's an AI-powered business partner that handles pricing, scheduling, and client management so you can focus on creating art.
+                    </p>
+                    <button
+                        onClick={() => navigate('/signup')}
+                        className="bg-charcoal text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-black transition-all shadow-xl hover:scale-105"
+                    >
+                        Start Your Free Trial
+                    </button>
+                </div>
+            </section>
 
-            <div className="max-w-7xl mx-auto px-6 py-24">
-                {/* QuoteCam Deep Dive */}
-                <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
-                    <div className="space-y-8">
-                        <h2 className="text-4xl font-serif font-bold">Lacqr Lens: Your Pricing Guardian</h2>
+            {/* Feature 1: Lacqr Lens */}
+            <section className="py-24 px-6">
+                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+                    <div className="order-2 md:order-1">
+                        <div className="bg-gray-100 rounded-[3rem] p-8 transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+                            <img src="/assets/hero_image_salon.png" alt="Lacqr Lens Demo" className="rounded-2xl shadow-lg w-full" />
+                        </div>
+                    </div>
+                    <div className="order-1 md:order-2 space-y-6">
+                        <div className="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
+                            <Camera size={32} />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-serif font-bold">Lacqr Lens AI</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            Undercharging is the #1 killer of nail businesses. Lacqr Lens uses advanced computer vision to analyze inspo pics and finished sets, identifying every cost driver that usually slips through the cracks. It's like having a business manager in your pocket.
+                            Stop guessing prices. Upload any inspiration photo or finished set, and our AI instantly analyzes it to identify every cost driver—length, shape, chrome, gems, and 3D art.
                         </p>
-
-                        <div className="space-y-6">
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><CheckCircle size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">Granular Detection</h4>
-                                    <p className="text-gray-600">It doesn't just see "nails." It sees "XL Coffin," "Chrome Powder," "3D Charms," and "French Tips." It counts every gem so you don't have to.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><DollarSign size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">Customizable Price Lists</h4>
-                                    <p className="text-gray-600">Map our AI detections to YOUR specific service menu. We don't dictate prices; we enforce yours, ensuring consistency across every client.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><CheckCircle size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">Instant Receipts</h4>
-                                    <p className="text-gray-600">Generate a professional, itemized image to send to clients. No more awkward "why is it so much?" conversations—just clear, transparent pricing.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden">
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
-                            Interactive Lacqr Lens Demo UI
-                        </div>
+                        <ul className="space-y-4">
+                            {[
+                                "Detects complex art like 3D charms and airbrush",
+                                "Calculates price based on YOUR custom settings",
+                                "Generates a professional, itemized receipt",
+                                "Saves hours of DMing back and forth"
+                            ].map((item, i) => (
+                                <li key={i} className="flex items-center space-x-3 text-gray-700">
+                                    <div className="bg-green-100 p-1 rounded-full text-green-600"><Zap size={14} /></div>
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </div>
+            </section>
 
-                {/* Service Sorter Deep Dive */}
-                <div className="grid md:grid-cols-2 gap-16 mb-32 items-center">
-                    <div className="bg-gray-100 rounded-[3rem] h-[600px] w-full shadow-2xl border border-gray-200 relative overflow-hidden order-2 md:order-1">
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-serif italic">
-                            Smart Quote Chat UI
+            {/* Feature 2: Smart Quote */}
+            <section className="py-24 px-6 bg-white">
+                <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+                    <div className="space-y-6">
+                        <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                            <Sparkles size={32} />
                         </div>
-                    </div>
-                    <div className="space-y-8 order-1 md:order-2">
-                        <h2 className="text-4xl font-serif font-bold">Smart Quote: The Booking Translator</h2>
+                        <h2 className="text-3xl md:text-4xl font-serif font-bold">Smart Quote System</h2>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            "What do I book for this?" It's the question that clogs your DMs. Smart Quote analyzes client requests and tells them exactly which buttons to click on your booking site, reducing booking errors and surprise add-ons.
+                            Turn vague DMs into confirmed appointments. When a client sends an inspo pic, Smart Quote tells them exactly what services to book on your site to match that look.
                         </p>
-
-                        <div className="space-y-6">
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><MessageCircle size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">DM Integration</h4>
-                                    <p className="text-gray-600">Copy-paste the client's message or photo, and we'll generate the perfect reply with a direct booking link. Save hours of admin time every week.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Clock size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">Time Estimation</h4>
-                                    <p className="text-gray-600">We calculate the estimated time for the design so you don't run late for your next appointment. Keep your schedule running smooth.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start space-x-4">
-                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Zap size={20} /></div>
-                                <div>
-                                    <h4 className="font-bold text-lg">Upsell Opportunities</h4>
-                                    <p className="text-gray-600">Our AI suggests relevant add-ons based on the design, helping you increase your ticket size without being pushy.</p>
-                                </div>
+                        <ul className="space-y-4">
+                            {[
+                                "Eliminates 'What do I book for this?' questions",
+                                "Prevents surprise add-ons at the appointment",
+                                "Pre-writes professional responses for you",
+                                "Links directly to your booking flow"
+                            ].map((item, i) => (
+                                <li key={i} className="flex items-center space-x-3 text-gray-700">
+                                    <div className="bg-purple-100 p-1 rounded-full text-purple-600"><Zap size={14} /></div>
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="bg-gray-100 rounded-[3rem] p-8 transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                            {/* Placeholder for UI screenshot */}
+                            <div className="aspect-square bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-300">
+                                <Sparkles size={64} />
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                {/* Additional Features Grid */}
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl font-serif font-bold mb-4">Everything Else You Get</h2>
+            {/* Additional Features Grid */}
+            <section className="py-24 px-6 bg-gray-50">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">More Than Just AI</h2>
+                        <p className="text-gray-600">A complete toolkit for the independent nail artist.</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                icon: Users,
+                                title: "Client CRM",
+                                desc: "Track client history, formulas, and preferences. Never forget a birthday or a favorite color."
+                            },
+                            {
+                                icon: BarChart3,
+                                title: "Income Analytics",
+                                desc: "Visualize your earnings. See which services are your biggest money-makers."
+                            },
+                            {
+                                icon: ImageIcon,
+                                title: "Smart Portfolio",
+                                desc: "Auto-organize your work by style and price. Show clients exactly what they can get for their budget."
+                            },
+                            {
+                                icon: Clock,
+                                title: "Time Management",
+                                desc: "AI suggests realistic time duration for complex sets so you never run late."
+                            },
+                            {
+                                icon: Shield,
+                                title: "Policy Enforcement",
+                                desc: "Polite but firm AI-generated texts to handle late clients and deposit policies."
+                            },
+                            {
+                                icon: Heart,
+                                title: "Client Retention",
+                                desc: "Automated follow-ups to rebook clients who haven't visited in a while."
+                            }
+                        ].map((feature, i) => (
+                            <div key={i} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all">
+                                <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600 mb-6">
+                                    <feature.icon size={24} />
+                                </div>
+                                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                                <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {[
-                        { icon: Smartphone, title: "Mobile First Design", desc: "Built entirely for your phone, because that's where you run your business. No laptop required." },
-                        { icon: CheckCircle, title: "Client History", desc: "Keep track of past sets and prices for every client, making rebooking a breeze." }
-                    ].map((feat, i) => (
-                        <div key={i} className="bg-gray-50 p-8 rounded-3xl hover:bg-pink-50 transition-colors">
-                            <feat.icon className="text-pink-500 mb-4" size={32} />
-                            <h3 className="text-xl font-bold mb-2">{feat.title}</h3>
-                            <p className="text-gray-600">{feat.desc}</p>
-                        </div>
-                    ))}
+            </section>
+
+            {/* CTA */}
+            <section className="py-24 px-6 text-center">
+                <div className="max-w-3xl mx-auto bg-charcoal text-white rounded-[3rem] p-12 md:p-20 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-800 to-black z-0"></div>
+                    <div className="relative z-10">
+                        <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Ready to Upgrade Your Business?</h2>
+                        <p className="text-gray-300 mb-8 text-lg">Join thousands of nail techs who are pricing with confidence.</p>
+                        <button
+                            onClick={() => navigate('/signup')}
+                            className="bg-white text-charcoal px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl"
+                        >
+                            Get Started for Free
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <Footer />
+            </section>
         </div>
     );
 }

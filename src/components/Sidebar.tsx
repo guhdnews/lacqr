@@ -40,12 +40,18 @@ export default function Sidebar() {
     return (
         <>
             {/* Mobile Toggle */}
-            <button
-                onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md text-charcoal"
-            >
-                {isMobileOpen ? <X size={24} /> : <MenuIcon size={24} />}
-            </button>
+            {/* Mobile Header Bar */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-pink-50 z-50 flex items-center px-4 justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsMobileOpen(!isMobileOpen)}
+                        className="p-2 text-charcoal hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        {isMobileOpen ? <X size={24} /> : <MenuIcon size={24} />}
+                    </button>
+                    <span className="text-xl font-serif font-bold text-charcoal">Lacqr</span>
+                </div>
+            </div>
 
             {/* Sidebar Container */}
             <aside className={`
