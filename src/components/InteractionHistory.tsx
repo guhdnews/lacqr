@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, orderBy, addDoc, deleteDoc, updateDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppStore } from '../store/useAppStore';
-import { MessageSquare, Phone, StickyNote, Mail, Plus, Trash2, Clock, Pencil } from 'lucide-react';
+import { MessageSquare, Phone, StickyNote, Mail, Plus, Trash2, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Interaction {
@@ -25,6 +25,7 @@ export default function InteractionHistory({ clientId }: InteractionHistoryProps
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState('');
+    const [editType, setEditType] = useState<Interaction['type']>('note');
 
     // New Interaction State
     const [newContent, setNewContent] = useState('');
@@ -78,6 +79,7 @@ export default function InteractionHistory({ clientId }: InteractionHistoryProps
     const startEditing = (interaction: Interaction) => {
         setEditingId(interaction.id);
         setEditContent(interaction.content);
+        setEditType(interaction.type);
     };
 
     const handleSaveEdit = async () => {
@@ -85,7 +87,8 @@ export default function InteractionHistory({ clientId }: InteractionHistoryProps
         try {
             const docRef = doc(db, 'users', user.id, 'clients', clientId, 'interactions', editingId);
             await updateDoc(docRef, {
-                content: editContent
+                content: editContent,
+                type: editType
             });
             setEditingId(null);
             setEditContent('');
@@ -194,6 +197,20 @@ export default function InteractionHistory({ clientId }: InteractionHistoryProps
 
                                     {editingId === item.id ? (
                                         <div className="mt-2">
+                                            <div className="flex gap-2 mb-2">
+                                                {(['note', 'call', 'text', 'email'] as const).map(type => (
+                                                    <button
+                                                        key={type}
+                                                        onClick={() => setEditType(type)}
+                                                        className={`px-2 py-1 rounded text-xs font-bold capitalize transition-all ${editType === type
+                                                            ? 'bg-charcoal text-white'
+                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                            }`}
+                                                    >
+                                                        {type}
+                                                    </button>
+                                                ))}
+                                            </div>
                                             <textarea
                                                 value={editContent}
                                                 onChange={(e) => setEditContent(e.target.value)}

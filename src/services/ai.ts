@@ -18,9 +18,49 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
 
     // 1. Upload to Firebase Storage
     console.log("📤 Uploading to Firebase...");
-    const userId = auth.currentUser?.uid || "anonymous";
+    const userId = auth.currentUser?.uid;
+
+    // Rate Limiting Check
+    if (userId) {
+      const { doc, getDoc, setDoc, updateDoc, increment } = await import('firebase/firestore');
+      const { db } = await import('../lib/firebase');
+
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const usageRef = doc(db, 'users', userId, 'usage', 'daily');
+      const usageSnap = await getDoc(usageRef);
+
+      let currentCount = 0;
+
+      if (usageSnap.exists()) {
+        const data = usageSnap.data();
+        if (data.date === today) {
+          currentCount = data.count;
+        } else {
+          // Reset for new day
+          await setDoc(usageRef, { date: today, count: 0 });
+        }
+      } else {
+        await setDoc(usageRef, { date: today, count: 0 });
+      }
+
+      // Check User Subscription Status
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      const isPro = userSnap.data()?.subscription === 'pro';
+
+      if (!isPro && currentCount >= 5) {
+        throw new Error("Daily scan limit reached (5/5). Upgrade to Pro for unlimited scans.");
+      }
+
+      // Increment count (optimistic)
+      await updateDoc(usageRef, {
+        count: increment(1),
+        date: today // Ensure date is set
+      });
+    }
+
     const timestamp = Date.now();
-    const storageRef = ref(storage, `scans/${userId}/${timestamp}.jpg`);
+    const storageRef = ref(storage, `scans/${userId || 'anonymous'}/${timestamp}.jpg`);
 
     await uploadBytes(storageRef, imageFile);
     const downloadURL = await getDownloadURL(storageRef);

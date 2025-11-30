@@ -64,6 +64,23 @@ export default function OnboardingWizard() {
         }
     };
 
+    const handleSkip = async () => {
+        if (!user.id) return;
+        setLoading(true);
+        try {
+            await setDoc(doc(db, 'users', user.id), {
+                onboardingComplete: true
+            }, { merge: true });
+
+            setUser({ ...user, onboardingComplete: true });
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Error skipping onboarding:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
             <div className="max-w-4xl w-full space-y-8">
@@ -84,10 +101,11 @@ export default function OnboardingWizard() {
                 {/* Skip Button */}
                 <div className="absolute top-6 right-6">
                     <button
-                        onClick={() => navigate('/dashboard')}
-                        className="text-gray-400 hover:text-charcoal text-sm font-medium transition-colors"
+                        onClick={handleSkip}
+                        disabled={loading}
+                        className="text-gray-400 hover:text-charcoal text-sm font-medium transition-colors disabled:opacity-50"
                     >
-                        Skip Setup
+                        {loading ? 'Skipping...' : 'Skip Setup'}
                     </button>
                 </div>
 
@@ -101,7 +119,7 @@ export default function OnboardingWizard() {
 
                         <div className="bg-gray-50 p-8 rounded-3xl space-y-6">
                             <div>
-                                <label className="block font-bold text-charcoal mb-2">Full Name</label>
+                                <label className="block font-bold text-charcoal mb-2">Full Name <span className="text-gray-400 font-normal text-sm">(Optional)</span></label>
                                 <div className="relative">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                     <input
@@ -115,7 +133,7 @@ export default function OnboardingWizard() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block font-bold text-charcoal mb-2">Phone Number</label>
+                                <label className="block font-bold text-charcoal mb-2">Phone Number <span className="text-gray-400 font-normal text-sm">(Optional)</span></label>
                                 <div className="relative">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                     <input

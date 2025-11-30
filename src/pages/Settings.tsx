@@ -77,44 +77,44 @@ export default function Settings() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] max-w-6xl mx-auto p-6 gap-8">
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-6xl mx-auto p-4 md:p-6 gap-6 md:gap-8">
             {/* Sidebar Navigation */}
-            <div className="w-64 flex-shrink-0">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
+            <div className="w-full md:w-64 flex-shrink-0">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 md:p-4 flex overflow-x-auto md:block space-x-2 md:space-x-0 md:space-y-2 scrollbar-hide">
                     <button
                         onClick={() => setActiveTab('profile')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'profile' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <User size={20} />
-                        <span>Profile</span>
+                        <User size={18} className="md:w-5 md:h-5" />
+                        <span className="text-sm md:text-base">Profile</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('salon')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'salon' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'salon' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <Building2 size={20} />
-                        <span>Salon Details</span>
+                        <Building2 size={18} className="md:w-5 md:h-5" />
+                        <span className="text-sm md:text-base">Salon Details</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('smart-quote')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'smart-quote' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'smart-quote' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <Sparkles size={20} />
-                        <span>Smart Quote</span>
+                        <Sparkles size={18} className="md:w-5 md:h-5" />
+                        <span className="text-sm md:text-base">Smart Quote</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('booking-page')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'booking-page' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'booking-page' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <Layout size={20} />
-                        <span>Booking Page</span>
+                        <Layout size={18} className="md:w-5 md:h-5" />
+                        <span className="text-sm md:text-base">Booking Page</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('payments')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'payments' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'payments' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <CreditCard size={20} />
-                        <span>Payments</span>
+                        <CreditCard size={18} className="md:w-5 md:h-5" />
+                        <span className="text-sm md:text-base">Payments</span>
                     </button>
                 </div>
             </div>

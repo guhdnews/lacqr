@@ -8,6 +8,7 @@ interface AppState {
         id: string | null;
         name: string | null;
         email: string | null;
+        salonName?: string | null;
         isAuthenticated: boolean;
         onboardingComplete: boolean;
     };
@@ -29,6 +30,7 @@ export const useAppStore = create<AppState>()(
                 id: null,
                 name: null,
                 email: null,
+                salonName: null,
                 isAuthenticated: false,
                 onboardingComplete: false,
             },
@@ -40,6 +42,7 @@ export const useAppStore = create<AppState>()(
                     id: null,
                     name: null,
                     email: null,
+                    salonName: null,
                     isAuthenticated: false,
                     onboardingComplete: false
                 }

@@ -146,13 +146,31 @@ export default function LacqrLens() {
 
     // --- Receipt Actions ---
     const handleSaveDraft = async (finalSelection: ServiceSelection) => {
-        if (!user) {
+        if (!user.isAuthenticated || !user.id) {
             alert("Please log in to save drafts.");
             return;
         }
-        console.log("Saving draft:", finalSelection);
-        // Logic to save draft (if needed, or just rely on local state until assigned)
-        alert("Draft saved locally!");
+
+        try {
+            const { addDoc, collection } = await import('firebase/firestore');
+            const { db } = await import('../lib/firebase');
+
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 14);
+
+            await addDoc(collection(db, 'users', user.id, 'drafts'), {
+                data: finalSelection,
+                createdAt: new Date().toISOString(),
+                expiresAt: expiresAt.toISOString(),
+                salonName: user.name || "My Salon",
+                totalPrice: calculatePrice(finalSelection, menu)
+            });
+
+            alert("Draft saved! It will be kept for 14 days.");
+        } catch (error) {
+            console.error("Error saving draft:", error);
+            alert("Failed to save draft. Please try again.");
+        }
     };
 
     const handleAssignClient = () => {

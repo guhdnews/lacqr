@@ -12,9 +12,15 @@ export default function Footer() {
                         Empowering nail technicians with AI tools to price with confidence and book with ease.
                     </p>
                     <div className="flex space-x-4 text-gray-400">
-                        <Instagram size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
-                        <Twitter size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
-                        <Mail size={20} className="hover:text-pink-500 cursor-pointer transition-colors" />
+                        <a href="https://instagram.com/lacqr.io" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 cursor-pointer transition-colors">
+                            <Instagram size={20} />
+                        </a>
+                        <a href="https://twitter.com/lacqr_io" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 cursor-pointer transition-colors">
+                            <Twitter size={20} />
+                        </a>
+                        <a href="mailto:hello@lacqr.io" className="hover:text-pink-500 cursor-pointer transition-colors">
+                            <Mail size={20} />
+                        </a>
                     </div>
                 </div>
 

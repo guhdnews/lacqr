@@ -48,6 +48,50 @@ export default function Login() {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+            const { auth, db } = await import('../lib/firebase');
+            const { doc, getDoc, setDoc } = await import('firebase/firestore');
+
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Check if user doc exists, if not create it (hybrid login/signup)
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (!userDoc.exists()) {
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    name: user.displayName,
+                    createdAt: new Date().toISOString(),
+                    role: 'owner',
+                    settings: {
+                        theme: 'light',
+                        notifications: true
+                    },
+                    subscription: 'free' // Default to free
+                });
+
+                // Create default Master Service Menu
+                await setDoc(doc(db, 'serviceMenus', user.uid), {
+                    categories: ['Manicure', 'Pedicure', 'Extensions'],
+                    services: [],
+                    addOns: [],
+                    tiers: []
+                });
+            }
+
+            // Navigation handled by useEffect
+        } catch (err: any) {
+            console.error("Google Login Error:", err);
+            setError("Failed to sign in with Google.");
+            setLoading(false);
+        }
+    };
+
     const handlePasswordReset = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -137,61 +181,81 @@ export default function Login() {
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleLogin} className="space-y-6">
-                            {error && (
-                                <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
-                                    {error}
+                        <div className="space-y-6">
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={loading}
+                                className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                            >
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                                <span>Sign in with Google</span>
+                            </button>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                {error && (
+                                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
+                                        {error}
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-pink-500 transition-colors"
+                                        placeholder="name@example.com"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsResetMode(true);
+                                                setResetEmail(email);
+                                            }}
+                                            className="text-xs text-pink-600 font-medium hover:underline"
+                                        >
+                                            Forgot Password?
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-pink-500 transition-colors"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-charcoal text-white py-3 rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+                                    {!loading && <ArrowRight size={18} />}
+                                </button>
+                            </form>
+
+                            {!isResetMode && (
+                                <div className="mt-8 text-center text-sm text-gray-500">
+                                    Don't have an account? <Link to="/signup" className="text-pink-600 font-bold hover:underline">Sign up</Link>
                                 </div>
                             )}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-pink-500 transition-colors"
-                                    placeholder="name@example.com"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-sm font-medium text-gray-700">Password</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsResetMode(true);
-                                            setResetEmail(email);
-                                        }}
-                                        className="text-xs text-pink-600 font-medium hover:underline"
-                                    >
-                                        Forgot Password?
-                                    </button>
-                                </div>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-pink-500 transition-colors"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-charcoal text-white py-3 rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <span>{loading ? 'Signing In...' : 'Sign In'}</span>
-                                {!loading && <ArrowRight size={18} />}
-                            </button>
-                        </form>
-                    )}
-
-                    {!isResetMode && (
-                        <div className="mt-8 text-center text-sm text-gray-500">
-                            Don't have an account? <Link to="/signup" className="text-pink-600 font-bold hover:underline">Sign up</Link>
                         </div>
                     )}
                 </div>

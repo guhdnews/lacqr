@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Sparkles, CheckCircle, ArrowRight, DollarSign, Users, BarChart3, Image as ImageIcon } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
@@ -7,11 +6,11 @@ export default function LandingPage() {
     const navigate = useNavigate();
     const { user } = useAppStore();
 
-    useEffect(() => {
-        if (user.isAuthenticated) {
-            navigate('/lacqr-lens');
-        }
-    }, [user.isAuthenticated, navigate]);
+    // useEffect(() => {
+    //     if (user.isAuthenticated) {
+    //         navigate('/lacqr-lens');
+    //     }
+    // }, [user.isAuthenticated, navigate]);
 
     return (
         <div className="font-sans text-charcoal">
@@ -45,13 +44,23 @@ export default function LandingPage() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2 justify-center md:justify-start">
-                            <button
-                                onClick={() => navigate('/signup')}
-                                className="bg-charcoal text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-black transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-2 w-full sm:w-auto justify-center"
-                            >
-                                <span>Try Lacqr Lens Free</span>
-                                <ArrowRight size={20} />
-                            </button>
+                            {user.isAuthenticated ? (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="bg-charcoal text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-black transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-2 w-full sm:w-auto justify-center"
+                                >
+                                    <span>Go to Dashboard</span>
+                                    <BarChart3 size={20} />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => navigate('/signup')}
+                                    className="bg-charcoal text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-black transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center space-x-2 w-full sm:w-auto justify-center"
+                                >
+                                    <span>Try Lacqr Lens Free</span>
+                                    <ArrowRight size={20} />
+                                </button>
+                            )}
                         </div>
                     </div>
 
