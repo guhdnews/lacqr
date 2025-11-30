@@ -150,6 +150,7 @@ export default function LacqrLens() {
             alert("Please log in to save drafts.");
             return;
         }
+        console.log("Saving draft:", finalSelection);
         // Logic to save draft (if needed, or just rely on local state until assigned)
         alert("Draft saved locally!");
     };

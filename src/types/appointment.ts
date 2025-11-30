@@ -7,8 +7,10 @@ export interface Appointment {
     clientId: string;
     clientName: string;
     date: any; // Firestore Timestamp
-    serviceDetails: ServiceSelection;
-    totalPrice: number;
+    serviceDetails?: ServiceSelection;
+    serviceName?: string;
+    totalPrice?: number;
+    price?: number;
     status: AppointmentStatus;
     notes?: string;
     createdAt: any;

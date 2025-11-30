@@ -4,7 +4,7 @@ import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } fr
 import { db } from '../lib/firebase';
 import { Client } from '../types/client';
 import { Appointment } from '../types/appointment';
-import { ArrowLeft, Phone, Mail, Calendar, MapPin, Edit2, Save, X, Instagram, Gift, StickyNote } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Calendar, MapPin, Edit2, Save, Instagram, Gift, StickyNote } from 'lucide-react';
 import { format } from 'date-fns';
 import InteractionHistory from '../components/InteractionHistory';
 
