@@ -51,8 +51,13 @@ function LacqrLensContent() {
 
     // Persistence Effects
     useEffect(() => {
-        if (image) localStorage.setItem('lacqr_lens_image', image);
-        else localStorage.removeItem('lacqr_lens_image');
+        try {
+            if (image) localStorage.setItem('lacqr_lens_image', image);
+            else localStorage.removeItem('lacqr_lens_image');
+        } catch (e) {
+            console.warn("Failed to save image to localStorage (likely quota exceeded):", e);
+            // Optional: Clear other items to make space or just ignore
+        }
     }, [image]);
 
     useEffect(() => {
