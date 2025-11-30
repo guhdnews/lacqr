@@ -24,6 +24,9 @@
     - [x] Create Remote Logger & Admin Page
     - [x] Fix Firestore Rules (User Applied)
     - [x] Fix Storage Rules (User Applied)
-    - [ ] Verify Firestore Write/Read (Diagnostic Page)
+    - [x] Verify Firestore Write/Read (Diagnostic Page) - FAILED (Blank Page)
+    - [ ] Debug Blank Page Issue (Global Crash?)
+        - [ ] Inspect Browser Console Logs
+        - [ ] Verify Root Layout & Firebase Init
     - [ ] Fix `lengthTier` Root Cause (ServiceConfigurator/AI Service)
 - [ ] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 18 -->
