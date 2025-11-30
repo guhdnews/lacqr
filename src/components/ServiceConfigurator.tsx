@@ -113,15 +113,15 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                                 <span className="font-medium">${selection.pricingDetails.breakdown.basePrice}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Length ({selection.pricingDetails?.details?.lengthTier || 'Standard'})</span>
+                                <span className="text-gray-600">Length ({selection.base.length})</span>
                                 <span className="font-medium">+${selection.pricingDetails.breakdown.lengthCharge}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Art ({selection.pricingDetails.details.artTier})</span>
+                                <span className="text-gray-600">Art ({selection.art.level || 'None'})</span>
                                 <span className="font-medium">+${selection.pricingDetails.breakdown.artTierCharge}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Bling ({selection.pricingDetails.details.densityTier})</span>
+                                <span className="text-gray-600">Bling ({selection.bling.density})</span>
                                 <span className="font-medium">+${selection.pricingDetails.breakdown.densityCharge}</span>
                             </div>
                             {selection.pricingDetails.breakdown.materialCharge > 0 && (
