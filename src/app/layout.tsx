@@ -4,6 +4,7 @@ import "./globals.css";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import AuthProvider from "@/components/AuthProvider";
 import DebugLogger from "@/components/DebugLogger";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -27,7 +28,9 @@ export default function RootLayout({
             <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-white text-charcoal`}>
                 <GlobalErrorBoundary>
                     <AuthProvider>
-                        <DebugLogger />
+                        <Suspense fallback={null}>
+                            <DebugLogger />
+                        </Suspense>
                         {children}
                     </AuthProvider>
                 </GlobalErrorBoundary>
