@@ -44,6 +44,10 @@ export default function Signup() {
 
             navigate('/dashboard');
             setLoading(false);
+        } catch (err: any) {
+            console.error("Signup Error:", err);
+            setError(err.message || 'Failed to create account.');
+            setLoading(false);
         }
     };
 
