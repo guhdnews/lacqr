@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { Check, ChevronRight, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export default function GettingStartedWidget() {
     const { user } = useAppStore();
@@ -14,7 +14,7 @@ export default function GettingStartedWidget() {
     ]);
 
     useEffect(() => {
-        // In a real app, we'd fetch the actual status of these tasks from Firestore
+        // In a real app, we'd fetch the actual status of these tasks from Fireshrefre
         // For now, we'll simulate it based on local state and some assumptions
         const newTasks = [...tasks];
         newTasks[1].completed = user.onboardingComplete;
@@ -37,7 +37,7 @@ export default function GettingStartedWidget() {
                         <Trophy className="text-yellow-500 mr-2" size={20} />
                         Getting Started
                     </h3>
-                    <p className="text-gray-500 text-sm">Complete these steps to unlock your Pro Badge.</p>
+                    <p className="text-gray-500 text-sm">Complete these steps href unlock your Pro Badge.</p>
                 </div>
                 <span className="font-bold text-pink-500">{progress}%</span>
             </div>
@@ -63,7 +63,7 @@ export default function GettingStartedWidget() {
                             </span>
                         </div>
                         {!task.completed && (
-                            <Link to={task.link} className="text-sm text-pink-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                            <Link href={task.link} className="text-sm text-pink-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                                 Go <ChevronRight size={14} />
                             </Link>
                         )}

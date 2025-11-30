@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Store, DollarSign, Link as LinkIcon, User, Phone, Loader2 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -7,7 +7,7 @@ import { useAppStore } from '../store/useAppStore';
 import ServiceMenuEditor from './ServiceMenuEditor';
 
 export default function OnboardingWizard() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -55,7 +55,7 @@ export default function OnboardingWizard() {
             });
 
             // Redirect to Dashboard
-            navigate('/dashboard');
+            router.push('/dashboard');
         } catch (error) {
             console.error("Error saving onboarding data:", error);
             alert("Failed to save setup. Please try again.");
@@ -73,7 +73,7 @@ export default function OnboardingWizard() {
             }, { merge: true });
 
             setUser({ ...user, onboardingComplete: true });
-            navigate('/dashboard');
+            router.push('/dashboard');
         } catch (error) {
             console.error("Error skipping onboarding:", error);
         } finally {

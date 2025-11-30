@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Copy, Check, ZoomIn, ZoomOut, HelpCircle, Share2, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { AI_SERVICE } from '../services/ai';
 import { compressImage } from '../utils/imageProcessing';
 import type { ServiceSelection } from '../types/serviceSchema';
@@ -126,7 +126,7 @@ export default function SmartQuoteView({
             <div className="text-center space-y-2 relative">
                 <div className="absolute right-0 top-0 flex space-x-2">
                     {isAuthenticated && (
-                        <Link to="/smart-quote/settings" className="text-gray-400 hover:text-pink-500 transition-colors">
+                        <Link href="/smart-quote/settings" className="text-gray-400 hover:text-pink-500 transition-colors">
                             <Settings size={20} />
                         </Link>
                     )}

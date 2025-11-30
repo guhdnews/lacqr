@@ -121,6 +121,17 @@
     *   **Dynamic Booking Page:** `PublicBooking.tsx` now adapts to user-defined settings for a branded experience.
     *   **UI/UX Polish:** Integrated builder into Settings and ensured mobile responsiveness.
 
+### Sprint 7: Critical Fixes & Content Expansion (Completed)
+*   **Goal:** Resolve persistent "Blank Page" and "Auth" issues, and build out marketing content.
+*   **Key Deliverables:**
+    *   **Blank Page Fix:** Implemented aggressive "Nuclear Option" (Service Worker removal + LocalStorage clear) to resolve persistent caching issues.
+    *   **Google Auth Fix:** Updated `firestore.rules` to allow authenticated users to create their own profile documents.
+    *   **Mobile Navigation:** Moved intrusive floating toggle to a dedicated top bar.
+    *   **New Pages:** Built comprehensive `Features.tsx`, `Pricing.tsx`, and `FAQ.tsx` pages.
+    *   **UI Polish:** Added "Go to Dashboard" button to header and restored footer links.
+    *   **Error Handling:** Added detailed error logging to Login/Signup flows.
+
 ## 8. NEXT STEPS
 *   **Dashboard Overhaul:** Redesign the main dashboard for better aesthetics and utility.
-*   **Documentation:** Ensure all new features are fully documented in the codebase.
+*   **Performance Optimization:** Audit bundle size and lazy load components.
+*   **Testing:** Implement E2E tests for critical flows (Signup -> Onboarding -> Scan).

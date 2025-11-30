@@ -1,5 +1,5 @@
 import { Instagram, Twitter, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export default function Footer() {
     return (
@@ -7,7 +7,7 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
                 {/* Brand */}
                 <div className="space-y-4">
-                    <Link to="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal block hover:text-pink-600 transition-all hover:scale-105 active:scale-95 origin-left">Lacqr</Link>
+                    <Link href="/" className="text-2xl font-serif font-bold tracking-tight text-charcoal block hover:text-pink-600 transition-all hover:scale-105 active:scale-95 origin-left">Lacqr</Link>
                     <p className="text-gray-500 text-sm leading-relaxed">
                         Empowering nail technicians with AI tools to price with confidence and book with ease.
                     </p>
@@ -18,7 +18,7 @@ export default function Footer() {
                         <a href="https://twitter.com/lacqr_io" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 cursor-pointer transition-colors">
                             <Twitter size={20} />
                         </a>
-                        <a href="mailto:hello@lacqr.io" className="hover:text-pink-500 cursor-pointer transition-colors">
+                        <a href="mailhref:hello@lacqr.io" className="hover:text-pink-500 cursor-pointer transition-colors">
                             <Mail size={20} />
                         </a>
                     </div>
@@ -28,9 +28,9 @@ export default function Footer() {
                 <div>
                     <h4 className="font-bold mb-4">Product</h4>
                     <ul className="space-y-2 text-sm text-gray-500">
-                        <li><Link to="/features" className="hover:text-pink-500 transition-colors">Features</Link></li>
-                        <li><Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
-                        <li><Link to="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+                        <li><Link href="/features" className="hover:text-pink-500 transition-colors">Features</Link></li>
+                        <li><Link href="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
+                        <li><Link href="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
                     </ul>
                 </div>
 
@@ -38,10 +38,10 @@ export default function Footer() {
                 <div>
                     <h4 className="font-bold mb-4">Company</h4>
                     <ul className="space-y-2 text-sm text-gray-500">
-                        <li><Link to="/about" className="hover:text-pink-500 transition-colors">About</Link></li>
-                        <li><Link to="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
-                        <li><Link to="/login" className="hover:text-pink-500 transition-colors">Log In</Link></li>
-                        <li><Link to="/signup" className="hover:text-pink-500 transition-colors">Sign Up</Link></li>
+                        <li><Link href="/about" className="hover:text-pink-500 transition-colors">About</Link></li>
+                        <li><Link href="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
+                        <li><Link href="/login" className="hover:text-pink-500 transition-colors">Log In</Link></li>
+                        <li><Link href="/signup" className="hover:text-pink-500 transition-colors">Sign Up</Link></li>
                     </ul>
                 </div>
 
@@ -65,8 +65,8 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
                 <p>© 2024 Lacqr. All rights reserved.</p>
                 <div className="flex space-x-6 mt-4 md:mt-0">
-                    <Link to="/privacy" className="hover:text-charcoal transition-colors">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-charcoal transition-colors">Terms of Service</Link>
+                    <Link href="/privacy" className="hover:text-charcoal transition-colors">Privacy Policy</Link>
+                    <Link href="/terms" className="hover:text-charcoal transition-colors">Terms of Service</Link>
                 </div>
             </div>
         </footer>

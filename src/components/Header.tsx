@@ -1,10 +1,13 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 
 export default function Header() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const { user } = useAppStore();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -14,7 +17,7 @@ export default function Header() {
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-pink-50">
             <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
                 <Link
-                    to="/"
+                    href="/"
                     className="text-2xl font-serif font-bold tracking-tight text-charcoal cursor-pointer hover:text-pink-600 transition-all hover:scale-105 active:scale-95"
                 >
                     Lacqr
@@ -22,16 +25,16 @@ export default function Header() {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
-                    <Link to="/features" className="hover:text-pink-500 transition-colors">Features</Link>
-                    <Link to="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link>
-                    <Link to="/about" className="hover:text-pink-500 transition-colors">About</Link>
-                    <Link to="/faq" className="hover:text-pink-500 transition-colors">FAQ</Link>
+                    <Link href="/features" className="hover:text-pink-500 transition-colors">Features</Link>
+                    <Link href="/pricing" className="hover:text-pink-500 transition-colors">Pricing</Link>
+                    <Link href="/about" className="hover:text-pink-500 transition-colors">About</Link>
+                    <Link href="/faq" className="hover:text-pink-500 transition-colors">FAQ</Link>
                 </div>
 
                 <div className="hidden md:flex items-center space-x-4">
                     {user.isAuthenticated ? (
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => router.push('/dashboard')}
                             className="bg-charcoal text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-black transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                         >
                             Go to Dashboard
@@ -39,13 +42,13 @@ export default function Header() {
                     ) : (
                         <>
                             <Link
-                                to="/login"
+                                href="/login"
                                 className="text-sm font-medium hover:text-pink-500 transition-colors"
                             >
                                 Log In
                             </Link>
                             <button
-                                onClick={() => navigate('/signup')}
+                                onClick={() => router.push('/signup')}
                                 className="bg-charcoal text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-black transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                             >
                                 Get Started
@@ -63,10 +66,10 @@ export default function Header() {
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
                 <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-pink-50 shadow-lg py-4 px-6 flex flex-col space-y-4">
-                    <Link to="/features" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Features</Link>
-                    <Link to="/pricing" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Pricing</Link>
-                    <Link to="/about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</Link>
-                    <Link to="/faq" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>FAQ</Link>
+                    <Link href="/features" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Features</Link>
+                    <Link href="/pricing" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Pricing</Link>
+                    <Link href="/about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</Link>
+                    <Link href="/faq" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>FAQ</Link>
                     {user.isAuthenticated ? (
                         <>
                             <hr className="border-pink-50" />
@@ -86,10 +89,10 @@ export default function Header() {
                     ) : (
                         <>
                             <hr className="border-pink-50" />
-                            <Link to="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>
+                            <Link href="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>
                             <button
                                 onClick={() => {
-                                    navigate('/signup');
+                                    router.push('/signup');
                                     toggleMenu();
                                 }}
                                 className="bg-charcoal text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-black transition-all shadow-md w-full"

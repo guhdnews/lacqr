@@ -1,15 +1,18 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Camera, MessageSquare, FileText, Users, Settings, LogOut, Menu as MenuIcon, X, LayoutDashboard } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useState } from 'react';
 
 export default function Sidebar() {
-    const location = useLocation();
-    const navigate = useNavigate();
+    const pathname = usePathname();
+    const router = useRouter();
     const { setUser } = useAppStore();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = (path: string) => pathname === path;
 
     const handleLogout = async () => {
         try {
@@ -22,7 +25,7 @@ export default function Sidebar() {
                 isAuthenticated: false,
                 onboardingComplete: false
             });
-            navigate('/');
+            router.push('/');
         } catch (error) {
             console.error("Logout failed", error);
         }
@@ -60,7 +63,7 @@ export default function Sidebar() {
             `}>
                 {/* Logo */}
                 <div className="p-6 border-b border-pink-50">
-                    <Link to="/dashboard" className="text-2xl font-serif font-bold tracking-tight text-charcoal">
+                    <Link href="/dashboard" className="text-2xl font-serif font-bold tracking-tight text-charcoal">
                         Lacqr
                     </Link>
                 </div>
@@ -70,7 +73,7 @@ export default function Sidebar() {
                     {navItems.map((item) => (
                         <Link
                             key={item.path}
-                            to={item.path}
+                            href={item.path}
                             onClick={() => setIsMobileOpen(false)}
                             className={`
                                 flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200

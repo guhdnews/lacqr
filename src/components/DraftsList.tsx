@@ -1,9 +1,11 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppStore } from '../store/useAppStore';
 import { FileText, Trash2, ArrowRight, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface DraftQuote {
     id: string;
@@ -17,7 +19,7 @@ export default function DraftsList() {
     const { user } = useAppStore();
     const [drafts, setDrafts] = useState<DraftQuote[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+    const router = useRouter();
 
     useEffect(() => {
         const fetchDrafts = async () => {
@@ -74,7 +76,8 @@ export default function DraftsList() {
     };
 
     const handleResume = (draft: DraftQuote) => {
-        navigate('/lacqr-lens', { state: { initialSelection: draft.data } });
+        // Pass draft ID via query param instead of state
+        router.push(`/lacqr-lens?draftId=${draft.id}`);
     };
 
     if (loading) return <div className="p-4 text-center text-gray-500">Loading drafts...</div>;
