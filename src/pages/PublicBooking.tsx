@@ -15,6 +15,23 @@ export default function PublicBooking() {
         layout: 'centered'
     });
 
+    const [salon, setSalon] = useState<any>(null);
+    const [menu, setMenu] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // Booking Flow State
+    const [step, setStep] = useState<'service' | 'datetime' | 'details' | 'confirmation'>('service');
+    const [selectedSystem, setSelectedSystem] = useState<any>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+    // Client Details
+    const [clientName, setClientName] = useState('');
+    const [clientPhone, setClientPhone] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
     useEffect(() => {
         const fetchSalonAndMenu = async () => {
             try {
@@ -73,7 +90,53 @@ export default function PublicBooking() {
         if (handle) fetchSalonAndMenu();
     }, [handle]);
 
-    // ... (handlers remain same)
+    const handleSystemSelect = (sys: any) => {
+        setSelectedSystem(sys);
+        setStep('datetime');
+        // Default to today
+        setSelectedDate(new Date());
+    };
+
+    const handleDateSelect = (date: Date) => {
+        setSelectedDate(date);
+        setSelectedTime(null); // Reset time when date changes
+    };
+
+    const generateTimeSlots = () => {
+        // Mock time slots
+        return ['9:00 AM', '10:30 AM', '12:00 PM', '1:30 PM', '3:00 PM', '4:30 PM'];
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSystem || !selectedDate || !selectedTime || !salon) return;
+
+        setSubmitting(true);
+        try {
+            // Create Appointment
+            await addDoc(collection(db, 'appointments'), {
+                salonId: salon.id,
+                clientName,
+                clientPhone,
+                clientEmail,
+                serviceName: selectedSystem.system,
+                price: selectedSystem.price,
+                date: selectedDate.toISOString(),
+                time: selectedTime,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+
+            // If client doesn't exist, maybe create them? (Optional for now)
+
+            setStep('confirmation');
+        } catch (err) {
+            console.error("Booking Error:", err);
+            alert("Failed to book appointment. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const getBackgroundStyle = () => {
         if (settings.backgroundType === 'image') {
@@ -82,11 +145,6 @@ export default function PublicBooking() {
             return { background: settings.backgroundValue };
         }
         return { backgroundColor: settings.backgroundValue };
-    };
-
-    const hexToRgb = (hex: string) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '236, 72, 153';
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
@@ -359,7 +417,5 @@ export default function PublicBooking() {
 
             <Content />
         </div>
-    );
-}    </div >
     );
 }
