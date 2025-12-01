@@ -8,6 +8,7 @@ export interface GeminiAnalysis {
     estimated_length: string;
     estimated_time_minutes?: number;
     foreign_work?: string;
+    reasoning_steps?: string[]; // Added Chain of Thought
 }
 
 export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[], gemini?: GeminiAnalysis, florence?: any): ServiceSelection {
@@ -42,13 +43,24 @@ export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[]
     if (gemini?.shape) {
         const gShape = gemini.shape.toLowerCase();
         if (gShape.includes("lipstick")) shape = "Lipstick";
-        else if (gShape.includes("duck") || gShape.includes("flare")) shape = "Duck";
+        else if (gShape.includes("duck") || gShape.includes("flare") || gShape.includes("fan") || gShape.includes("triangle")) shape = "Duck";
         else if (gShape.includes("coffin") || gShape.includes("tapered square")) shape = "Coffin";
         else if (gShape.includes("stiletto") || gShape.includes("pointed") || gShape.includes("sharp")) shape = "Stiletto";
         else if (gShape.includes("ballerina")) shape = "Ballerina";
         else if (gShape.includes("almond")) shape = "Almond";
         else if (gShape.includes("squoval") || (gShape.includes("square") && gShape.includes("round"))) shape = "Squoval";
         else if (gShape.includes("square")) shape = "Square";
+
+        // DOUBLE CHECK: If reasoning mentions "flare", "wider tip", "fan", or "triangle", FORCE DUCK
+        if (gemini.reasoning_steps?.some(step =>
+            step.toLowerCase().includes("flare") ||
+            step.toLowerCase().includes("wider than cuticle") ||
+            step.toLowerCase().includes("wider at the tip") ||
+            step.toLowerCase().includes("fan out") ||
+            step.toLowerCase().includes("triangle shape")
+        )) {
+            shape = "Duck";
+        }
     }
     // PRIORITY 2: Fallback to Florence (Low IQ, prone to bias)
     else if (florence?.dense) {

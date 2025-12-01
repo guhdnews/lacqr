@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
@@ -9,9 +9,15 @@ import { useAppStore } from '../store/useAppStore';
 export default function Header() {
     const router = useRouter();
     const { user } = useAppStore();
+    const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+    // Hide Header on Dashboard pages (Sidebar handles nav there)
+    if (pathname?.startsWith('/dashboard')) {
+        return null;
+    }
 
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-pink-50">

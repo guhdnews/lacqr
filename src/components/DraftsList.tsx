@@ -77,7 +77,7 @@ export default function DraftsList() {
 
     const handleResume = (draft: DraftQuote) => {
         // Pass draft ID via query param instead of state
-        router.push(`/lacqr-lens?draftId=${draft.id}`);
+        router.push(`/dashboard/lacqr-lens?draftId=${draft.id}`);
     };
 
     if (loading) return <div className="p-4 text-center text-gray-500">Loading drafts...</div>;

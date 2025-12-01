@@ -33,11 +33,11 @@ export default function Sidebar() {
 
     const navItems = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/lacqr-lens', label: 'Lacqr Lens', icon: Camera },
-        { path: '/smart-quote', label: 'Smart Quote', icon: MessageSquare },
-        { path: '/service-menu', label: 'Service Menu', icon: FileText },
-        { path: '/crm', label: 'CRM', icon: Users },
-        { path: '/settings', label: 'Settings', icon: Settings },
+        { path: '/dashboard/lacqr-lens', label: 'Lacqr Lens', icon: Camera },
+        { path: '/dashboard/smart-quote', label: 'Smart Quote', icon: MessageSquare },
+        { path: '/dashboard/service-menu', label: 'Service Menu', icon: FileText },
+        { path: '/dashboard/crm', label: 'CRM', icon: Users },
+        { path: '/dashboard/settings', label: 'Settings', icon: Settings },
     ];
 
     return (

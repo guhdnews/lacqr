@@ -14,21 +14,21 @@ export default function Dashboard() {
             desc: "Price a set with AI",
             icon: <Camera size={24} className="text-white" />,
             bg: "bg-pink-500",
-            link: "/lacqr-lens"
+            link: "/dashboard/lacqr-lens"
         },
         {
             title: "Smart Quote",
             desc: "Generate booking text",
             icon: <Sparkles size={24} className="text-white" />,
             bg: "bg-indigo-500",
-            link: "/smart-quote"
+            link: "/dashboard/smart-quote"
         },
         {
             title: "CRM",
             desc: "Manage your book",
             icon: <Users size={24} className="text-white" />,
             bg: "bg-purple-500",
-            link: "/crm"
+            link: "/dashboard/crm"
         }
     ];
 
@@ -40,7 +40,7 @@ export default function Dashboard() {
                     <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name?.split(' ')[0] || 'Tech'}! 👋</h1>
                     <p className="text-gray-300 mb-6 max-w-lg">Ready to price some sets? Your AI assistant is standing by.</p>
                     <Link
-                        href="/lacqr-lens"
+                        href="/dashboard/lacqr-lens"
                         className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
                     >
                         <Camera size={20} />
@@ -93,7 +93,7 @@ export default function Dashboard() {
                                 <p className="text-xs text-indigo-700 leading-relaxed">
                                     Did you know you can share your Smart Quote link directly with clients? Check your settings to get your link!
                                 </p>
-                                <Link href="/settings" className="text-xs font-bold text-indigo-600 mt-3 inline-flex items-center gap-1 hover:text-indigo-800">
+                                <Link href="/dashboard/settings" className="text-xs font-bold text-indigo-600 mt-3 inline-flex items-center gap-1 hover:text-indigo-800">
                                     Go to Settings <ArrowRight size={12} />
                                 </Link>
                             </div>

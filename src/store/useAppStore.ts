@@ -9,6 +9,8 @@ interface AppState {
         name: string | null;
         email: string | null;
         salonName?: string | null;
+        bookingHandle?: string | null;
+        bookingConfig?: any; // Using any for now to avoid circular dependency or complex type duplication
         isAuthenticated: boolean;
         onboardingComplete: boolean;
     };
@@ -31,6 +33,8 @@ export const useAppStore = create<AppState>()(
                 name: null,
                 email: null,
                 salonName: null,
+                bookingHandle: null,
+                bookingConfig: null,
                 isAuthenticated: false,
                 onboardingComplete: false,
             },
@@ -43,6 +47,8 @@ export const useAppStore = create<AppState>()(
                     name: null,
                     email: null,
                     salonName: null,
+                    bookingHandle: null,
+                    bookingConfig: null,
                     isAuthenticated: false,
                     onboardingComplete: false
                 }
@@ -70,6 +76,8 @@ export const useAppStore = create<AppState>()(
                             name: null,
                             email: null,
                             salonName: null,
+                            bookingHandle: null,
+                            bookingConfig: null,
                             isAuthenticated: false,
                             onboardingComplete: false,
                         }

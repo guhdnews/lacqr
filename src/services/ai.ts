@@ -18,69 +18,79 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
 
     // 1. Upload to Firebase Storage
 
-    const userId = auth.currentUser?.uid;
+    // 1. Rate Limiting (Firestore) - DISABLED FOR TESTING
+    /*
+    try {
+      const userId = auth.currentUser?.uid;
+      if (userId) {
+        const { doc, getDoc, setDoc, updateDoc, increment } = await import('firebase/firestore');
+        const { db } = await import('../lib/firebase');
 
-    // Rate Limiting Check
-    if (userId) {
-      const { doc, getDoc, setDoc, updateDoc, increment } = await import('firebase/firestore');
-      const { db } = await import('../lib/firebase');
+        const today = new Date().toISOString().split('T')[0];
+        const usageRef = doc(db, 'users', userId, 'usage', 'daily');
+        const usageSnap = await getDoc(usageRef);
 
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      const usageRef = doc(db, 'users', userId, 'usage', 'daily');
-      const usageSnap = await getDoc(usageRef);
-
-      let currentCount = 0;
-
-      if (usageSnap.exists()) {
-        const data = usageSnap.data();
-        if (data.date === today) {
-          currentCount = data.count;
+        let currentCount = 0;
+        if (usageSnap.exists()) {
+          const data = usageSnap.data();
+          if (data.date === today) currentCount = data.count;
+          else await setDoc(usageRef, { date: today, count: 0 });
         } else {
-          // Reset for new day
           await setDoc(usageRef, { date: today, count: 0 });
         }
-      } else {
-        await setDoc(usageRef, { date: today, count: 0 });
+
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        const isPro = userSnap.data()?.subscription === 'pro';
+
+        if (!isPro && currentCount >= 5) {
+           // throw new Error("Daily scan limit reached (5/5). Upgrade to Pro.");
+        }
+
+        await updateDoc(usageRef, { count: increment(1), date: today });
       }
-
-      // Check User Subscription Status
-      const userRef = doc(db, 'users', userId);
-      const userSnap = await getDoc(userRef);
-      const isPro = userSnap.data()?.subscription === 'pro';
-
-      if (!isPro && currentCount >= 5) {
-        throw new Error("Daily scan limit reached (5/5). Upgrade to Pro for unlimited scans.");
-      }
-
-      // Increment count (optimistic)
-      await updateDoc(usageRef, {
-        count: increment(1),
-        date: today // Ensure date is set
-      });
+    } catch (fsError: any) {
+      // throw new Error(`FIRESTORE_ERROR: ${fsError.message}`);
+      console.warn("Rate limit check failed:", fsError);
     }
+    */
 
-    const timestamp = Date.now();
-    const storageRef = ref(storage, `scans/${userId || 'anonymous'}/${timestamp}.jpg`);
+    // 2. Upload to Storage
+    let downloadURL = "";
+    let storageRef;
+    let modalResult: any = {};
+    try {
+      const userId = auth.currentUser?.uid;
+      const timestamp = Date.now();
+      storageRef = ref(storage, `scans/${userId || 'anonymous'}/${timestamp}.jpg`);
 
-    await uploadBytes(storageRef, imageFile);
-    const downloadURL = await getDownloadURL(storageRef);
+      await uploadBytes(storageRef, imageFile);
+      downloadURL = await getDownloadURL(storageRef);
+    } catch (stError: any) {
+      throw new Error(`STORAGE_ERROR: ${stError.message}`);
+    }
 
 
     // 2. Parallel Execution: Modal (YOLO/Florence) + Gemini (Vision)
 
 
-    const modalResponse = await fetch(MODAL_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image_url: downloadURL })
-    });
+    try {
+      const modalResponse = await fetch(MODAL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url: downloadURL })
+      });
 
-    if (!modalResponse.ok) {
-      console.error(`❌ Modal Error: ${modalResponse.status} ${modalResponse.statusText}`);
-      // Fallback: Proceed with empty Modal result, relying on Gemini
+      if (!modalResponse.ok) {
+        console.error(`❌ Modal Error: ${modalResponse.status} ${modalResponse.statusText}`);
+        // Fallback: Proceed with empty Modal result, relying on Gemini
+      } else {
+        modalResult = await modalResponse.json();
+      }
+    } catch (fetchError: any) {
+      console.error("❌ Modal Fetch Failed (Network Error):", fetchError);
+      // Fallback: Proceed with empty Modal result
     }
-
-    const modalResult = modalResponse.ok ? await modalResponse.json() : {};
 
 
     // Safe access to Modal data
@@ -106,7 +116,9 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
     return {
       ...selection,
       confidence: 0.95,
-      reasoning: `Analyzed by Gemini & YOLO. Shape: ${selection.base.shape}. System: ${selection.base.system}. Detected ${modalResult.objects?.length || 0} objects.`,
+      reasoning: geminiResult?.reasoning_steps
+        ? geminiResult.reasoning_steps.join('\n')
+        : `Analyzed by Gemini & YOLO. Shape: ${selection.base.shape}. System: ${selection.base.system}. Detected ${modalResult.objects?.length || 0} objects.`,
       estimatedPrice: estimatedPrice,
       // Create a pricingDetails object that matches what the UI expects (simplified)
       pricingDetails: {
@@ -130,11 +142,15 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
         ...modalResult,
         gemini_debug: geminiResult // Expose raw Gemini data for Admin Inspector
       },
-      aiDescription: geminiResult?.vibe || `DEBUG ERROR: Gemini failed. Check logs.`
+      aiDescription: geminiResult?.vibe || `DEBUG ERROR: Gemini failed. Check logs.`,
+      visual_description: geminiResult?.vibe // Map for UI compatibility
     };
 
   } catch (error: any) {
     console.error("❌ Analysis Failed:", error);
+
+    const errorMessage = `Analysis Error: ${error.message || "Unknown error occurred."}`;
+
     // Return a valid selection with the ERROR as the description so the user can see it
     return {
       ...mapDetectionsToSelection([], undefined, undefined, undefined),
@@ -143,7 +159,8 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
       estimatedPrice: 0,
       pricingDetails: { totalPrice: 0, breakdown: { basePrice: 0, lengthCharge: 0, densityCharge: 0, artTierCharge: 0, materialCharge: 0, complexitySurcharge: 0 }, details: { lengthTier: "Short", densityTier: "None", artTier: "None", materialNotes: [] } },
       modalResult: {},
-      aiDescription: `DEBUG ERROR: ${error.message || JSON.stringify(error)}`
+      aiDescription: errorMessage,
+      visual_description: errorMessage // Ensure it shows in UI
     };
   }
 }
@@ -190,7 +207,16 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
       prompt += `
         Provide a JSON response with the following fields:
         {
-            "shape": "Coffin, Stiletto, Almond, Square, or Oval",
+            "reasoning_steps": [
+                "Step 1: Analyze Shape - Looking at tip geometry...",
+                "Step 2: SIDE WALL CHECK - Are the sides parallel (Square), tapering in (Coffin/Stiletto), or flaring out (Duck)?",
+                "Step 3: WIDTH CHECK - Compare the width of the tip to the width of the cuticle. Is the tip WIDER? (Yes = Duck/Flare)",
+                "Step 4: Analyze Length - Comparing free edge to nail bed (Tip > 1.3x Bed = XXL)...",
+                "Step 5: Analyze Art - Listing every technique...",
+                "Step 6: Count Charms - Counting specific 3D items...",
+                "Step 7: Final Assessment - Combining factors..."
+            ],
+            "shape": "Coffin, Stiletto, Almond, Square, Oval, or Duck",
             "system": "Acrylic, Gel-X, Hard Gel, or Structure Gel (look for thickness/apex)",
             "vibe": "A detailed, factual visual description of the nails. Start with length and shape, then describe color, design, and texture. Do NOT use flowery or poetic language. (e.g. 'Long coffin nails painted in a pink and white ombre with silver chrome stars on the ring finger').",
             "art_notes": "List EVERY technique seen. Look for: 3d charms, hand painted character, french tip, ombre, encapsulated, chrome, cat eye, airbrush, blooming gel.",
@@ -208,21 +234,26 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
         2. **LENGTH:** VISUAL RULE: Compare the free edge (tip) to the nail bed (pink part).
            - If free edge < 50% of nail bed = Short.
            - If free edge is ~50-80% of nail bed = Medium.
-           - If free edge is ~100% (equal to) nail bed = Long.
-           - If free edge is > 100% of nail bed = XL.
-           - If free edge is > 150% of nail bed = XXL.
-           - If shape is Stiletto/Duck, bias towards XL/XXL.
+           - If free edge is ~80-100% of nail bed = Long.
+           - If free edge is > 100% (equal to or longer) of nail bed = XL.
+           - If free edge is > 150% of nail bed = XXL (Extendo).
+           - *Bias towards XXL for very long nails. If it looks "Extendo", it is XXL.*
         3. **SHAPE (TIP GEOMETRY RULE):** Look at the *corners* of the tip.
-           - **COFFIN:** Tapered sides but has **TWO SHARP CORNERS** at the tip (flat edge).
+           - **DUCK (FLARE):** Side walls flare OUTWARDS. Tip is WIDER than the cuticle. Looks like a triangle or fan. *CRITICAL: If the tip is wider than the base, it is DUCK. It is NOT Coffin or Square. Even if it looks square at the end, if it flares out, it is Duck.*
+           - **SQUARE:** Straight sides (PARALLEL). The tip width is EQUAL to the cuticle width. *CRITICAL: If the sides flare out, it is NOT Square.*
+           - **COFFIN:** Tapered sides (getting narrower) with a flat tip. *CRITICAL: If it gets wider, it is NOT Coffin.*
            - **STILETTO:** Tapered sides and comes to a **SINGLE SHARP POINT** (no flat edge).
-           - **SQUARE:** Straight sides and **TWO SHARP CORNERS** (flat edge).
            - **ALMOND:** Tapered sides and **ROUNDED TIP** (no corners).
-        4. **TIME:** Estimate the time for a **FAST, EFFICIENT** professional. 
+        4. **CHARM COUNTING:**
+           - Count distinct 3D items (bows, hearts, bears, crosses).
+           - If many small gems are used, describe as "Heavy Bling" or "Cluster".
+        5. **TIME:** Estimate the time for a **FAST, EFFICIENT** professional. 
            - If "intricate", "pattern", or "detailed" is present, time MUST be > 150 mins.
+           - Duck Shape adds +30 mins automatically (forming the flare).
            - Do not pad the time, but do not undercharge for complexity.
-        5. **FOREIGN WORK:** Look closely at the cuticle area. If there is a visible gap (growth) or lifting, mark as "Foreign Fill" or "Foreign Removal".
-        6. **CONTEXT:** Trust the "Dense Caption" for PATTERNS (checkered, swirls) but IGNORE it for background/scene descriptions.
-        7. **FOCUS:** Describe the nails FACTUALLY. Start with the physical attributes (shape, length) then move to the design details (color, pattern, texture). Avoid metaphors like 'winter wonderland' or 'sugarplum fairy'. Be precise and descriptive.
+        6. **FOREIGN WORK:** Look closely at the cuticle area. If there is a visible gap (growth) or lifting, mark as "Foreign Fill" or "Foreign Removal".
+        7. **CONTEXT:** Trust the "Dense Caption" for PATTERNS (checkered, swirls) but IGNORE it for background/scene descriptions.
+        8. **FOCUS:** Describe the nails FACTUALLY. Start with the physical attributes (shape, length) then move to the design details (color, pattern, texture). Avoid metaphors like 'winter wonderland' or 'sugarplum fairy'. Be precise and descriptive.
         `;
 
       const result = await model.generateContent([

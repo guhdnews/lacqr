@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useServiceStore } from '../store/useServiceStore';
 import { calculatePrice, calculateDuration } from '../utils/pricingCalculator';
 import type { ServiceSelection, SystemType, NailLength, NailShape, FinishType, SpecialtyEffect, ClassicDesign, ArtLevel, ForeignWork, PedicureType } from '../types/serviceSchema';
@@ -11,6 +12,7 @@ interface ServiceConfiguratorProps {
 
 export default function ServiceConfigurator({ initialSelection, onUpdate }: ServiceConfiguratorProps) {
     const { menu } = useServiceStore();
+    const searchParams = useSearchParams();
     const [selection, setSelection] = useState<ServiceSelection>(initialSelection);
     const [price, setPrice] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -110,7 +112,8 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
 
             <div className="p-6 space-y-8">
                 {/* AI Description (if available) */}
-                {selection.aiDescription && (
+                {/* AI Description (Hidden as per user request) */}
+                {/* {selection.aiDescription && (
                     <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mb-6">
                         <div className="flex items-start gap-3">
                             <Sparkles className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
@@ -120,7 +123,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 {/* Itemized Breakdown (Restored) */}
                 {selection.pricingDetails && (
@@ -434,38 +437,238 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
                         )}
                     </div>
                 </section>
-                {/* 7. AI Inspector (Debug) */}
-                <div className="border-t border-gray-100 pt-6">
-                    <button
-                        onClick={() => setShowDebug(!showDebug)}
-                        className="flex items-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        {showDebug ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
-                        {showDebug ? "Hide AI Inspector" : "Show AI Inspector (Debug)"}
-                    </button>
+                {/* 7. AI Inspector (Debug - Only visible with ?debug=true) */}
+                {searchParams.get('debug') === 'true' && (
+                    <div className="border-t border-gray-100 pt-6">
+                        <button
+                            onClick={() => setShowDebug(!showDebug)}
+                            className="flex items-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            {showDebug ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                            {showDebug ? "Hide AI Inspector" : "Show AI Inspector (Debug)"}
+                        </button>
 
-                    {showDebug && (
-                        <div className="mt-4 p-4 bg-gray-900 rounded-xl text-xs font-mono text-green-400 overflow-x-auto">
-                            <h4 className="font-bold text-gray-500 mb-2 uppercase tracking-wider">Raw Analysis Data</h4>
-                            <div className="space-y-4">
-                                <div>
-                                    <span className="text-gray-500 block mb-1">Reasoning:</span>
-                                    <p className="text-white">{selection.reasoning}</p>
-                                </div>
-                                <div>
-                                    <span className="text-gray-500 block mb-1">Confidence:</span>
-                                    <p className="text-white">{selection.confidence ? (selection.confidence * 100).toFixed(1) : 0}%</p>
-                                </div>
-                                <div>
-                                    <span className="text-gray-500 block mb-1">Modal Result (YOLO/Florence):</span>
-                                    <pre className="bg-black p-2 rounded border border-gray-800">
-                                        {JSON.stringify(selection.modalResult, null, 2)}
-                                    </pre>
+                        {showDebug && (
+                            <div className="mt-4 p-4 bg-gray-900 rounded-xl text-xs font-mono text-green-400 overflow-x-auto">
+                                <h4 className="font-bold text-gray-500 mb-2 uppercase tracking-wider">Raw Analysis Data</h4>
+                                <div className="space-y-4">
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Reasoning:</span>
+                                        <p className="text-white">{selection.reasoning}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Confidence:</span>
+                                        <p className="text-white">{selection.confidence ? (selection.confidence * 100).toFixed(1) : 0}%</p>
+                                    </div>
                                 </div>
                             </div>
+
+                        )}
+                    </div>
+                )}
+
+                {/* 3. Inventory (Bling) */}
+                <section className="bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center">
+                        <span className="mr-2">💎</span> Inventory
+                    </h3>
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-yellow-100">
+                            <span className="text-sm font-medium text-gray-700">Gems (Density)</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        const densities = Object.keys(menu.blingDensityPrices);
+                                        const currentIndex = densities.indexOf(selection.bling.density);
+                                        const prevIndex = Math.max(0, currentIndex - 1);
+                                        updateBling('density', densities[prevIndex]);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >-</button>
+                                <span className="font-bold w-24 text-center text-sm">{selection.bling.density}</span>
+                                <button
+                                    onClick={() => {
+                                        const densities = Object.keys(menu.blingDensityPrices);
+                                        const currentIndex = densities.indexOf(selection.bling.density);
+                                        const nextIndex = Math.min(densities.length - 1, currentIndex + 1);
+                                        updateBling('density', densities[nextIndex]);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >+</button>
+                            </div>
                         </div>
-                    )}
-                </div>
+
+                        <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-yellow-100">
+                            <span className="text-sm font-medium text-gray-700">Charms</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => updateBling('xlCharmsCount', Math.max(0, selection.bling.xlCharmsCount - 1))}
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >-</button>
+                                <span className="font-bold w-8 text-center">{selection.bling.xlCharmsCount}</span>
+                                <button
+                                    onClick={() => updateBling('xlCharmsCount', selection.bling.xlCharmsCount + 1)}
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >+</button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-yellow-100">
+                            <span className="text-sm font-medium text-gray-700">Piercings</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => updateBling('piercingsCount', Math.max(0, selection.bling.piercingsCount - 1))}
+                                    className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >-</button>
+                                <span className="font-bold w-8 text-center">{selection.bling.piercingsCount}</span>
+                                <button
+                                    onClick={() => updateBling('piercingsCount', selection.bling.piercingsCount + 1)}
+                                    className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 text-yellow-700"
+                                >+</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Appointment Details */}
+                <section className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Appointment Details</h3>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Requested Time</label>
+                        <input
+                            type="datetime-local"
+                            value={selection.appointmentTime || ''}
+                            onChange={(e) => setSelection(prev => ({ ...prev, appointmentTime: e.target.value }))}
+                            className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-gray-500"
+                        />
+                    </div>
+                </section>
+
+                <hr className="border-gray-100" />
+
+                {/* 5. Modifiers */}
+                <section>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
+                        <AlertCircle size={16} className="mr-2 text-orange-500" />
+                        Modifiers
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Foreign Work</label>
+                            <select
+                                value={selection.modifiers.foreignWork}
+                                onChange={(e) => updateModifiers('foreignWork', e.target.value)}
+                                className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                {Object.keys(menu.modifierSurcharges).map(mod => (
+                                    <option key={mod} value={mod}>{mod} (+${menu.modifierSurcharges[mod as ForeignWork]})</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Repairs (Qty)</label>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => updateModifiers('repairsCount', Math.max(0, selection.modifiers.repairsCount - 1))}
+                                    className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+                                >-</button>
+                                <span className="font-bold w-8 text-center">{selection.modifiers.repairsCount}</span>
+                                <button
+                                    onClick={() => updateModifiers('repairsCount', selection.modifiers.repairsCount + 1)}
+                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+                                >+</button>
+                                <span className="text-xs text-gray-400">(${menu.unitPrices.repairs}/nail)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <label className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                            <input
+                                type="checkbox"
+                                checked={selection.modifiers.soakOffOnly}
+                                onChange={(e) => updateModifiers('soakOffOnly', e.target.checked)}
+                                className="w-5 h-5 text-pink-500 rounded focus:ring-pink-500 border-gray-300"
+                            />
+                            <span className="font-medium text-gray-700">Soak Off Only (No Service) (+${menu.unitPrices.soakOff})</span>
+                        </label>
+                    </div>
+                </section>
+
+                <hr className="border-gray-100" />
+
+                {/* 6. Pedicure */}
+                <section>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Pedicure</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
+                            <select
+                                value={selection.pedicure.type}
+                                onChange={(e) => updatePedicure('type', e.target.value)}
+                                className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                {Object.keys(menu.pedicurePrices).map(type => (
+                                    <option key={type} value={type}>{type} (+${menu.pedicurePrices[type as PedicureType]})</option>
+                                ))}
+                            </select>
+                        </div>
+                        {selection.pedicure.type !== 'None' && (
+                            <div className="flex items-center">
+                                <label className="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors w-full">
+                                    <input
+                                        type="checkbox"
+                                        checked={selection.pedicure.toeArtMatch}
+                                        onChange={(e) => updatePedicure('toeArtMatch', e.target.checked)}
+                                        className="w-5 h-5 text-blue-500 rounded focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <div>
+                                        <span className="font-medium text-blue-900 block">Match Hand Art?</span>
+                                        <span className="text-xs text-blue-700">Adds 50% of Hand Art Price</span>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                </section>
+                {/* 7. AI Inspector (Debug - Only visible with ?debug=true) */}
+                {searchParams.get('debug') === 'true' && (
+                    <div className="border-t border-gray-100 pt-6">
+                        <button
+                            onClick={() => setShowDebug(!showDebug)}
+                            className="flex items-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            {showDebug ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                            {showDebug ? "Hide AI Inspector" : "Show AI Inspector (Debug)"}
+                        </button>
+
+                        {showDebug && (
+                            <div className="mt-4 p-4 bg-gray-900 rounded-xl text-xs font-mono text-green-400 overflow-x-auto">
+                                <h4 className="font-bold text-gray-500 mb-2 uppercase tracking-wider">Raw Analysis Data</h4>
+                                <div className="space-y-4">
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Reasoning:</span>
+                                        <div className="text-white space-y-1">
+                                            {selection.reasoning?.split('\n').map((step, i) => (
+                                                <p key={i} className="text-xs">{step}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Confidence:</span>
+                                        <p className="text-white">{selection.confidence ? (selection.confidence * 100).toFixed(1) : 0}%</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Modal Result (YOLO/Florence):</span>
+                                        <pre className="bg-black p-2 rounded border border-gray-800">
+                                            {JSON.stringify(selection.modalResult, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -30,14 +30,25 @@ service cloud.firestore {
     }
 
     // Users: Users can read/write their own profile
+    // Users: Users can read/write their own profile AND subcollections (like usage/daily)
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Logs: Public create (for error reporting), Admin read
     match /app_logs/{logId} {
       allow create: if true;
       allow read: if true; // Temporarily allow public read for debugging
+    }
+
+    // Quotes (Drafts): Users can read/write their own quotes
+    match /quotes/{quoteId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated() || resource.data.userId == request.auth.uid;
     }
 
     // Default deny

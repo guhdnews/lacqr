@@ -98,17 +98,14 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
                             </div>
                         )}
 
-                        {selection.bling.density !== 'None' && (
+                        {priceResult.breakdown.bling > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span className="text-gray-700">Bling: {selection.bling.density}</span>
+                                <span className="text-gray-700">
+                                    Bling
+                                    {selection.bling.density !== 'None' ? `: ${selection.bling.density}` : ''}
+                                    {/* Only show counts if they are significant or explicitly requested. For now, matching Configurator which groups them. */}
+                                </span>
                                 <span className="font-bold">${priceResult.breakdown.bling}</span>
-                            </div>
-                        )}
-
-                        {selection.bling.xlCharmsCount > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span className="text-gray-700">Charms (x{selection.bling.xlCharmsCount})</span>
-                                <span className="font-bold">${selection.bling.xlCharmsCount * DEFAULT_MENU.unitPrices.xlCharms}</span>
                             </div>
                         )}
                     </div>
@@ -169,7 +166,7 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
             {/* Print View (Hidden off-screen for PDF generation) */}
             <div id="receipt-print-view" className="fixed -left-[9999px] top-0 w-[800px] bg-white p-12 text-gray-900 font-sans">
                 <div className="text-center mb-12">
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2 uppercase">{user?.salonName || "LACQR"}</h1>
+                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2 uppercase">{user?.salonName || user?.name || "LACQR"}</h1>
                     <p className="text-sm text-gray-500 uppercase tracking-widest">Premium Nail Service</p>
                 </div>
 
@@ -200,17 +197,13 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
                         </div>
                     )}
 
-                    {selection.bling.density !== 'None' && (
+                    {priceResult.breakdown.bling > 0 && (
                         <div className="flex justify-between items-baseline">
-                            <span className="font-medium text-xl text-gray-700">Bling: {selection.bling.density}</span>
+                            <span className="font-medium text-xl text-gray-700">
+                                Bling
+                                {selection.bling.density !== 'None' ? `: ${selection.bling.density}` : ''}
+                            </span>
                             <span className="font-mono font-bold text-xl">${priceResult.breakdown.bling}</span>
-                        </div>
-                    )}
-
-                    {selection.bling.xlCharmsCount > 0 && (
-                        <div className="flex justify-between items-baseline">
-                            <span className="font-medium text-xl text-gray-700">Charms (x{selection.bling.xlCharmsCount})</span>
-                            <span className="font-mono font-bold text-xl">${selection.bling.xlCharmsCount * DEFAULT_MENU.unitPrices.xlCharms}</span>
                         </div>
                     )}
 
@@ -228,7 +221,7 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
                 </div>
 
                 <div className="text-center text-gray-400 space-y-2 mt-auto">
-                    <p className="text-lg font-medium text-gray-900">Thank you for choosing {user?.salonName || "us"}.</p>
+                    <p className="text-lg font-medium text-gray-900">Thank you for choosing {user?.salonName || user?.name || "us"}.</p>
                     <div className="flex items-center justify-center gap-2 mt-8 pt-8 border-t border-gray-100">
                         <span className="text-xs uppercase tracking-widest text-gray-400">Powered by</span>
                         <span className="font-black text-sm text-pink-600 uppercase tracking-widest">LACQR</span>

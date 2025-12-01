@@ -122,11 +122,11 @@ export default function SmartQuoteView({
     };
 
     return (
-        <div className="space-y-6 max-w-md mx-auto">
+        <div className="space-y-6 max-w-md mx-auto pb-24">
             <div className="text-center space-y-2 relative">
                 <div className="absolute right-0 top-0 flex space-x-2">
                     {isAuthenticated && (
-                        <Link href="/smart-quote/settings" className="text-gray-400 hover:text-pink-500 transition-colors">
+                        <Link href="/dashboard/settings" className="text-gray-400 hover:text-pink-500 transition-colors">
                             <Settings size={20} />
                         </Link>
                     )}

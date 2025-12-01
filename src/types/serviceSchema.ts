@@ -76,8 +76,9 @@ export interface MasterServiceMenu {
     // Duration Constants (Minutes)
     durations: {
         base: Record<SystemType, number>;
-        fill: Record<SystemType, number>; // Added Fill Durations
+        fill: Record<SystemType, number>;
         length: Record<NailLength, number>;
+        shape: Record<NailShape, number>; // Added Shape Duration
         art: Record<ArtLevel, number>;
         bling: Record<BlingDensity, number>;
         pedicure: Record<PedicureType, number>;
@@ -176,14 +177,24 @@ export const DEFAULT_MENU: MasterServiceMenu = {
             'Short': 0,
             'Medium': 15,
             'Long': 30,
-            'XL': 45,
-            'XXL': 60
+            'XL': 60, // Increased from 45
+            'XXL': 90 // Increased from 60
+        },
+        shape: { // Added Shape Durations
+            'Square': 0,
+            'Squoval': 0,
+            'Coffin': 0,
+            'Almond': 0,
+            'Stiletto': 0,
+            'Ballerina': 0,
+            'Lipstick': 0,
+            'Duck': 30 // Duck takes significantly longer to form
         },
         art: {
             'Level 1': 15,
             'Level 2': 30,
             'Level 3': 60,
-            'Level 4': 90
+            'Level 4': 120 // Increased from 90
         },
         bling: {
             'None': 0,

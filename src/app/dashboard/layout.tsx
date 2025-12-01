@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } else if (!user.onboardingComplete && pathname !== '/onboarding') {
                 router.push('/onboarding');
             } else if (user.onboardingComplete && pathname === '/onboarding') {
-                router.push('/lacqr-lens');
+                router.push('/dashboard/lacqr-lens');
             }
         }
     }, [isAuthReady, user, pathname, router]);

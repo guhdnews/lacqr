@@ -5,6 +5,8 @@ import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import AuthProvider from "@/components/AuthProvider";
 import DebugLogger from "@/components/DebugLogger";
 import ServiceWorkerKiller from "@/components/ServiceWorkerKiller";
+import Header from "@/components/Header";
+import FooterWrapper from "@/components/FooterWrapper";
 import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -33,7 +35,9 @@ export default function RootLayout({
                         <Suspense fallback={null}>
                             <DebugLogger />
                         </Suspense>
+                        <Header />
                         {children}
+                        <FooterWrapper />
                     </AuthProvider>
                 </GlobalErrorBoundary>
             </body>
