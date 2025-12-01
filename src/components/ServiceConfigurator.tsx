@@ -19,6 +19,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
     // Recalculate price and duration whenever selection or menu changes
     // Recalculate price and duration whenever selection or menu changes
     useEffect(() => {
+        console.log("🚀 ServiceConfigurator Fix v2.0 Loaded");
         const priceResult = calculatePrice(selection, menu);
         const newDuration = calculateDuration(selection, menu);
         setPrice(priceResult.total);

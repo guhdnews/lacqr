@@ -31,14 +31,14 @@ const updatedSelection = {
 **Root Cause:** A "Zombie" Service Worker from the previous Vite PWA deployment is intercepting requests and serving cached (broken) assets or 404s because it doesn't recognize the new Next.js routes.
 **Solution:**
 1.  **ServiceWorkerKiller:** A component is already active in `src/app/layout.tsx` to unregister SWs.
-2.  **Missing `sw.js`:** Confirmed `sw.js` is NOT in `public/`, which is correct. Browsers will eventually unregister the SW when they get a 404 for the script.
+2.  **Deployed `public/sw.js`:** I created a "Self-Destruct" Service Worker. When your browser updates this file, it will immediately unregister itself and reload the page.
 
 ### ⚠️ Critical User Action Required
-Since the Service Worker prevents the new app from loading, the "Killer" script may not run. You **MUST** manually clear the cache on your devices:
+**If you still see the error, it is because your browser is using the OLD cached code.**
 
 1.  **Desktop (Chrome):**
     *   Open DevTools (F12) -> Application Tab -> Service Workers -> **"Unregister"**.
-    *   OR: Hard Refresh (`Ctrl+Shift+R` / `Cmd+Shift+R`).
+    *   OR: Hard Refresh (`Ctrl+Shift+R` / `Cmd+Shift+R`) multiple times.
 2.  **Mobile (iOS/Android):**
     *   Clear browsing data for `lacqr.io`.
     *   Close the tab and reopen it.
