@@ -32,7 +32,7 @@ export default function Pricing() {
                         </Link>
 
                         <div className="space-y-4">
-                            <p className="font-bold text-sm uppercase tracking-wider text-gray-400">What's Included</p>
+                            <p className="font-bold text-sm uppercase tracking-wider text-gray-400">What&apos;s Included</p>
                             <ul className="space-y-4">
                                 <li className="flex items-center space-x-3">
                                     <CheckCircle size={20} className="text-green-500 flex-shrink-0" />

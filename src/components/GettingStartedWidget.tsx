@@ -5,27 +5,16 @@ import Link from 'next/link';
 
 export default function GettingStartedWidget() {
     const { user } = useAppStore();
-    const [progress, setProgress] = useState(0);
-    const [tasks, setTasks] = useState([
+    const tasks = [
         { id: 'account', label: 'Create Account', completed: true, link: '#' },
-        { id: 'profile', label: 'Complete User Profile', completed: user.onboardingComplete, link: '/settings' },
-        { id: 'menu', label: 'Configure Service Menu', completed: user.onboardingComplete, link: '/service-menu' },
-        { id: 'payments', label: 'Set up Payments', completed: user.onboardingComplete, link: '/settings' }
-    ]);
+        { id: 'profile', label: 'Complete User Profile', completed: !!user?.onboardingComplete, link: '/dashboard/settings' },
+        { id: 'menu', label: 'Configure Service Menu', completed: !!user?.onboardingComplete, link: '/dashboard/service-menu' },
+        { id: 'payments', label: 'Set up Payments', completed: !!user?.onboardingComplete, link: '/dashboard/settings' }
+    ];
 
-    useEffect(() => {
-        // In a real app, we'd fetch the actual status of these tasks from Fireshrefre
-        // For now, we'll simulate it based on local state and some assumptions
-        const newTasks = [...tasks];
-        newTasks[1].completed = user.onboardingComplete;
-        newTasks[2].completed = user.onboardingComplete;
-        newTasks[3].completed = user.onboardingComplete;
-
-        // Calculate progress
-        const completedCount = newTasks.filter(t => t.completed).length;
-        setProgress(Math.round((completedCount / newTasks.length) * 100));
-        setTasks(newTasks);
-    }, [user.onboardingComplete]);
+    // Calculate progress
+    const completedCount = tasks.filter(t => t.completed).length;
+    const progress = Math.round((completedCount / tasks.length) * 100);
 
     if (progress === 100) return null; // Hide when done
 

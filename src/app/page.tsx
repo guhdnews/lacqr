@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -36,7 +37,7 @@ export default function LandingPage() {
                         </h1>
 
                         <p className="text-lg text-gray-600 max-w-xl leading-relaxed mx-auto md:mx-0">
-                            The aesthetic AI co-pilot that handles your pricing, booking confusion, and client communications. You focus on the art, we'll handle the business.
+                            The aesthetic AI co-pilot that handles your pricing, booking confusion, and client communications. You focus on the art, we&apos;ll handle the business.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2 justify-center md:justify-start">
@@ -107,7 +108,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Tools Built for Techs</h2>
-                        <p className="text-gray-600">Everything you need, nothing you don't.</p>
+                        <p className="text-gray-600">Everything you need, nothing you don&apos;t.</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -134,7 +135,7 @@ export default function LandingPage() {
                             </div>
                             <h3 className="text-2xl font-bold mb-4">Smart Quote</h3>
                             <p className="text-gray-600 leading-relaxed mb-6">
-                                Client sent a vague inspo pic? We analyze it and tell them exactly what to book. "Book Gel-X + Level 2 Art." No more DM back-and-forth or surprise add-ons at the appointment.
+                                Client sent a vague inspo pic? We analyze it and tell them exactly what to book. &quot;Book Gel-X + Level 2 Art.&quot; No more DM back-and-forth or surprise add-ons at the appointment.
                             </p>
                             <ul className="space-y-3 text-sm text-gray-500">
                                 <li className="flex items-center"><CheckCircle size={16} className="text-pink-500 mr-2" /> Maps to your booking site</li>
@@ -152,7 +153,7 @@ export default function LandingPage() {
                             </div>
                             <h3 className="text-xl font-bold mb-3">Client CRM</h3>
                             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                                Keep track of every client's history, preferences, and past sets. Never forget a birthday or a favorite color again.
+                                Keep track of every client&apos;s history, preferences, and past sets. Never forget a birthday or a favorite color again.
                             </p>
                         </div>
 
@@ -163,7 +164,7 @@ export default function LandingPage() {
                             </div>
                             <h3 className="text-xl font-bold mb-3">Business Analytics</h3>
                             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                                See exactly how much you're earning. Track your most popular services and identify where you can increase your rates.
+                                See exactly how much you&apos;re earning. Track your most popular services and identify where you can increase your rates.
                             </p>
                         </div>
 

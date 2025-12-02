@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -258,7 +259,7 @@ export default function Login() {
 
                             {!isResetMode && (
                                 <div className="mt-8 text-center text-sm text-gray-500">
-                                    Don't have an account? <Link href="/signup" className="text-pink-600 font-bold hover:underline">Sign up</Link>
+                                    Don&apos;t have an account? <Link href="/signup" className="text-pink-600 font-bold hover:underline">Sign up</Link>
                                 </div>
                             )}
                         </div>

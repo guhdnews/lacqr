@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
                 <section>
                     <h2 className="text-2xl font-bold mb-4 text-charcoal">1. Introduction</h2>
                     <p>
-                        Lacqr ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you visit our website lacqr.io and use our mobile application (collectively, the "Service").
+                        Lacqr (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you visit our website lacqr.io and use our mobile application (collectively, the &quot;Service&quot;).
                     </p>
                 </section>
 
@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
                 <section>
                     <h2 className="text-2xl font-bold mb-4 text-charcoal">4. Data Retention and Deletion</h2>
                     <p>
-                        We retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy. You can request deletion of your account and all associated data by contacting us at hello@lacqr.io or using the "Delete Account" feature in your settings.
+                        We retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy. You can request deletion of your account and all associated data by contacting us at hello@lacqr.io or using the &quot;Delete Account&quot; feature in your settings.
                     </p>
                 </section>
 
@@ -52,7 +52,7 @@ export default function PrivacyPolicy() {
                 <section>
                     <h2 className="text-2xl font-bold mb-4 text-charcoal">6. Third-Party Services</h2>
                     <p>
-                        We may employ third-party companies and individuals to facilitate our Service ("Service Providers"), to provide the Service on our behalf, to perform Service-related services, or to assist us in analyzing how our Service is used. These third parties have access to your Personal Data only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.
+                        We may employ third-party companies and individuals to facilitate our Service (&quot;Service Providers&quot;), to provide the Service on our behalf, to perform Service-related services, or to assist us in analyzing how our Service is used. These third parties have access to your Personal Data only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.
                     </p>
                     <p className="mt-2">
                         <strong>Google User Data:</strong> If you choose to authenticate using Google Sign-In, we access your basic profile information (name, email, profile picture) solely for authentication and account creation purposes. We do not access your contacts, calendar, or other Google data.

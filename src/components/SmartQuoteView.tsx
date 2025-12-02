@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useState } from 'react';
 import { Sparkles, X, Copy, Check, ZoomIn, ZoomOut, HelpCircle, Share2, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -228,7 +229,7 @@ export default function SmartQuoteView({
                     {result.visual_description && (
                         <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl relative">
                             <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">AI Visual Analysis</h4>
-                            <p className="text-sm text-indigo-900 italic mb-3">"{result.visual_description}"</p>
+                            <p className="text-sm text-indigo-900 italic mb-3">&quot;{result.visual_description}&quot;</p>
 
                             {/* Feedback Buttons */}
                             <div className="flex justify-end gap-2">

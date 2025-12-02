@@ -124,7 +124,7 @@ export default function ServiceMenuEditor() {
                                 <div className="ml-2 cursor-help text-gray-400 hover:text-pink-500 relative">
                                     <Info size={16} />
                                     <div className="absolute left-0 bottom-full mb-2 w-64 bg-charcoal text-white text-xs p-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                                        Lacqr's "Secret Sauce". Level 1 is simple (lines/dots), Level 4 is hand-painted masterpieces.
+                                        Lacqr&apos;s &quot;Secret Sauce&quot;. Level 1 is simple (lines/dots), Level 4 is hand-painted masterpieces.
                                     </div>
                                 </div>
                             </h3>
@@ -177,7 +177,7 @@ export default function ServiceMenuEditor() {
                                 <div className="ml-2 cursor-help text-gray-400 hover:text-pink-500 relative">
                                     <Info size={16} />
                                     <div className="absolute left-0 bottom-full mb-2 w-64 bg-charcoal text-white text-xs p-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                                        Don't work for free! Charge for fixing or removing work from other salons.
+                                        Don&apos;t work for free! Charge for fixing or removing work from other salons.
                                     </div>
                                 </div>
                             </h3>

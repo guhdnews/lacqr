@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useState } from 'react';
 import { AI_SERVICE } from '../../services/ai';
 import { Upload, Loader2, AlertTriangle, CheckCircle, Bug } from 'lucide-react';
@@ -104,7 +105,7 @@ export function AIInspector() {
                             </div>
                             <div className="mt-4 pt-4 border-t border-green-200">
                                 <span className="block text-green-700 font-medium mb-1">AI Description</span>
-                                <p className="text-green-900 italic">"{result.aiDescription}"</p>
+                                <p className="text-green-900 italic">&quot;{result.aiDescription}&quot;</p>
                             </div>
                         </div>
 

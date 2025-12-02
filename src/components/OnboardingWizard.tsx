@@ -114,7 +114,7 @@ export default function OnboardingWizard() {
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="text-center space-y-2">
                             <h1 className="text-3xl font-serif font-bold">About You</h1>
-                            <p className="text-gray-500">Let's start with your details (optional).</p>
+                            <p className="text-gray-500">Let&apos;s start with your details (optional).</p>
                         </div>
 
                         <div className="bg-gray-50 p-8 rounded-3xl space-y-6">

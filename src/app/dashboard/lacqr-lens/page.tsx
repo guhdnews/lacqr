@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -411,7 +412,7 @@ function LacqrLensContent() {
                         {result.visual_description && (
                             <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl relative">
                                 <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">AI Visual Analysis</h4>
-                                <p className="text-sm text-indigo-900 italic mb-3">"{result.visual_description}"</p>
+                                <p className="text-sm text-indigo-900 italic mb-3">&quot;{result.visual_description}&quot;</p>
 
                                 {/* Feedback Buttons */}
                                 <div className="flex justify-end gap-2">

@@ -77,7 +77,7 @@ export default function FAQ() {
                         ))
                     ) : (
                         <div className="text-center py-12 text-gray-500">
-                            No results found for "{searchQuery}". Try a different keyword.
+                            No results found for &quot;{searchQuery}&quot;. Try a different keyword.
                         </div>
                     )}
                 </div>
@@ -86,7 +86,7 @@ export default function FAQ() {
             {/* Contact CTA */}
             <section className="py-20 px-6 text-center">
                 <h3 className="text-2xl font-bold mb-4">Still have questions?</h3>
-                <p className="text-gray-600 mb-8">We're here to help you get set up.</p>
+                <p className="text-gray-600 mb-8">We&apos;re here to help you get set up.</p>
                 <a
                     href="mailto:hello@lacqr.io"
                     className="inline-block bg-white border border-gray-200 text-charcoal px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"

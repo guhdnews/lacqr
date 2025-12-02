@@ -165,7 +165,7 @@ export default function CRMDashboard() {
                     <div className="bg-gradient-to-br from-charcoal to-black text-white rounded-3xl p-6 shadow-lg">
                         <h3 className="font-bold text-lg mb-2">Pro Tip</h3>
                         <p className="text-gray-300 text-sm mb-4">
-                            Adding detailed notes about your client's preferences (e.g., "Loves almond shape") helps you deliver a personalized experience every time.
+                            Adding detailed notes about your client&apos;s preferences (e.g., &quot;Loves almond shape&quot;) helps you deliver a personalized experience every time.
                         </p>
                     </div>
                 </div>

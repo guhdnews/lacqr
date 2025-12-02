@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { Heart, Users, Star, ArrowRight } from 'lucide-react';
@@ -16,7 +17,7 @@ export default function About() {
                         Built by Techs, <span className="text-pink-500">For Techs</span>
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        We're on a mission to help nail artists stop undercharging and start thriving.
+                        We&apos;re on a mission to help nail artists stop undercharging and start thriving.
                     </p>
                 </div>
             </div>
@@ -30,7 +31,7 @@ export default function About() {
                             Lacqr started with a simple observation: Nail techs are incredible artists, but often struggle with the business side. We saw talented friends undercharging for complex sets, spending hours in DMs explaining prices, and losing money on no-shows.
                         </p>
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            We realized that technology could bridge this gap. By using AI to objectively analyze designs and calculate prices, we could give techs the confidence to charge what they're worth.
+                            We realized that technology could bridge this gap. By using AI to objectively analyze designs and calculate prices, we could give techs the confidence to charge what they&apos;re worth.
                         </p>
                     </div>
                     <div className="relative">
@@ -38,7 +39,7 @@ export default function About() {
                             <img src="/assets/feature_image_macro.png" alt="Nail Art Macro" className="w-full h-full object-cover" />
                         </div>
                         <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl max-w-xs">
-                            <p className="font-serif italic text-lg text-gray-800">"Finally, a tool that understands the value of our art."</p>
+                            <p className="font-serif italic text-lg text-gray-800">&quot;Finally, a tool that understands the value of our art.&quot;</p>
                         </div>
                     </div>
                 </div>
@@ -62,7 +63,7 @@ export default function About() {
                                 <Users size={32} />
                             </div>
                             <h3 className="font-bold text-xl mb-3">Community</h3>
-                            <p className="text-gray-600 leading-relaxed">We're building a supportive network of techs who lift each other up, share knowledge, and grow together.</p>
+                            <p className="text-gray-600 leading-relaxed">We&apos;re building a supportive network of techs who lift each other up, share knowledge, and grow together.</p>
                         </div>
                         <div className="text-center p-8 bg-gray-50 rounded-3xl hover:shadow-lg transition-shadow border border-gray-100">
                             <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6 rotate-3">

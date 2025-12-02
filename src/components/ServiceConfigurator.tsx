@@ -64,6 +64,7 @@ export default function ServiceConfigurator({ initialSelection, onUpdate }: Serv
         } catch (err) {
             console.error("ServiceConfigurator: Error updating price", err);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selection.base, selection.addons, selection.art, selection.bling, selection.modifiers, selection.pedicure, menu]);
 
     const updateBase = (field: keyof ServiceSelection['base'], value: any) => {

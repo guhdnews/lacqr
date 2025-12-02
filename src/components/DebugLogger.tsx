@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Trash2, Copy, Bug } from 'lucide-react';
 
 interface LogEntry {
@@ -18,6 +18,19 @@ export default function DebugLogger() {
     const [isVisible, setIsVisible] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const searchParams = useSearchParams();
+
+    const addLog = useCallback((level: LogEntry['level'], args: any[]) => {
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+
+        setLogs(prev => [{
+            timestamp: new Date().toISOString().split('T')[1].slice(0, -1),
+            level,
+            message,
+            stack: args.find(a => a instanceof Error)?.stack
+        }, ...prev].slice(0, 50)); // Keep last 50 logs
+    }, []);
 
     useEffect(() => {
         // Check for debug mode flag via searchParams or localStorage
@@ -72,20 +85,7 @@ export default function DebugLogger() {
             window.removeEventListener('error', handleError);
             window.removeEventListener('unhandledrejection', handleRejection);
         };
-    }, []);
-
-    const addLog = (level: LogEntry['level'], args: any[]) => {
-        const message = args.map(arg =>
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-        ).join(' ');
-
-        setLogs(prev => [{
-            timestamp: new Date().toISOString().split('T')[1].slice(0, -1),
-            level,
-            message,
-            stack: args.find(a => a instanceof Error)?.stack
-        }, ...prev].slice(0, 50)); // Keep last 50 logs
-    };
+    }, [searchParams, addLog]);
 
     const copyLogs = () => {
         const text = logs.map(l => `[${l.timestamp}] [${l.level.toUpperCase()}] ${l.message} ${l.stack || ''}`).join('\n');

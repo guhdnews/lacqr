@@ -38,9 +38,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                             <AlertTriangle className="text-red-500" size={32} />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
-                        <p className="text-gray-500 mb-6">
-                            We're sorry, but the application encountered an unexpected error.
-                        </p>
+                        We&apos;re sorry, but the application encountered an unexpected error.
 
                         {this.state.error && (
                             <div className="bg-gray-100 p-3 rounded-lg text-left text-xs font-mono text-gray-700 mb-6 overflow-auto max-h-32">

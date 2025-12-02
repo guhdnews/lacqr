@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { Camera, Sparkles, Users, BarChart3, Image as ImageIcon, Zap, Clock, Shield, Heart } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function Features() {
                         Everything You Need to Run a <span className="text-pink-600">Modern Salon</span>
                     </h1>
                     <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                        Lacqr isn't just a booking app. It's an AI-powered business partner that handles pricing, scheduling, and client management so you can focus on creating art.
+                        Lacqr isn&apos;t just a booking app. It&apos;s an AI-powered business partner that handles pricing, scheduling, and client management so you can focus on creating art.
                     </p>
                     <Link
                         href="/signup"
@@ -70,7 +71,7 @@ export default function Features() {
                         </p>
                         <ul className="space-y-4">
                             {[
-                                "Eliminates 'What do I book for this?' questions",
+                                "Eliminates &apos;What do I book for this?&apos; questions",
                                 "Prevents surprise add-ons at the appointment",
                                 "Pre-writes professional responses for you",
                                 "Links directly to your booking flow"

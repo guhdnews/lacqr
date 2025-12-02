@@ -26,21 +26,21 @@ export default function ClientList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const fetchClients = async () => {
-        if (!user.id) return;
-        try {
-            const q = query(collection(db, 'users', user.id, 'clients'), orderBy('name'));
-            const querySnapshot = await getDocs(q);
-            const clientData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
-            setClients(clientData);
-        } catch (error) {
-            console.error("Error fetching clients:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchClients = async () => {
+            if (!user.id) return;
+            try {
+                const q = query(collection(db, 'users', user.id, 'clients'), orderBy('name'));
+                const querySnapshot = await getDocs(q);
+                const clientData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+                setClients(clientData);
+            } catch (error) {
+                console.error("Error fetching clients:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchClients();
     }, [user.id]);
 

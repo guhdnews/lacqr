@@ -149,7 +149,7 @@ export default function PublicQuote() {
                         {/* AI Note */}
                         {(isLens ? lensData.visual_description : smartData.reasoning) && (
                             <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 italic">
-                                "{isLens ? lensData.visual_description : smartData.reasoning}"
+                                &quot;{isLens ? lensData.visual_description : smartData.reasoning}&quot;
                             </div>
                         )}
                     </div>
