@@ -10,6 +10,11 @@ interface AppState {
         email: string | null;
         salonName?: string | null;
         bookingHandle?: string | null;
+        logoUrl?: string | null;
+        headerImageUrl?: string | null;
+        brandColor?: string | null;
+        font?: 'sans' | 'serif' | 'mono';
+        buttonStyle?: 'rounded' | 'pill' | 'square';
         bookingConfig?: any; // Using any for now to avoid circular dependency or complex type duplication
         isAuthenticated: boolean;
         onboardingComplete: boolean;
@@ -48,6 +53,11 @@ export const useAppStore = create<AppState>()(
                     email: null,
                     salonName: null,
                     bookingHandle: null,
+                    logoUrl: null,
+                    headerImageUrl: null,
+                    brandColor: null,
+                    font: 'sans',
+                    buttonStyle: 'rounded',
                     bookingConfig: null,
                     isAuthenticated: false,
                     onboardingComplete: false
@@ -77,6 +87,11 @@ export const useAppStore = create<AppState>()(
                             email: null,
                             salonName: null,
                             bookingHandle: null,
+                            logoUrl: null,
+                            headerImageUrl: null,
+                            brandColor: null,
+                            font: 'sans',
+                            buttonStyle: 'rounded',
                             bookingConfig: null,
                             isAuthenticated: false,
                             onboardingComplete: false,

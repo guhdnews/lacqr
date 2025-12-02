@@ -29,10 +29,10 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
-    // Users: Users can read/write their own profile
-    // Users: Users can read/write their own profile AND subcollections (like usage/daily)
+    // Users: Public read (for booking pages), Owner write
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
       
       match /{allSubcollections=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;

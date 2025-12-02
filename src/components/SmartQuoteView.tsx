@@ -19,6 +19,8 @@ interface SmartQuoteViewProps {
     onShareQuote?: (result: ServiceSelection, clientId: string) => Promise<void>;
     onQuoteGenerated?: (result: ServiceSelection) => void;
     isAuthenticated?: boolean;
+    themeColor?: string;
+    buttonStyle?: 'rounded' | 'pill' | 'square';
 }
 
 export default function SmartQuoteView({
@@ -26,7 +28,9 @@ export default function SmartQuoteView({
     clients = [],
     onShareQuote,
     onQuoteGenerated,
-    isAuthenticated = false
+    isAuthenticated = false,
+    themeColor = '#ec4899',
+    buttonStyle = 'rounded'
 }: SmartQuoteViewProps) {
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -148,12 +152,18 @@ export default function SmartQuoteView({
 
             {/* Upload Area */}
             {!image ? (
-                <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
+                <label className={`border-2 border-dashed border-gray-300 h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:bg-pink-50/50 transition-all group relative overflow-hidden ${buttonStyle === 'pill' ? 'rounded-[2rem]' : buttonStyle === 'square' ? 'rounded-none' : 'rounded-3xl'
+                    }`}
+                    style={{ borderColor: isAnalyzing ? themeColor : undefined }}
+                >
                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-                    <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Sparkles size={32} className="text-pink-500" />
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                        style={{ backgroundColor: `${themeColor}15` }} // 15 is hex for ~8% opacity
+                    >
+                        <Sparkles size={32} style={{ color: themeColor }} />
                     </div>
-                    <span className="font-medium text-gray-500 group-hover:text-pink-500 transition-colors">Tap to Analyze Inspo</span>
+                    <span className="font-medium text-gray-500 transition-colors" style={{ color: themeColor }}>Tap to Analyze Inspo</span>
                     <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
                 </label>
             ) : (
@@ -279,7 +289,9 @@ export default function SmartQuoteView({
                     <div className="flex space-x-3">
                         <button
                             onClick={copyToClipboard}
-                            className={`flex-1 py-4 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center space-x-2 ${copied ? 'bg-green-500 text-white' : 'bg-charcoal text-white hover:bg-black'}`}
+                            className={`flex-1 py-4 font-medium transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center space-x-2 ${copied ? 'text-white' : 'text-white hover:opacity-90'} ${buttonStyle === 'pill' ? 'rounded-full' : buttonStyle === 'square' ? 'rounded-none' : 'rounded-xl'
+                                }`}
+                            style={{ backgroundColor: copied ? '#22c55e' : themeColor }}
                         >
                             {copied ? (
                                 <>
@@ -298,7 +310,8 @@ export default function SmartQuoteView({
                         {isAuthenticated && (
                             <button
                                 onClick={handleShare}
-                                className="p-4 rounded-xl font-bold text-gray-500 shadow-lg transition-all flex items-center justify-center bg-white hover:text-pink-500"
+                                className={`p-4 font-bold text-gray-500 shadow-lg transition-all flex items-center justify-center bg-white hover:text-pink-500 ${buttonStyle === 'pill' ? 'rounded-full' : buttonStyle === 'square' ? 'rounded-none' : 'rounded-xl'
+                                    }`}
                             >
                                 <Share2 size={20} />
                             </button>

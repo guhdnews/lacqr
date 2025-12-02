@@ -11,6 +11,8 @@ interface BookingConfig {
     welcomeMessage: string;
     policies: string[];
     showSocialLinks: boolean;
+    font?: 'sans' | 'serif' | 'mono';
+    buttonStyle?: 'rounded' | 'pill' | 'square';
 }
 
 export default function BookingEditor() {
@@ -23,26 +25,35 @@ export default function BookingEditor() {
             "Please arrive on time.",
             "No extra guests allowed."
         ],
-        showSocialLinks: true
+        showSocialLinks: true,
+        font: 'sans',
+        buttonStyle: 'rounded'
     });
     const [isSaving, setIsSaving] = useState(false);
 
-    // Load existing config if available (mock for now, would pull from user profile)
+    // Load existing config if available
     useEffect(() => {
         if (user?.bookingConfig) {
             setConfig(user.bookingConfig);
         }
     }, [user]);
 
-    const handleSave = async () => {
+    const handleSave = async (newConfig?: BookingConfig) => {
         if (!user?.id) return;
+        const configToSave = newConfig || config;
+
+        // Update local state if new config passed
+        if (newConfig) {
+            setConfig(configToSave);
+        }
+
         setIsSaving(true);
         try {
             const userRef = doc(db, 'users', user.id);
             await updateDoc(userRef, {
-                bookingConfig: config
+                bookingConfig: configToSave
             });
-            alert("Booking page settings saved!");
+            // Optional: Show toast or feedback
         } catch (error) {
             console.error("Error saving booking config:", error);
             alert("Failed to save settings.");
@@ -85,7 +96,7 @@ export default function BookingEditor() {
                                 {['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#111827'].map(color => (
                                     <button
                                         key={color}
-                                        onClick={() => setConfig({ ...config, themeColor: color })}
+                                        onClick={() => handleSave({ ...config, themeColor: color })}
                                         className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${config.themeColor === color ? 'border-gray-900 scale-110' : 'border-transparent'}`}
                                         style={{ backgroundColor: color }}
                                     />
@@ -98,9 +109,37 @@ export default function BookingEditor() {
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                         <Type size={20} className="text-pink-500" />
-                        Content
+                        Typography & Style
                     </h3>
                     <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Font Family</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {['sans', 'serif', 'mono'].map((font) => (
+                                    <button
+                                        key={font}
+                                        onClick={() => handleSave({ ...config, font: font as any })}
+                                        className={`px-3 py-2 rounded-lg border text-sm capitalize ${config.font === font ? 'border-pink-500 bg-pink-50 text-pink-700 font-bold' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                                    >
+                                        {font}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Button Style</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {['rounded', 'pill', 'square'].map((style) => (
+                                    <button
+                                        key={style}
+                                        onClick={() => handleSave({ ...config, buttonStyle: style as any })}
+                                        className={`px-3 py-2 border text-sm capitalize ${config.buttonStyle === style ? 'border-pink-500 bg-pink-50 text-pink-700 font-bold' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} ${style === 'rounded' ? 'rounded-lg' : style === 'pill' ? 'rounded-full' : 'rounded-none'}`}
+                                    >
+                                        {style}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
                             <textarea
@@ -144,7 +183,7 @@ export default function BookingEditor() {
                 </div>
 
                 <button
-                    onClick={handleSave}
+                    onClick={() => handleSave()}
                     disabled={isSaving}
                     className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
@@ -160,7 +199,20 @@ export default function BookingEditor() {
             {/* Preview Column */}
             <div className="hidden lg:block">
                 <div className="sticky top-8">
-                    <h3 className="text-lg font-bold mb-4 text-gray-500 uppercase tracking-wider text-center">Live Preview</h3>
+                    <div className="flex justify-between items-center mb-4 px-4">
+                        <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wider text-center">Live Preview</h3>
+                        {user?.bookingHandle && (
+                            <a
+                                href={`/book/${user.bookingHandle}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-sm font-bold text-pink-600 hover:text-pink-700 bg-pink-50 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                                <Globe size={16} />
+                                View Live
+                            </a>
+                        )}
+                    </div>
                     <div className="border-[8px] border-gray-900 rounded-[3rem] overflow-hidden shadow-2xl bg-white h-[800px] relative">
                         {/* Mock Phone Header */}
                         <div className="bg-gray-100 h-6 w-full absolute top-0 left-0 z-10 flex justify-center items-center">
@@ -168,40 +220,55 @@ export default function BookingEditor() {
                         </div>
 
                         {/* Preview Content */}
-                        <div className="h-full overflow-y-auto pt-8 pb-8 px-4 scrollbar-hide">
-                            <div className="text-center mb-8">
-                                <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                        <div className={`h-full overflow-y-auto pb-8 scrollbar-hide ${config.font === 'serif' ? 'font-serif' : config.font === 'mono' ? 'font-mono' : 'font-sans'}`}>
+                            {/* Header Image */}
+                            <div className="h-32 bg-gray-200 w-full relative">
+                                {user?.headerImageUrl && (
+                                    <img src={user.headerImageUrl} alt="Header" className="w-full h-full object-cover" />
+                                )}
+                            </div>
+
+                            <div className="px-4 -mt-12 text-center mb-8 relative z-10">
+                                <div className="w-24 h-24 bg-white rounded-full mx-auto mb-4 p-1 shadow-lg">
+                                    {user?.logoUrl ? (
+                                        <img src={user.logoUrl} alt="Logo" className="w-full h-full rounded-full object-cover bg-gray-200" />
+                                    ) : (
+                                        <div className="w-full h-full rounded-full bg-gray-200" />
+                                    )}
+                                </div>
                                 <h2 className="text-xl font-bold">{user?.salonName || "Your Salon"}</h2>
                                 <p className="text-sm text-gray-500">@{user?.bookingHandle || "username"}</p>
                             </div>
 
-                            <div
-                                className="p-6 rounded-2xl text-white mb-6 shadow-lg"
-                                style={{ backgroundColor: config.themeColor }}
-                            >
-                                <h3 className="font-bold mb-2">Welcome</h3>
-                                <p className="text-sm opacity-90">{config.welcomeMessage}</p>
-                            </div>
-
-                            <div className="space-y-4 mb-8">
-                                <h3 className="font-bold text-gray-900">Policies</h3>
-                                <ul className="space-y-2">
-                                    {config.policies.map((policy, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                                            <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                                            {policy}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            <div className="border-t border-gray-100 pt-6 text-center">
-                                <button
-                                    className="w-full py-3 rounded-xl font-bold text-white shadow-md"
-                                    style={{ backgroundColor: config.themeColor }}
+                            <div className="px-4">
+                                <div
+                                    className="p-6 rounded-2xl text-white mb-6 shadow-lg"
+                                    style={{ backgroundColor: user?.brandColor || config.themeColor }}
                                 >
-                                    Book Now
-                                </button>
+                                    <h3 className="font-bold mb-2">Welcome</h3>
+                                    <p className="text-sm opacity-90">{config.welcomeMessage}</p>
+                                </div>
+
+                                <div className="space-y-4 mb-8">
+                                    <h3 className="font-bold text-gray-900">Policies</h3>
+                                    <ul className="space-y-2">
+                                        {config.policies.map((policy, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                                                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                                                {policy}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="border-t border-gray-100 pt-6 text-center">
+                                    <button
+                                        className={`w-full py-3 font-bold text-white shadow-md ${config.buttonStyle === 'pill' ? 'rounded-full' : config.buttonStyle === 'square' ? 'rounded-none' : 'rounded-xl'}`}
+                                        style={{ backgroundColor: user?.brandColor || config.themeColor }}
+                                    >
+                                        Book Now
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
