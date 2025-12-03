@@ -228,16 +228,10 @@ export default function ClientProfile() {
 
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="font-bold text-charcoal mb-4">Preferences</h3>
-                        {isEditing ? (
-                            <textarea
-                                value={editForm.preferences || ''}
-                                onChange={e => setEditForm({ ...editForm, preferences: e.target.value })}
-                                className="w-full h-32 p-3 border rounded-xl focus:border-pink-500 focus:ring-0"
-                                placeholder="E.g. Likes quiet appointments, allergic to latex..."
-                            />
-                        ) : (
-                            <p className="text-gray-600 whitespace-pre-wrap">{client.preferences || "No preferences recorded."}</p>
-                        )}
+                        {/* TODO: Build proper UI for ClientPreferences object */}
+                        <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-500 italic">
+                            Structured preferences (Shapes, Lengths, Colors) are not yet editable in this view.
+                        </div>
                     </div>
                 </div>
             )}
