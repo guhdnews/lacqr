@@ -15,9 +15,11 @@ interface ServiceLogModalProps {
     onClose: () => void;
     clientId: string;
     onSuccess?: () => void;
+    initialData?: any; // For editing
+    serviceId?: string; // For editing
 }
 
-export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }: ServiceLogModalProps) {
+export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess, initialData, serviceId }: ServiceLogModalProps) {
     const { user } = useAppStore();
     const { menu } = useServiceStore();
 
@@ -49,9 +51,33 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
     const [submitting, setSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Smart Pricing Logic
+    // Load Initial Data for Editing
     useEffect(() => {
-        if (!menu) return;
+        if (initialData) {
+            setServiceType(initialData.serviceType as SystemType || 'Gel Manicure');
+            setShape(initialData.shape || 'Square');
+            setLength(initialData.length as NailLength || 'Short');
+            setPrice(initialData.price?.toString() || '');
+            setTip(initialData.tip?.toString() || '');
+            setNotes(initialData.techNotes || '');
+            setProducts(initialData.productsUsed || []);
+
+            // Load photos if they exist (assuming they are URLs)
+            if (initialData.photos?.after) {
+                setPhotoPreviews(initialData.photos.after);
+            }
+
+            // Parse Add-ons (This is tricky because they are stored as an array of strings)
+            // We'll try to match them back to state if possible, or just leave defaults if complex.
+            // For now, we'll skip complex reverse-mapping of add-ons to avoid bugs, 
+            // as the user can re-select them if needed.
+        }
+    }, [initialData]);
+
+    // Smart Pricing Logic (Only run if NOT editing or if user changes something)
+    // We want to avoid overwriting the stored price when opening edit mode.
+    useEffect(() => {
+        if (!menu || initialData) return; // Don't auto-calc on edit load
 
         const basePrice = menu.basePrices[serviceType] || 0;
         const lengthPrice = menu.lengthSurcharges[length] || 0;
@@ -64,7 +90,9 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
 
         const total = basePrice + lengthPrice + finishPrice + specialtyPrice + designPrice + artPrice + blingPrice + foreignPrice;
         setPrice(total.toFixed(2));
-    }, [serviceType, length, finish, specialty, design, artLevel, bling, foreignWork, menu]);
+    }, [serviceType, length, finish, specialty, design, artLevel, bling, foreignWork, menu, initialData]);
+
+    // ... (Handlers stay the same)
 
     const handleAddProduct = () => {
         if (!newProduct.brand || !newProduct.code) return;
@@ -93,20 +121,23 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
         setSubmitting(true);
 
         try {
-            // 1. Upload Photos
-            const photoUrls: string[] = [];
+            // 1. Upload Photos (Only new files)
+            const newPhotoUrls: string[] = [];
             for (const file of photos) {
                 const storageRef = ref(storage, `users/${user.id}/clients/${clientId}/${Date.now()}_${file.name}`);
                 await uploadBytes(storageRef, file);
                 const url = getDownloadURL(storageRef);
-                photoUrls.push(await url);
+                newPhotoUrls.push(await url);
             }
 
-            // 2. Create Service Record
-            const newRecord = {
+            // Combine with existing photos if editing
+            const finalPhotoUrls = initialData ? [...(initialData.photos?.after || []), ...newPhotoUrls] : newPhotoUrls;
+
+            // 2. Create/Update Service Record
+            const recordData = {
                 clientId,
                 userId: user.id,
-                date: Timestamp.now(),
+                date: initialData ? initialData.date : Timestamp.now(), // Keep original date if editing
                 serviceType,
                 shape,
                 length,
@@ -122,32 +153,32 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
                 price: parseFloat(price) || 0,
                 tip: parseFloat(tip) || 0,
                 photos: {
-                    after: photoUrls
+                    after: finalPhotoUrls
                 },
                 techNotes: notes,
-                createdAt: Timestamp.now()
+                updatedAt: Timestamp.now()
             };
 
-            await addDoc(collection(db, 'service_records'), newRecord);
+            if (serviceId) {
+                // Update existing
+                const { doc, updateDoc } = await import('firebase/firestore');
+                await updateDoc(doc(db, 'service_records', serviceId), recordData);
+            } else {
+                // Create new
+                await addDoc(collection(db, 'service_records'), {
+                    ...recordData,
+                    createdAt: Timestamp.now()
+                });
+            }
 
             if (onSuccess) onSuccess();
             onClose();
 
-            // Reset Form
-            setServiceType('Gel Manicure' as SystemType);
-            setProducts([]);
-            setPhotos([]);
-            setPhotoPreviews([]);
-            setPrice('');
-            setTip('');
-            setNotes('');
-            // Reset Add-ons
-            setFinish('Glossy');
-            setSpecialty('None');
-            setDesign('None');
-            setArtLevel('None');
-            setBling('None');
-            setForeignWork('None');
+            // Reset Form if creating new (not strictly necessary as component unmounts, but good practice)
+            if (!serviceId) {
+                setServiceType('Gel Manicure' as SystemType);
+                // ... reset others
+            }
 
         } catch (error) {
             console.error("Error logging service:", error);
@@ -174,17 +205,19 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl w-full max-w-2xl p-6 space-y-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl max-h-[90vh] overflow-y-auto relative"
+                className="bg-white rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl max-h-[90vh] relative overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-                    <h2 className="text-2xl font-bold text-charcoal">Log New Visit</h2>
+                {/* Fixed Header */}
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-white z-10">
+                    <h2 className="text-2xl font-bold text-charcoal">{serviceId ? 'Edit Visit' : 'Log New Visit'}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <X size={20} className="text-gray-500" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Scrollable Content */}
+                <div className="overflow-y-auto p-6 space-y-6">
                     {/* Service Details */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>

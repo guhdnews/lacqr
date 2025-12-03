@@ -16,9 +16,59 @@ export default function ClientDetailPage() {
     const clientId = params?.id as string;
 
     const { client, history, lastServiceSnapshot, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
+    const { client, history, lastServiceSnapshot, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [selectedService, setSelectedService] = useState<any>(null); // For editing
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileForm, setProfileForm] = useState<any>({});
+
+    // Initialize form when client loads
+    useEffect(() => {
+        if (client) {
+            setProfileForm({
+                ...client.nailProfile,
+                name: client.name,
+                phone: client.phone,
+                email: client.email,
+                instagram: client.instagram
+            });
+        }
+    }, [client]);
+
+    const handleSaveProfile = async () => {
+        if (!user?.id || !clientId) return;
+        try {
+            // Split form data into client fields and nail profile fields
+            const { name, phone, email, instagram, ...nailProfileData } = profileForm;
+
+            await updateDoc(doc(db, 'clients', clientId), {
+                name,
+                phone,
+                email,
+                instagram,
+                nailProfile: nailProfileData
+            });
+            setIsEditingProfile(false);
+            refresh();
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("Failed to update profile.");
+        }
+    };
+
+    const handleDeleteClient = async () => {
+        if (!confirm("Are you sure you want to delete this client? They will be moved to the trash.")) return;
+        try {
+            // Soft delete
+            await updateDoc(doc(db, 'clients', clientId), {
+                deletedAt: new Date() // Use server timestamp in real app, but Date is fine for now
+            });
+            router.push('/dashboard/crm');
+        } catch (err) {
+            console.error("Error deleting client:", err);
+            alert("Failed to delete client.");
+        }
+    };
 
     // Initialize form when client loads
     useEffect(() => {
@@ -81,7 +131,16 @@ export default function ClientDetailPage() {
                     </button>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-3xl font-bold font-serif text-charcoal">{client.name}</h1>
+                            {isEditingProfile ? (
+                                <input
+                                    value={profileForm.name || ''}
+                                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                                    className="text-3xl font-bold font-serif text-charcoal border-b border-gray-300 focus:border-pink-500 outline-none bg-transparent"
+                                />
+                            ) : (
+                                <h1 className="text-3xl font-bold font-serif text-charcoal">{client.name}</h1>
+                            )}
+
                             {client.stats?.clientGrade && (
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${client.stats.clientGrade.startsWith('A') ? 'bg-green-100 text-green-700' :
                                     client.stats.clientGrade === 'B' ? 'bg-blue-100 text-blue-700' :
@@ -127,19 +186,60 @@ export default function ClientDetailPage() {
                 {/* Left Column: Contact & Nail Profile */}
                 <div className="space-y-6">
                     {/* Contact Info */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    {/* Contact Info */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 relative">
+                        {/* Edit/Delete Controls */}
+                        <div className="absolute top-4 right-4 flex space-x-2">
+                            {isEditingProfile ? (
+                                <>
+                                    <button onClick={() => handleDeleteClient()} className="p-1 hover:bg-red-100 rounded text-red-500" title="Delete Client"><Trash2 size={16} /></button>
+                                    <button onClick={() => setIsEditingProfile(false)} className="p-1 hover:bg-gray-100 rounded text-gray-500"><X size={16} /></button>
+                                    <button onClick={handleSaveProfile} className="p-1 hover:bg-green-100 rounded text-green-600"><Save size={16} /></button>
+                                </>
+                            ) : (
+                                <button onClick={() => setIsEditingProfile(true)} className="text-xs text-pink-500 font-bold hover:underline">Edit Profile</button>
+                            )}
+                        </div>
+
                         <h3 className="font-bold text-gray-800 mb-2">Contact Details</h3>
                         <div className="flex items-center space-x-3 text-gray-600">
                             <Phone size={18} className="text-pink-500" />
-                            <p className="font-medium">{client.phone || 'N/A'}</p>
+                            {isEditingProfile ? (
+                                <input
+                                    value={profileForm.phone || ''}
+                                    onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                    className="font-medium border-b border-gray-300 focus:border-pink-500 outline-none bg-transparent w-full"
+                                    placeholder="Phone"
+                                />
+                            ) : (
+                                <p className="font-medium">{client.phone || 'N/A'}</p>
+                            )}
                         </div>
                         <div className="flex items-center space-x-3 text-gray-600">
                             <Mail size={18} className="text-purple-500" />
-                            <p className="font-medium">{client.email || 'N/A'}</p>
+                            {isEditingProfile ? (
+                                <input
+                                    value={profileForm.email || ''}
+                                    onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                                    className="font-medium border-b border-gray-300 focus:border-pink-500 outline-none bg-transparent w-full"
+                                    placeholder="Email"
+                                />
+                            ) : (
+                                <p className="font-medium">{client.email || 'N/A'}</p>
+                            )}
                         </div>
                         <div className="flex items-center space-x-3 text-gray-600">
                             <MessageSquare size={18} className="text-blue-500" />
-                            <p className="font-medium">{client.instagram || 'N/A'}</p>
+                            {isEditingProfile ? (
+                                <input
+                                    value={profileForm.instagram || ''}
+                                    onChange={e => setProfileForm({ ...profileForm, instagram: e.target.value })}
+                                    className="font-medium border-b border-gray-300 focus:border-pink-500 outline-none bg-transparent w-full"
+                                    placeholder="Instagram"
+                                />
+                            ) : (
+                                <p className="font-medium">{client.instagram || 'N/A'}</p>
+                            )}
                         </div>
                     </div>
 
@@ -147,14 +247,6 @@ export default function ClientDetailPage() {
                     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800">Nail Profile</h3>
-                            {isEditingProfile ? (
-                                <div className="flex space-x-2">
-                                    <button onClick={() => setIsEditingProfile(false)} className="p-1 hover:bg-gray-100 rounded text-gray-500"><X size={16} /></button>
-                                    <button onClick={handleSaveProfile} className="p-1 hover:bg-green-100 rounded text-green-600"><Save size={16} /></button>
-                                </div>
-                            ) : (
-                                <button onClick={() => setIsEditingProfile(true)} className="text-xs text-pink-500 font-bold hover:underline">Edit</button>
-                            )}
                         </div>
                         <div className="space-y-3">
                             <div className="flex justify-between items-center text-sm">
@@ -260,7 +352,10 @@ export default function ClientDetailPage() {
                         <div className="flex justify-between items-center px-2">
                             <h3 className="text-xl font-bold text-charcoal">Service History</h3>
                             <button
-                                onClick={() => setIsLogModalOpen(true)}
+                                onClick={() => {
+                                    setSelectedService(null);
+                                    setIsLogModalOpen(true);
+                                }}
                                 className="text-sm text-pink-500 font-bold hover:underline"
                             >
                                 Log New Visit
@@ -295,13 +390,25 @@ export default function ClientDetailPage() {
                                                 {item.tip > 0 && (
                                                     <p className="text-xs text-green-600 font-medium">+${item.tip} tip</p>
                                                 )}
-                                                <button
-                                                    onClick={() => handleDeleteService(item.id)}
-                                                    className="mt-2 text-gray-300 hover:text-red-500 transition-colors"
-                                                    title="Delete Record"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex space-x-2 justify-end mt-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedService(item);
+                                                            setIsLogModalOpen(true);
+                                                        }}
+                                                        className="text-gray-300 hover:text-blue-500 transition-colors"
+                                                        title="Edit Record"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteService(item.id)}
+                                                        className="text-gray-300 hover:text-red-500 transition-colors"
+                                                        title="Delete Record"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -317,6 +424,8 @@ export default function ClientDetailPage() {
                 onClose={() => setIsLogModalOpen(false)}
                 clientId={clientId}
                 onSuccess={refresh}
+                initialData={selectedService}
+                serviceId={selectedService?.id}
             />
         </div>
     );
