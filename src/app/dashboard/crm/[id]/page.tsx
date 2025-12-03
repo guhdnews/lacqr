@@ -243,68 +243,43 @@ export default function ClientDetailPage() {
             {history.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
                     <p className="text-gray-500">No history found. Log their first visit!</p>
+                    <button
+                        onClick={() => {
+                            setSelectedService(item);
+                            setIsLogModalOpen(true);
+                        }}
+                        className="text-gray-300 hover:text-blue-500 transition-colors"
+                        title="Edit Record"
+                    >
+                        <Edit size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleDeleteService(item.id)}
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        title="Delete Record"
+                    >
+                        <Trash2 size={16} />
+                    </button>
                 </div>
-            ) : (
-                <div className="space-y-3">
-                    {history.map((item) => (
-                        <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-start space-x-4">
-                                    <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 font-bold text-lg">
-                                        {item.date ? new Date(item.date.seconds * 1000).getDate() : '?'}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-charcoal">{item.serviceType}</h4>
-                                        <p className="text-sm text-gray-500">
-                                            {item.date ? new Date(item.date.seconds * 1000).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : 'Unknown'}
-                                        </p>
-                                        {item.addons && item.addons.length > 0 && (
-                                            <p className="text-xs text-gray-400 mt-1">+ {item.addons.join(', ')}</p>
-                                        )}
-                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-lg">${item.price}</p>
-                                    {item.tip > 0 && (
-                                        <p className="text-xs text-green-600 font-medium">+${item.tip} tip</p>
-                                    )}
-                                    <div className="flex space-x-2 justify-end mt-2">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedService(item);
-                                                setIsLogModalOpen(true);
-                                            }}
-                                            className="text-gray-300 hover:text-blue-500 transition-colors"
-                                            title="Edit Record"
-                                        >
-                                            <Edit size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteService(item.id)}
-                                            className="text-gray-300 hover:text-red-500 transition-colors"
-                                            title="Delete Record"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            </div >
+                        </div >
+                    ))
+}
+                </div >
             )}
-        </div>
+        </div >
                 </div >
             </div >
 
-        <ServiceLogModal
-            isOpen={isLogModalOpen}
-            onClose={() => setIsLogModalOpen(false)}
-            clientId={clientId}
-            onSuccess={refresh}
-            initialData={selectedService}
-            serviceId={selectedService?.id}
-        />
+    <ServiceLogModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        clientId={clientId}
+        onSuccess={refresh}
+        initialData={selectedService}
+        serviceId={selectedService?.id}
+    />
         </div >
     );
 }
