@@ -32,7 +32,8 @@ export default function ClientDetailPage() {
                 bedSize: client.nailProfile?.bedSize,
                 cuticleType: client.nailProfile?.cuticleType,
                 naturalNailHealth: client.nailProfile?.naturalNailHealth,
-                notes: client.nailProfile?.notes
+                nailNotes: client.nailProfile?.notes,
+                notes: client.notes || ''
             });
         }
     }, [client]);
@@ -44,11 +45,12 @@ export default function ClientDetailPage() {
                 phone: profileForm.phone,
                 email: profileForm.email,
                 instagram: profileForm.instagram,
+                notes: profileForm.notes,
                 nailProfile: {
                     bedSize: profileForm.bedSize,
                     cuticleType: profileForm.cuticleType,
                     naturalNailHealth: profileForm.naturalNailHealth,
-                    notes: profileForm.notes
+                    notes: profileForm.nailNotes
                 }
             });
             setIsEditingProfile(false);
@@ -282,8 +284,8 @@ export default function ClientDetailPage() {
                             <div className="mt-4 pt-4 border-t border-gray-50 text-sm text-gray-600 italic">
                                 {isEditingProfile ? (
                                     <textarea
-                                        value={profileForm.notes || ''}
-                                        onChange={e => setProfileForm({ ...profileForm, notes: e.target.value })}
+                                        value={profileForm.nailNotes || ''}
+                                        onChange={e => setProfileForm({ ...profileForm, nailNotes: e.target.value })}
                                         className="w-full p-2 border rounded-lg text-sm"
                                         placeholder="Notes..."
                                     />
@@ -294,85 +296,11 @@ export default function ClientDetailPage() {
                         )}
                     </div>
                 </div>
-
-                {/* Right Column: Service History */}
-                <div className="md:col-span-2 space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-xl text-charcoal">Service History</h3>
-                        <button
-                            onClick={() => {
-                                setSelectedService(null);
-                                setIsLogModalOpen(true);
-                            }}
-                            className="bg-pink-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-pink-200 hover:bg-pink-600 transition-colors flex items-center gap-2"
-                        >
-                            <Plus size={16} /> Log Visit
-                        </button>
-                    </div>
-
-                    {history.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                            <p className="text-gray-500">No history found. Log their first visit!</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {history.map((item: any) => (
-                                <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-16 h-16 bg-pink-50 rounded-xl flex flex-col items-center justify-center text-pink-500 font-bold leading-none shadow-sm">
-                                                <span className="text-[10px] uppercase tracking-wide">{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString('en-US', { month: 'short' }) : ''}</span>
-                                                <span className="text-2xl my-0.5">{item.date ? new Date(item.date.seconds * 1000).getDate() : '?'}</span>
-                                                <span className="text-[10px] text-pink-400">{item.date ? new Date(item.date.seconds * 1000).getFullYear() : ''}</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-charcoal text-lg">{item.serviceType}</h4>
-                                                {item.addons && item.addons.length > 0 && (
-                                                    <p className="text-xs text-gray-400 mt-1">+ {item.addons.join(', ')}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-lg">${item.price}</p>
-                                            {item.tip > 0 && (
-                                                <p className="text-xs text-green-600 font-medium">+${item.tip} tip</p>
-                                            )}
-                                            <div className="flex space-x-2 justify-end mt-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedService(item);
-                                                        setIsLogModalOpen(true);
-                                                    }}
-                                                    className="text-gray-300 hover:text-blue-500 transition-colors"
-                                                    title="Edit Record"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteService(item.id)}
-                                                    className="text-gray-300 hover:text-red-500 transition-colors"
-                                                    title="Delete Record"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <ServiceLogModal
-                isOpen={isLogModalOpen}
-                onClose={() => setIsLogModalOpen(false)}
                 clientId={clientId}
                 onSuccess={refresh}
                 initialData={selectedService}
                 serviceId={selectedService?.id}
             />
-        </div>
-    );
+            </div>
+            );
 }
