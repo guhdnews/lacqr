@@ -473,5 +473,6 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess, 
                     </form>
                 </div>
             </div>
-            );
+        </div>
+    );
 }
