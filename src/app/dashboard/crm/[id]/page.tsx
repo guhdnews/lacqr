@@ -147,11 +147,11 @@ export default function ClientDetailPage() {
                 <div className="flex gap-4">
                     <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm text-center min-w-[100px]">
                         <p className="text-xs text-gray-400 uppercase font-bold">LTV</p>
-                        <p className="font-bold text-lg text-green-600">${client.stats?.totalSpend.toFixed(0) || 0}</p>
+                        <p className="font-bold text-lg text-green-600">${(client.stats?.totalSpend || 0).toFixed(0)}</p>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm text-center min-w-[100px]">
                         <p className="text-xs text-gray-400 uppercase font-bold">Avg Ticket</p>
-                        <p className="font-bold text-lg text-charcoal">${client.stats?.averageTicket.toFixed(0) || 0}</p>
+                        <p className="font-bold text-lg text-charcoal">${(client.stats?.averageTicket || 0).toFixed(0)}</p>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm text-center min-w-[100px]">
                         <p className="text-xs text-gray-400 uppercase font-bold">Next Due</p>
