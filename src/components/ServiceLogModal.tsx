@@ -157,15 +157,30 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess }
         }
     };
 
+    // Close on Escape
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-2xl p-6 space-y-6 animate-in fade-in zoom-in-95 duration-200 shadow-xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+        <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-2xl w-full max-w-2xl p-6 space-y-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl max-h-[90vh] overflow-y-auto relative"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                     <h2 className="text-2xl font-bold text-charcoal">Log New Visit</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-charcoal transition-colors">
-                        <X size={24} />
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <X size={20} className="text-gray-500" />
                     </button>
                 </div>
 

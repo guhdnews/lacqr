@@ -24,6 +24,16 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    // Appointments: Authenticated users
+    match /appointments/{appointmentId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Service Records: Authenticated users
+    match /service_records/{recordId} {
+      allow read, write: if isAuthenticated();
+    }
+
     // Training Data: Admin only
     match /training_data/{dataId} {
       allow read, write: if isAuthenticated();
