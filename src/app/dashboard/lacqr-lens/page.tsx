@@ -3,10 +3,10 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown, History, RefreshCw } from 'lucide-react';
 import { AI_SERVICE } from '@/services/ai';
 import { isImageBlurry, compressImage } from '@/utils/imageProcessing';
-import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { ServiceSelection } from '@/types/serviceSchema';
 import type { Client } from '@/types/client';
@@ -50,6 +50,33 @@ function LacqrLensContent() {
         return 'scan';
     });
 
+    // History State
+    const [recentScans, setRecentScans] = useState<any[]>([]);
+    const [showHistory, setShowHistory] = useState(false);
+
+    const { user } = useAppStore();
+
+    // Fetch History
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!user?.id) return;
+            try {
+                const q = query(
+                    collection(db, 'quotes'),
+                    where('userId', '==', user.id),
+                    orderBy('createdAt', 'desc'),
+                    limit(5)
+                );
+                const snapshot = await getDocs(q);
+                const scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setRecentScans(scans);
+            } catch (error) {
+                console.error("Error fetching history:", error);
+            }
+        };
+        fetchHistory();
+    }, [user?.id, step]); // Re-fetch when step changes (e.g. after saving a quote)
+
     // Persistence Effects
     useEffect(() => {
         try {
@@ -57,7 +84,6 @@ function LacqrLensContent() {
             else localStorage.removeItem('lacqr_lens_image');
         } catch (e) {
             console.warn("Failed to save image to localStorage (likely quota exceeded):", e);
-            // Optional: Clear other items to make space or just ignore
         }
     }, [image]);
 
@@ -74,23 +100,28 @@ function LacqrLensContent() {
     useEffect(() => {
         const draftId = searchParams.get('draftId');
         if (draftId) {
-            const fetchDraft = async () => {
-                try {
-                    const draftDoc = await getDoc(doc(db, 'quotes', draftId));
-                    if (draftDoc.exists()) {
-                        const data = draftDoc.data();
-                        setResult(data.data);
-                        setStep('configure');
-                        // Remove query param to clean URL
-                        router.replace('/dashboard/lacqr-lens');
-                    }
-                } catch (error) {
-                    console.error("Error fetching draft:", error);
-                }
-            };
-            fetchDraft();
+            loadFromHistory(draftId);
+            // Remove query param to clean URL
+            router.replace('/dashboard/lacqr-lens');
         }
     }, [searchParams, router]);
+
+    const loadFromHistory = async (id: string) => {
+        try {
+            const draftDoc = await getDoc(doc(db, 'quotes', id));
+            if (draftDoc.exists()) {
+                const data = draftDoc.data();
+                setResult(data.data);
+                setStep('configure');
+                // Note: We don't have the original image for history items unless we stored it in Storage (which we don't yet).
+                // So we might need to handle "no image" state in configure mode, or just show a placeholder.
+                setImage(null);
+                setShowHistory(false);
+            }
+        } catch (error) {
+            console.error("Error loading draft:", error);
+        }
+    };
 
     // Client Modal State
     const [clientModalOpen, setClientModalOpen] = useState(false);
@@ -105,8 +136,6 @@ function LacqrLensContent() {
     });
 
     const [error, setError] = useState<string | null>(null);
-
-    const { user } = useAppStore();
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -192,15 +221,7 @@ function LacqrLensContent() {
             // Sanitize selection to remove undefined values and nested arrays (Firestore rejects them)
             const sanitize = (obj: any): any => {
                 const clean = JSON.parse(JSON.stringify(obj));
-
-                // Remove modalResult as it contains complex nested arrays from YOLO/Florence
                 if (clean.modalResult) delete clean.modalResult;
-
-                // Ensure pricingDetails is clean
-                if (clean.pricingDetails) {
-                    // Flatten or simplify if needed, but usually this is fine if it's just objects
-                }
-
                 return clean;
             };
 
@@ -300,7 +321,6 @@ function LacqrLensContent() {
                                 <button
                                     onClick={() => {
                                         setError(null);
-                                        // Create a default empty selection
                                         setResult({
                                             base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
                                             addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
@@ -335,10 +355,21 @@ function LacqrLensContent() {
                 }}
             />
 
+            {/* Scan New Image Button (Visible when result exists) */}
+            {result && !isAnalyzing && (
+                <button
+                    onClick={reset}
+                    className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 mb-4 shadow-sm"
+                >
+                    <RefreshCw size={18} />
+                    Scan New Image
+                </button>
+            )}
+
             {/* Upload Area (Only show in 'scan' or 'configure' step) */}
             {
                 step !== 'receipt' && (
-                    !image ? (
+                    !image && !result ? (
                         <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
                             <input type="file" ref={fileInputRef} accept="image/*" onChange={handleUpload} className="hidden" />
                             <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -348,57 +379,59 @@ function LacqrLensContent() {
                             <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
                         </label>
                     ) : (
-                        <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
-                            <div
-                                className="w-full h-full overflow-hidden cursor-zoom-in"
-                                onClick={toggleZoom}
-                            >
-                                <img
-                                    src={image}
-                                    alt="Uploaded"
-                                    className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
-                                    style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
-                                />
+                        image && (
+                            <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
+                                <div
+                                    className="w-full h-full overflow-hidden cursor-zoom-in"
+                                    onClick={toggleZoom}
+                                >
+                                    <img
+                                        src={image}
+                                        alt="Uploaded"
+                                        className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
+                                        style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
+                                    />
+                                </div>
+
+                                {/* Enlarge Button */}
+                                {!isAnalyzing && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowFullImage(true);
+                                        }}
+                                        className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
+                                    >
+                                        <ZoomIn size={20} />
+                                    </button>
+                                )}
+
+                                {!isAnalyzing && (
+                                    <button
+                                        onClick={reset}
+                                        className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                )}
+
+                                {/* Zoom Hint */}
+                                {!isAnalyzing && (
+                                    <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
+                                        {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
+                                        <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
+                                    </div>
+                                )}
+
+                                {/* Blurry Warning Overlay */}
+                                {!isAnalyzing && isBlurry && (
+                                    <div className="absolute bottom-4 left-4 right-16 bg-yellow-500/90 backdrop-blur-md p-3 rounded-xl flex items-center text-white shadow-lg animate-in slide-in-from-bottom-2 pointer-events-none">
+                                        <AlertTriangle size={20} className="mr-3 flex-shrink-0" />
+                                        <p className="text-xs font-bold">Image appears blurry. Results may be less accurate.</p>
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Enlarge Button */}
-                            {!isAnalyzing && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowFullImage(true);
-                                    }}
-                                    className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                                >
-                                    <ZoomIn size={20} />
-                                </button>
-                            )}
-
-                            {!isAnalyzing && (
-                                <button
-                                    onClick={reset}
-                                    className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                                >
-                                    <X size={20} />
-                                </button>
-                            )}
-
-                            {/* Zoom Hint */}
-                            {!isAnalyzing && (
-                                <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                                    {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
-                                    <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
-                                </div>
-                            )}
-
-                            {/* Blurry Warning Overlay */}
-                            {!isAnalyzing && isBlurry && (
-                                <div className="absolute bottom-4 left-4 right-16 bg-yellow-500/90 backdrop-blur-md p-3 rounded-xl flex items-center text-white shadow-lg animate-in slide-in-from-bottom-2 pointer-events-none">
-                                    <AlertTriangle size={20} className="mr-3 flex-shrink-0" />
-                                    <p className="text-xs font-bold">Image appears blurry. Results may be less accurate.</p>
-                                </div>
-                            )}
-                        </div>
+                        )
                     )
                 )
             }
@@ -475,6 +508,40 @@ function LacqrLensContent() {
                     </div>
                 )
             }
+
+            {/* Recent Scans History */}
+            {!isAnalyzing && !result && recentScans.length > 0 && (
+                <div className="mt-8 border-t border-gray-100 pt-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-gray-800 flex items-center">
+                            <History size={18} className="mr-2 text-pink-500" />
+                            Recent Scans
+                        </h3>
+                    </div>
+                    <div className="space-y-3">
+                        {recentScans.map((scan) => (
+                            <button
+                                key={scan.id}
+                                onClick={() => loadFromHistory(scan.id)}
+                                className="w-full bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center text-left"
+                            >
+                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mr-3 flex-shrink-0">
+                                    <Camera size={16} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-charcoal truncate">
+                                        {scan.data?.base?.system || 'Unknown Service'}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {scan.createdAt ? new Date(scan.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown Date'}
+                                    </p>
+                                </div>
+                                <ArrowRight size={16} className="text-gray-300" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Full Image Modal */}
             {
