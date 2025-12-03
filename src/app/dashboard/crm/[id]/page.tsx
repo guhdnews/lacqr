@@ -296,14 +296,16 @@ export default function ClientDetailPage() {
                         )}
                     </div>
                 </div>
-                <ServiceLogModal
-                    isOpen={isLogModalOpen}
-                    onClose={() => setIsLogModalOpen(false)}
-                    clientId={clientId}
-                    onSuccess={refresh}
-                    initialData={selectedService}
-                    serviceId={selectedService?.id}
-                />
             </div>
-            );
+
+            <ServiceLogModal
+                isOpen={isLogModalOpen}
+                onClose={() => setIsLogModalOpen(false)}
+                clientId={clientId}
+                onSuccess={refresh}
+                initialData={selectedService}
+                serviceId={selectedService?.id}
+            />
+        </div>
+    );
 }
