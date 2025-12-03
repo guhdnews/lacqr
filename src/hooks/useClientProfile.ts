@@ -94,15 +94,20 @@ export function useClientProfile(userId: string | undefined, clientId: string) {
             const history = historySnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceRecord));
 
             // 3. Fetch Pending Quotes
-            const quotesRef = collection(db, 'quotes');
-            const quotesQ = query(
-                quotesRef,
-                where('clientId', '==', clientId),
-                where('status', '==', 'pending'),
-                orderBy('createdAt', 'desc')
-            );
-            const quotesSnap = await getDocs(quotesQ);
-            const pendingQuotes = quotesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let pendingQuotes: any[] = [];
+            try {
+                const quotesRef = collection(db, 'quotes');
+                const quotesQ = query(
+                    quotesRef,
+                    where('clientId', '==', clientId),
+                    where('status', '==', 'pending'),
+                    orderBy('createdAt', 'desc')
+                );
+                const quotesSnap = await getDocs(quotesQ);
+                pendingQuotes = quotesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (quoteErr) {
+                console.warn("Failed to fetch quotes (likely missing index), continuing without them:", quoteErr);
+            }
 
             // 4. Calculate Stats
             const { stats, lifecycle } = calculateStats(history);
