@@ -217,260 +217,261 @@ export default function ServiceLogModal({ isOpen, onClose, clientId, onSuccess, 
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="overflow-y-auto p-6 space-y-6">
-                    {/* Service Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Service</label>
-                            <select
-                                value={serviceType}
-                                onChange={(e) => setServiceType(e.target.value as SystemType)}
-                                className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
-                            >
-                                <option>Gel Manicure</option>
-                                <option>Acrylic</option>
-                                <option>Gel-X</option>
-                                <option>Hard Gel</option>
-                                <option>Structure Gel</option>
-                            </select>
+                <div className="overflow-y-auto p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Service Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Service</label>
+                                <select
+                                    value={serviceType}
+                                    onChange={(e) => setServiceType(e.target.value as SystemType)}
+                                    className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
+                                >
+                                    <option>Gel Manicure</option>
+                                    <option>Acrylic</option>
+                                    <option>Gel-X</option>
+                                    <option>Hard Gel</option>
+                                    <option>Structure Gel</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Shape</label>
+                                <select
+                                    value={shape}
+                                    onChange={(e) => setShape(e.target.value)}
+                                    className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
+                                >
+                                    <option>Square</option>
+                                    <option>Coffin</option>
+                                    <option>Almond</option>
+                                    <option>Stiletto</option>
+                                    <option>Oval</option>
+                                    <option>Squoval</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Length</label>
+                                <select
+                                    value={length}
+                                    onChange={(e) => setLength(e.target.value as NailLength)}
+                                    className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
+                                >
+                                    <option>Short</option>
+                                    <option>Medium</option>
+                                    <option>Long</option>
+                                    <option>XL</option>
+                                    <option>XXL</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Shape</label>
-                            <select
-                                value={shape}
-                                onChange={(e) => setShape(e.target.value)}
-                                className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
-                            >
-                                <option>Square</option>
-                                <option>Coffin</option>
-                                <option>Almond</option>
-                                <option>Stiletto</option>
-                                <option>Oval</option>
-                                <option>Squoval</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Length</label>
-                            <select
-                                value={length}
-                                onChange={(e) => setLength(e.target.value as NailLength)}
-                                className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-medium"
-                            >
-                                <option>Short</option>
-                                <option>Medium</option>
-                                <option>Long</option>
-                                <option>XL</option>
-                                <option>XXL</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    {/* Add-ons (Desking Tool) */}
-                    <div className="bg-pink-50 p-4 rounded-xl border border-pink-100">
-                        <h3 className="text-sm font-bold text-pink-600 mb-3 flex items-center">
-                            <Calculator size={16} className="mr-2" />
-                            Smart Pricing Add-ons
-                        </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Finish</label>
-                                <select value={finish} onChange={e => setFinish(e.target.value as FinishType)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>Glossy</option>
-                                    <option>Matte</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Specialty</label>
-                                <select value={specialty} onChange={e => setSpecialty(e.target.value as SpecialtyEffect)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>None</option>
-                                    <option>Chrome</option>
-                                    <option>Holo</option>
-                                    <option>Cat Eye</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Design</label>
-                                <select value={design} onChange={e => setDesign(e.target.value as ClassicDesign)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>None</option>
-                                    <option>French Tip</option>
-                                    <option>Ombre</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Art Level</label>
-                                <select value={artLevel} onChange={e => setArtLevel(e.target.value as ArtLevel | 'None')} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>None</option>
-                                    <option>Level 1</option>
-                                    <option>Level 2</option>
-                                    <option>Level 3</option>
-                                    <option>Level 4</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Bling</label>
-                                <select value={bling} onChange={e => setBling(e.target.value as BlingDensity)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>None</option>
-                                    <option>Minimal</option>
-                                    <option>Moderate</option>
-                                    <option>Heavy</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Foreign Work</label>
-                                <select value={foreignWork} onChange={e => setForeignWork(e.target.value as ForeignWork)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
-                                    <option>None</option>
-                                    <option>Foreign Fill</option>
-                                    <option>Foreign Removal</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Products Used (The "RO") */}
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                        <h3 className="text-sm font-bold text-gray-700 mb-3">Products Used (The &quot;Recipe&quot;)</h3>
-
-                        {/* List */}
-                        <div className="space-y-2 mb-3">
-                            {products.map((prod, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 text-sm">
-                                    <span className="font-bold text-gray-600 w-16">{prod.category}</span>
-                                    <span className="font-medium text-charcoal flex-1 mx-2">{prod.brand} {prod.code}</span>
-                                    <span className="text-gray-400 text-xs mr-2">{prod.name}</span>
-                                    <button type="button" onClick={() => handleRemoveProduct(idx)} className="text-red-400 hover:text-red-600">
-                                        <X size={16} />
-                                    </button>
+                        {/* Add-ons (Desking Tool) */}
+                        <div className="bg-pink-50 p-4 rounded-xl border border-pink-100">
+                            <h3 className="text-sm font-bold text-pink-600 mb-3 flex items-center">
+                                <Calculator size={16} className="mr-2" />
+                                Smart Pricing Add-ons
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Finish</label>
+                                    <select value={finish} onChange={e => setFinish(e.target.value as FinishType)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>Glossy</option>
+                                        <option>Matte</option>
+                                    </select>
                                 </div>
-                            ))}
-                            {products.length === 0 && <p className="text-xs text-gray-400 italic text-center py-2">No products logged yet.</p>}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Specialty</label>
+                                    <select value={specialty} onChange={e => setSpecialty(e.target.value as SpecialtyEffect)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>None</option>
+                                        <option>Chrome</option>
+                                        <option>Holo</option>
+                                        <option>Cat Eye</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Design</label>
+                                    <select value={design} onChange={e => setDesign(e.target.value as ClassicDesign)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>None</option>
+                                        <option>French Tip</option>
+                                        <option>Ombre</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Art Level</label>
+                                    <select value={artLevel} onChange={e => setArtLevel(e.target.value as ArtLevel | 'None')} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>None</option>
+                                        <option>Level 1</option>
+                                        <option>Level 2</option>
+                                        <option>Level 3</option>
+                                        <option>Level 4</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Bling</label>
+                                    <select value={bling} onChange={e => setBling(e.target.value as BlingDensity)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>None</option>
+                                        <option>Minimal</option>
+                                        <option>Moderate</option>
+                                        <option>Heavy</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Foreign Work</label>
+                                    <select value={foreignWork} onChange={e => setForeignWork(e.target.value as ForeignWork)} className="w-full p-2 rounded-lg border border-gray-200 text-sm">
+                                        <option>None</option>
+                                        <option>Foreign Fill</option>
+                                        <option>Foreign Removal</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Add New */}
-                        <div className="flex gap-2 items-end">
-                            <div className="w-24">
-                                <input
-                                    placeholder="Brand"
-                                    className="w-full p-2 rounded-lg border border-gray-200 text-sm"
-                                    value={newProduct.brand}
-                                    onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })}
-                                />
-                            </div>
-                            <div className="w-20">
-                                <input
-                                    placeholder="Code"
-                                    className="w-full p-2 rounded-lg border border-gray-200 text-sm"
-                                    value={newProduct.code}
-                                    onChange={e => setNewProduct({ ...newProduct, code: e.target.value })}
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <input
-                                    placeholder="Name (Optional)"
-                                    className="w-full p-2 rounded-lg border border-gray-200 text-sm"
-                                    value={newProduct.name}
-                                    onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleAddProduct}
-                                className="bg-charcoal text-white p-2 rounded-lg hover:bg-black transition-colors"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        </div>
-                    </div>
+                        {/* Products Used (The "RO") */}
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h3 className="text-sm font-bold text-gray-700 mb-3">Products Used (The &quot;Recipe&quot;)</h3>
 
-                    {/* Photos */}
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Result Photos</label>
-                        <div className="flex gap-4 overflow-x-auto pb-2">
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-pink-500 hover:text-pink-500 hover:bg-pink-50 transition-all flex-shrink-0"
-                            >
-                                <Camera size={24} />
-                                <span className="text-xs font-bold mt-1">Add Photo</span>
-                            </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                multiple
-                                accept="image/*"
-                                onChange={handlePhotoSelect}
+                            {/* List */}
+                            <div className="space-y-2 mb-3">
+                                {products.map((prod, idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 text-sm">
+                                        <span className="font-bold text-gray-600 w-16">{prod.category}</span>
+                                        <span className="font-medium text-charcoal flex-1 mx-2">{prod.brand} {prod.code}</span>
+                                        <span className="text-gray-400 text-xs mr-2">{prod.name}</span>
+                                        <button type="button" onClick={() => handleRemoveProduct(idx)} className="text-red-400 hover:text-red-600">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {products.length === 0 && <p className="text-xs text-gray-400 italic text-center py-2">No products logged yet.</p>}
+                            </div>
+
+                            {/* Add New */}
+                            <div className="flex gap-2 items-end">
+                                <div className="w-24">
+                                    <input
+                                        placeholder="Brand"
+                                        className="w-full p-2 rounded-lg border border-gray-200 text-sm"
+                                        value={newProduct.brand}
+                                        onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })}
+                                    />
+                                </div>
+                                <div className="w-20">
+                                    <input
+                                        placeholder="Code"
+                                        className="w-full p-2 rounded-lg border border-gray-200 text-sm"
+                                        value={newProduct.code}
+                                        onChange={e => setNewProduct({ ...newProduct, code: e.target.value })}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <input
+                                        placeholder="Name (Optional)"
+                                        className="w-full p-2 rounded-lg border border-gray-200 text-sm"
+                                        value={newProduct.name}
+                                        onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddProduct}
+                                    className="bg-charcoal text-white p-2 rounded-lg hover:bg-black transition-colors"
+                                >
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Photos */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Result Photos</label>
+                            <div className="flex gap-4 overflow-x-auto pb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-pink-500 hover:text-pink-500 hover:bg-pink-50 transition-all flex-shrink-0"
+                                >
+                                    <Camera size={24} />
+                                    <span className="text-xs font-bold mt-1">Add Photo</span>
+                                </button>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handlePhotoSelect}
+                                />
+                                {photoPreviews.map((src, idx) => (
+                                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0 group">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={src} alt="Preview" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPhotos(photos.filter((_, i) => i !== idx));
+                                                setPhotoPreviews(photoPreviews.filter((_, i) => i !== idx));
+                                            }}
+                                            className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Financials & Notes */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Total Price</label>
+                                <div className="relative">
+                                    <DollarSign size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                                    <input
+                                        type="number"
+                                        value={price}
+                                        onChange={e => setPrice(e.target.value)}
+                                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 font-bold text-lg"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tip Amount</label>
+                                <div className="relative">
+                                    <DollarSign size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                                    <input
+                                        type="number"
+                                        value={tip}
+                                        onChange={e => setTip(e.target.value)}
+                                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 font-bold text-lg text-green-600"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tech Notes</label>
+                            <textarea
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-gray-200 text-sm h-24"
+                                placeholder="Any issues? Client mood? Special requests?"
                             />
-                            {photoPreviews.map((src, idx) => (
-                                <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0 group">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={src} alt="Preview" className="w-full h-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setPhotos(photos.filter((_, i) => i !== idx));
-                                            setPhotoPreviews(photoPreviews.filter((_, i) => i !== idx));
-                                        }}
-                                        className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <X size={12} />
-                                    </button>
-                                </div>
-                            ))}
                         </div>
-                    </div>
 
-                    {/* Financials & Notes */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Total Price</label>
-                            <div className="relative">
-                                <DollarSign size={16} className="absolute left-3 top-3.5 text-gray-400" />
-                                <input
-                                    type="number"
-                                    value={price}
-                                    onChange={e => setPrice(e.target.value)}
-                                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 font-bold text-lg"
-                                    placeholder="0.00"
-                                />
-                            </div>
+                        <div className="pt-2">
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold hover:bg-pink-600 transition-colors flex items-center justify-center disabled:opacity-70 shadow-lg shadow-pink-200"
+                            >
+                                {submitting ? <Loader2 className="animate-spin mr-2" /> : 'Save Service Record'}
+                            </button>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tip Amount</label>
-                            <div className="relative">
-                                <DollarSign size={16} className="absolute left-3 top-3.5 text-gray-400" />
-                                <input
-                                    type="number"
-                                    value={tip}
-                                    onChange={e => setTip(e.target.value)}
-                                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 font-bold text-lg text-green-600"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tech Notes</label>
-                        <textarea
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            className="w-full p-3 rounded-xl border border-gray-200 text-sm h-24"
-                            placeholder="Any issues? Client mood? Special requests?"
-                        />
-                    </div>
-
-                    <div className="pt-2">
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold hover:bg-pink-600 transition-colors flex items-center justify-center disabled:opacity-70 shadow-lg shadow-pink-200"
-                        >
-                            {submitting ? <Loader2 className="animate-spin mr-2" /> : 'Save Service Record'}
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-    );
+            );
 }
