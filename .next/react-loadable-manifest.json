@@ -1,111 +1,42 @@
 {
-  "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> canvg": {
-    "id": 82865,
-    "files": [
-      "static/chunks/bc98253f.da2689c4a01c0e56.js",
-      "static/chunks/124.90ee815bb32a0a28.js"
-    ]
-  },
-  "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> dompurify": {
-    "id": 11838,
-    "files": [
-      "static/chunks/1838.20f56d2166206178.js"
-    ]
-  },
-  "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> html2canvas": {
-    "id": 81173,
-    "files": []
-  },
-  "app\\dashboard\\lacqr-lens\\page.tsx -> @/lib/firebase": {
-    "id": 89506,
-    "files": []
-  },
-  "app\\dashboard\\lacqr-lens\\page.tsx -> firebase/firestore": {
-    "id": 69842,
-    "files": []
-  },
   "app\\login\\page.tsx -> @/lib/firebase": {
-    "id": 89506,
+    "id": "app\\login\\page.tsx -> @/lib/firebase",
     "files": [
-      "static/chunks/bc9e92e6-a505102b7db2c5fe.js",
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-5454bc3e320a6a1f.js",
-      "static/chunks/9144-9fe2fca636448d04.js",
-      "static/chunks/5623-40b8c81ad53a7e8b.js",
-      "static/chunks/9506.097cb0f1fb20927c.js"
+      "static/chunks/_app-pages-browser_src_lib_firebase_ts.js"
     ]
   },
   "app\\login\\page.tsx -> firebase/auth": {
-    "id": 5186,
+    "id": "app\\login\\page.tsx -> firebase/auth",
     "files": [
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/9144-9fe2fca636448d04.js"
+      "static/chunks/_app-pages-browser_node_modules_firebase_auth_dist_esm_index_esm_js.js"
     ]
   },
   "app\\login\\page.tsx -> firebase/firestore": {
-    "id": 69842,
+    "id": "app\\login\\page.tsx -> firebase/firestore",
     "files": [
-      "static/chunks/bc9e92e6-a505102b7db2c5fe.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-5454bc3e320a6a1f.js"
-    ]
-  },
-  "app\\signup\\page.tsx -> @/lib/firebase": {
-    "id": 89506,
-    "files": [
-      "static/chunks/bc9e92e6-a505102b7db2c5fe.js",
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-5454bc3e320a6a1f.js",
-      "static/chunks/9144-9fe2fca636448d04.js",
-      "static/chunks/5623-40b8c81ad53a7e8b.js",
-      "static/chunks/9506.097cb0f1fb20927c.js"
-    ]
-  },
-  "app\\signup\\page.tsx -> firebase/auth": {
-    "id": 5186,
-    "files": [
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/9144-9fe2fca636448d04.js"
-    ]
-  },
-  "app\\signup\\page.tsx -> firebase/firestore": {
-    "id": 69842,
-    "files": [
-      "static/chunks/bc9e92e6-a505102b7db2c5fe.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-5454bc3e320a6a1f.js"
+      "static/chunks/_app-pages-browser_node_modules_firebase_firestore_dist_esm_index_esm_js.js"
     ]
   },
   "components\\AuthProvider.tsx -> @/lib/firebase": {
-    "id": 89506,
+    "id": "components\\AuthProvider.tsx -> @/lib/firebase",
     "files": []
   },
   "components\\AuthProvider.tsx -> firebase/auth": {
-    "id": 5186,
+    "id": "components\\AuthProvider.tsx -> firebase/auth",
     "files": []
   },
   "components\\AuthProvider.tsx -> firebase/firestore": {
-    "id": 69842,
+    "id": "components\\AuthProvider.tsx -> firebase/firestore",
     "files": []
   },
   "components\\Header.tsx -> ../lib/firebase": {
-    "id": 89506,
+    "id": "components\\Header.tsx -> ../lib/firebase",
     "files": []
   },
   "components\\Sidebar.tsx -> ../lib/firebase": {
-    "id": 89506,
+    "id": "components\\Sidebar.tsx -> ../lib/firebase",
     "files": [
-      "static/chunks/bc9e92e6-a505102b7db2c5fe.js",
-      "static/chunks/ae6eea6a-9ec7f8361dd1554d.js",
-      "static/chunks/9279-c6945e5d3eea1d91.js",
-      "static/chunks/6704-5454bc3e320a6a1f.js",
-      "static/chunks/9144-9fe2fca636448d04.js",
-      "static/chunks/5623-40b8c81ad53a7e8b.js",
-      "static/chunks/9506.097cb0f1fb20927c.js"
+      "static/chunks/_app-pages-browser_src_lib_firebase_ts.js"
     ]
   }
 }

@@ -163,3 +163,21 @@
 3.  **Strict Shape Logic:** Implement industry-standard pricing tiers for nail shapes.
 4.  **Dashboard Overhaul:** Redesign the main dashboard.
 
+## 10. STRATEGIC ROADMAP: THE "DEALERSHIP MODEL" CRM
+> **Source:** User provided Google Sheet mapping Dealership CRM features to Nail Tech equivalents.
+> **Goal:** Professionalize the nail tech workflow by adopting proven automotive service workflows.
+
+| Dealership Feature | Lacqr (Nail Tech) Equivalent | Why it matters |
+| :--- | :--- | :--- |
+| **VIN / Vehicle History** | **Nail Profile & Service Logs** | Tracks specific polish codes, shape preferences (e.g., "Coffin"), and nail health over time. |
+| **Service Intervals (3k/5k)** | **Fill/Removal Cycle (2-3 wks)** | Automates "You're due for a fill" texts based on the specific service type (Gel vs. Acrylic). |
+| **The "Desk Log"** | **Active Chair Dashboard** | "What is happening right now? Who is in the chair, what are they getting, and what are the upsell opportunities?" |
+| **Equity Mining** | **Churn Prediction** | Identifying clients who usually book every 3 weeks but haven't been seen in 5. |
+| **RO (Repair Order)** | **Service Ticket** | Detailed breakdown of exactly what products were used (down to the brand) for replication later. |
+
+### Implementation Plan for Dealership Model
+1.  **Nail Profile (VIN):** Enhance `Client` schema to include `nailHealth`, `preferredShape`, and `serviceHistory` (logs).
+2.  **Fill Cycle (Intervals):** Implement automated background jobs (or check on login) to flag clients due for a fill based on their last appointment date + service type duration.
+3.  **Active Chair (Desk Log):** Create a "Live Mode" or "Today" view in the Dashboard showing current/upcoming appointments with specific "Upsell Tips" based on client history.
+4.  **Churn Prediction (Equity Mining):** Add a "At Risk" filter to the CRM Client List for clients > 2 weeks overdue.
+5.  **Service Ticket (RO):** The current "Receipt" is good, but needs to be more granular (saving specific product brands/colors used).

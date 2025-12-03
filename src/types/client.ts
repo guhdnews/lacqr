@@ -1,61 +1,54 @@
-export interface ClientHistory {
-    id: string;
-    date: any; // Firestore Timestamp or Date
-    service: string;
-    price: number;
-    notes?: string;
-    image?: string; // URL to the inspiration or result image
+import { Timestamp } from 'firebase/firestore';
+
+export interface NailProfile {
+    bedSize: 'Small' | 'Medium' | 'Large' | 'Unknown';
+    bedShape: 'Flat' | 'Curved' | 'Ski Jump' | 'Unknown';
+    cuticleType: 'Dry' | 'Oily' | 'Normal' | 'Unknown';
+    naturalNailHealth: 'Strong' | 'Brittle' | 'Peeling' | 'Bitten' | 'Unknown';
+    notes: string;
+}
+
+export interface ClientPreferences {
+    preferredShapes: string[];
+    preferredLengths: string[];
+    favoriteColors: string[];
+    dislikes: string[];
+}
+
+export interface ClientStats {
+    totalSpend: number;
+    visitCount: number;
+    averageTicket: number;
+    averageTipPercent: number;
+    noShowCount: number;
+    cancellationCount: number;
+    clientGrade: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F' | 'New';
+    firstVisitDate?: Timestamp;
+    lastVisitDate?: Timestamp;
+}
+
+export interface ClientLifecycle {
+    predictedNextVisit?: Timestamp;
+    avgIntervalDays: number;
+    churnRisk: boolean;
 }
 
 export interface Client {
     id: string;
-    userId: string;
+    userId: string; // The tech who owns this client
     name: string;
-    email?: string;
     phone?: string;
+    email?: string;
     instagram?: string;
-    birthday?: string; // MM/DD format
-    avatar?: string; // Initials or image URL
-    notes?: string; // Private notes for the tech
-    preferences?: string; // e.g., "Loves almond shape"
-    history?: ClientHistory[];
-    tags?: string[]; // e.g., "VIP", "Nail Biter", "Late"
-    createdAt: any; // Firestore Timestamp
-    lastVisit?: any; // Firestore Timestamp
-    totalSpent?: number;
-}
+    dob?: string; // YYYY-MM-DD
+    notes?: string;
 
-export const MOCK_CLIENTS: Client[] = [
-    {
-        id: '1',
-        userId: 'mock-user',
-        name: 'Sarah Johnson',
-        email: 'sarah.j@example.com',
-        phone: '(555) 123-4567',
-        instagram: '@sarahj_nails',
-        notes: 'Prefers almond shape. Sensitive cuticles.',
-        tags: ['VIP', 'Regular'],
-        createdAt: new Date('2023-01-15'),
-        lastVisit: new Date('2023-10-15'),
-        totalSpent: 130,
-        history: [
-            { id: 'h1', date: new Date('2023-10-15'), service: 'Gel-X Full Set', price: 85, notes: 'Loved the chrome finish.' },
-            { id: 'h2', date: new Date('2023-09-01'), service: 'Gel Manicure', price: 45 }
-        ]
-    },
-    {
-        id: '2',
-        userId: 'mock-user',
-        name: 'Emily Davis',
-        email: 'emily.d@example.com',
-        phone: '(555) 987-6543',
-        notes: 'Always late. Loves 3D charms.',
-        tags: ['Late'],
-        createdAt: new Date('2023-05-20'),
-        lastVisit: new Date('2023-11-01'),
-        totalSpent: 60,
-        history: [
-            { id: 'h3', date: new Date('2023-11-01'), service: 'Acrylic Fill', price: 60 }
-        ]
-    }
-];
+    // Dealership Model Extensions
+    nailProfile?: NailProfile;
+    preferences?: ClientPreferences;
+    stats?: ClientStats;
+    lifecycle?: ClientLifecycle;
+
+    createdAt: any; // Timestamp
+    updatedAt?: any; // Timestamp
+}

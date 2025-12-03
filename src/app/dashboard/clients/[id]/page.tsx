@@ -151,12 +151,12 @@ export default function ClientProfile() {
                                     {isEditing ? (
                                         <input
                                             type="date"
-                                            value={editForm.birthday || ''}
-                                            onChange={e => setEditForm({ ...editForm, birthday: e.target.value })}
+                                            value={editForm.dob || ''}
+                                            onChange={e => setEditForm({ ...editForm, dob: e.target.value })}
                                             className="border rounded px-2 py-1"
                                         />
                                     ) : (
-                                        client.birthday ? format(new Date(client.birthday), 'MMM d') : 'No birthday'
+                                        client.dob ? format(new Date(client.dob), 'MMM d') : 'No birthday'
                                     )}
                                 </div>
                             </div>
