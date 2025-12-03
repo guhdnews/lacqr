@@ -5,11 +5,74 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import ServiceLogModal from '@/components/ServiceLogModal';
 
 export default function ClientDetailPage() {
+    const params = useParams();
+    const router = useRouter();
+    const clientId = params.id as string;
+    const { user } = useAppStore();
+
+    const { client, history, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
+
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileForm, setProfileForm] = useState<any>({});
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [selectedService, setSelectedService] = useState<any>(null);
+
+    useEffect(() => {
+        if (client) {
+            setProfileForm({
+                name: client.name,
+                phone: client.phone,
+                email: client.email,
+                instagram: client.instagram,
+                bedSize: client.nailProfile?.bedSize,
+                cuticleType: client.nailProfile?.cuticleType,
+                naturalNailHealth: client.nailProfile?.naturalNailHealth,
+                notes: client.nailProfile?.notes
+            });
+        }
+    }, [client]);
+
+    const handleSaveProfile = async () => {
+        try {
+            await updateDoc(doc(db, 'clients', clientId), {
+                name: profileForm.name,
+                phone: profileForm.phone,
+                email: profileForm.email,
+                instagram: profileForm.instagram,
+                nailProfile: {
+                    bedSize: profileForm.bedSize,
+                    cuticleType: profileForm.cuticleType,
+                    naturalNailHealth: profileForm.naturalNailHealth,
+                    notes: profileForm.notes
+                }
+            });
+            setIsEditingProfile(false);
+            refresh();
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("Failed to update profile.");
+        }
+    };
+
+    const handleDeleteClient = async () => {
+        if (!confirm("Are you sure you want to delete this client? This will move them to the trash for 7 days.")) return;
+        try {
+            // Soft delete: update status to 'deleted' and set deletedAt
+            await updateDoc(doc(db, 'clients', clientId), {
+                status: 'deleted',
+                deletedAt: new Date()
+            });
+            router.push('/dashboard/crm');
+        } catch (err) {
+            console.error("Error deleting client:", err);
+            alert("Failed to delete client.");
+        }
+    };
     const handleDeleteService = async (serviceId: string) => {
         if (!confirm("Are you sure you want to delete this service record?")) return;
         try {
@@ -230,56 +293,86 @@ export default function ClientDetailPage() {
                             </div>
                         )}
                     </div>
-                    onClick={() => {
-                        setSelectedService(null);
-                        setIsLogModalOpen(true);
-                    }}
-                    className="text-sm text-pink-500 font-bold hover:underline"
-                            >
-                    Log New Visit
-                </button>
+                </div>
+
+                {/* Right Column: Service History */}
+                <div className="md:col-span-2 space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-xl text-charcoal">Service History</h3>
+                        <button
+                            onClick={() => {
+                                setSelectedService(null);
+                                setIsLogModalOpen(true);
+                            }}
+                            className="bg-pink-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-pink-200 hover:bg-pink-600 transition-colors flex items-center gap-2"
+                        >
+                            <Plus size={16} /> Log Visit
+                        </button>
+                    </div>
+
+                    {history.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                            <p className="text-gray-500">No history found. Log their first visit!</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {history.map((item: any) => (
+                                <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-16 h-16 bg-pink-50 rounded-xl flex flex-col items-center justify-center text-pink-500 font-bold leading-none shadow-sm">
+                                                <span className="text-[10px] uppercase tracking-wide">{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString('en-US', { month: 'short' }) : ''}</span>
+                                                <span className="text-2xl my-0.5">{item.date ? new Date(item.date.seconds * 1000).getDate() : '?'}</span>
+                                                <span className="text-[10px] text-pink-400">{item.date ? new Date(item.date.seconds * 1000).getFullYear() : ''}</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-charcoal text-lg">{item.serviceType}</h4>
+                                                {item.addons && item.addons.length > 0 && (
+                                                    <p className="text-xs text-gray-400 mt-1">+ {item.addons.join(', ')}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-lg">${item.price}</p>
+                                            {item.tip > 0 && (
+                                                <p className="text-xs text-green-600 font-medium">+${item.tip} tip</p>
+                                            )}
+                                            <div className="flex space-x-2 justify-end mt-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedService(item);
+                                                        setIsLogModalOpen(true);
+                                                    }}
+                                                    className="text-gray-300 hover:text-blue-500 transition-colors"
+                                                    title="Edit Record"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteService(item.id)}
+                                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                                    title="Delete Record"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {history.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                    <p className="text-gray-500">No history found. Log their first visit!</p>
-                    <button
-                        onClick={() => {
-                            setSelectedService(item);
-                            setIsLogModalOpen(true);
-                        }}
-                        className="text-gray-300 hover:text-blue-500 transition-colors"
-                        title="Edit Record"
-                    >
-                        <Edit size={16} />
-                    </button>
-                    <button
-                        onClick={() => handleDeleteService(item.id)}
-                        className="text-gray-300 hover:text-red-500 transition-colors"
-                        title="Delete Record"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
-                                </div>
-                            </div >
-                        </div >
-                    ))
-}
-                </div >
-            )}
-        </div >
-                </div >
-            </div >
-
-    <ServiceLogModal
-        isOpen={isLogModalOpen}
-        onClose={() => setIsLogModalOpen(false)}
-        clientId={clientId}
-        onSuccess={refresh}
-        initialData={selectedService}
-        serviceId={selectedService?.id}
-    />
-        </div >
+            <ServiceLogModal
+                isOpen={isLogModalOpen}
+                onClose={() => setIsLogModalOpen(false)}
+                clientId={clientId}
+                onSuccess={refresh}
+                initialData={selectedService}
+                serviceId={selectedService?.id}
+            />
+        </div>
     );
 }
