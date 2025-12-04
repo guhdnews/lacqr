@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus, Sparkles } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import ServiceLogModal from '@/components/ServiceLogModal';
 
