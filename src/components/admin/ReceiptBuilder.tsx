@@ -18,8 +18,18 @@ export function ReceiptBuilder({ initialSelection, onSaveDraft, onAssignClient, 
     const { menu } = useServiceStore();
     const { user } = useAppStore();
     const [selection] = useState<ServiceSelection>(initialSelection);
-    const priceResult = calculatePrice(selection, menu);
     const [showSaveOptions, setShowSaveOptions] = useState(false);
+
+    if (!selection || !selection.base) {
+        return (
+            <div className="p-8 text-center text-red-500">
+                <h3 className="font-bold">Error: Invalid Quote Data</h3>
+                <p>Please retake the scan.</p>
+            </div>
+        );
+    }
+
+    const priceResult = calculatePrice(selection, menu);
 
     // Default menu for fallback pricing if store is empty
     const DEFAULT_MENU = {
