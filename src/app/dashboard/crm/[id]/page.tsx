@@ -15,7 +15,7 @@ export default function ClientDetailPage() {
     const clientId = params.id as string;
     const { user } = useAppStore();
 
-    const { client, history, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
+    const { client, history, pendingQuotes, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
 
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileForm, setProfileForm] = useState<any>({});
@@ -296,6 +296,140 @@ export default function ClientDetailPage() {
                         )}
                     </div>
                 </div>
+                    {/* Client Notes Section */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <MessageSquare size={18} className="text-yellow-500" />
+                                Client Notes
+                            </h3>
+                            {!isEditingProfile && (
+                                <button onClick={() => setIsEditingProfile(true)} className="text-xs text-pink-500 font-bold hover:underline">Edit</button>
+                            )}
+                        </div>
+                        {isEditingProfile ? (
+                            <textarea
+                                value={profileForm.notes || ''}
+                                onChange={e => setProfileForm({ ...profileForm, notes: e.target.value })}
+                                className="w-full p-3 border rounded-xl text-sm min-h-[100px] focus:border-pink-500 outline-none"
+                                placeholder="General notes about the client..."
+                            />
+                        ) : (
+                            <p className="text-gray-600 text-sm whitespace-pre-wrap">
+                                {client.notes || <span className="text-gray-400 italic">No notes added.</span>}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right Column: Service History */}
+                <div className="md:col-span-2 space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-xl text-charcoal">Service History</h3>
+                        <button
+                            onClick={() => {
+                                setSelectedService(null);
+                                setIsLogModalOpen(true);
+                            }}
+                            className="bg-pink-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-pink-200 hover:bg-pink-600 transition-colors flex items-center gap-2"
+                        >
+                            <Plus size={16} /> Log Visit
+                        </button>
+                    </div>
+
+                    {/* Pending Quotes Section */}
+                    {pendingQuotes && pendingQuotes.length > 0 && (
+                        <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-3xl border border-pink-100">
+                            <h4 className="font-bold text-pink-800 mb-4 flex items-center gap-2">
+                                <Sparkles size={18} /> Pending Quotes
+                            </h4>
+                            <div className="space-y-3">
+                                {pendingQuotes.map((quote: any) => (
+                                    <div key={quote.id} className="bg-white p-4 rounded-xl border border-pink-100 shadow-sm flex justify-between items-center">
+                                        <div>
+                                            <p className="font-bold text-gray-800">{quote.serviceType}</p>
+                                            <p className="text-xs text-gray-500">Quoted: ${quote.totalPrice}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                // Pre-fill modal with quote data
+                                                setSelectedService({
+                                                    ...quote,
+                                                    price: quote.totalPrice,
+                                                    serviceType: quote.serviceType,
+                                                    notes: quote.notes
+                                                });
+                                                setIsLogModalOpen(true);
+                                            }}
+                                            className="text-xs bg-white border border-pink-200 text-pink-600 px-3 py-1 rounded-full font-bold hover:bg-pink-50"
+                                        >
+                                            Log Visit
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {history.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                            <p className="text-gray-500">No history found. Log their first visit!</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {history.map((item: any) => (
+                                <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-16 h-16 bg-pink-50 rounded-xl flex flex-col items-center justify-center text-pink-500 font-bold leading-none shadow-sm">
+                                                <span className="text-[10px] uppercase tracking-wide">{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString('en-US', { month: 'short' }) : ''}</span>
+                                                <span className="text-2xl my-0.5">{item.date ? new Date(item.date.seconds * 1000).getDate() : '?'}</span>
+                                                <span className="text-[10px] text-pink-400">{item.date ? new Date(item.date.seconds * 1000).getFullYear() : ''}</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-charcoal text-lg">{item.serviceType}</h4>
+                                                <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock size={12} />
+                                                        {item.date ? new Date(item.date.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+                                                    </span>
+                                                    {item.addons && item.addons.length > 0 && (
+                                                        <span>• + {item.addons.join(', ')}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-lg">${item.price}</p>
+                                            {item.tip > 0 && (
+                                                <p className="text-xs text-green-600 font-medium">+${item.tip} tip</p>
+                                            )}
+                                            <div className="flex space-x-2 justify-end mt-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedService(item);
+                                                        setIsLogModalOpen(true);
+                                                    }}
+                                                    className="text-gray-300 hover:text-blue-500 transition-colors"
+                                                    title="Edit Record"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteService(item.id)}
+                                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                                    title="Delete Record"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <ServiceLogModal
@@ -306,6 +440,6 @@ export default function ClientDetailPage() {
                 initialData={selectedService}
                 serviceId={selectedService?.id}
             />
-        </div>
+        </div >
     );
 }
