@@ -327,7 +327,6 @@ export default function ClientDetailPage() {
                         )}
                     </div>
 
-                    </div>
                 </div>
 
                 {/* Right Column: Service History */}
