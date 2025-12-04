@@ -12,7 +12,7 @@ const MODAL_ENDPOINT = "https://upfacedevelopment--lacqr-brain-analyze-image.mod
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "YOUR_API_KEY");
 
-export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
+export async function analyzeImage(imageFile: File, mode: 'diagnostics' | 'design' = 'design'): Promise<ServiceSelection> {
   try {
 
 
@@ -97,7 +97,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
     const florenceData = modalResult.florence || {};
     const objectData = modalResult.objects || [];
 
-    const geminiPromise = analyzeWithGemini(imageFile, florenceData);
+    const geminiPromise = analyzeWithGemini(imageFile, mode, florenceData);
     const geminiResult = await geminiPromise;
 
 
@@ -118,7 +118,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
       confidence: 0.95,
       reasoning: geminiResult?.reasoning_steps
         ? geminiResult.reasoning_steps.join('\n')
-        : `Analyzed by Gemini & YOLO. Shape: ${selection.base.shape}. System: ${selection.base.system}. Detected ${modalResult.objects?.length || 0} objects.`,
+        : `Analyzed by Gemini & YOLO in ${mode} mode.`,
       estimatedPrice: estimatedPrice,
       // Create a pricingDetails object that matches what the UI expects (simplified)
       pricingDetails: {
@@ -165,7 +165,7 @@ export async function analyzeImage(imageFile: File): Promise<ServiceSelection> {
   }
 }
 
-async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<GeminiAnalysis | undefined> {
+async function analyzeWithGemini(file: File, mode: 'diagnostics' | 'design', florenceCaptions?: any): Promise<GeminiAnalysis | undefined> {
   const modelsToTry = [
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
@@ -190,21 +190,51 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
       });
       const base64Image = base64Data.split(',')[1];
 
-      let prompt = `
+      let prompt = "";
+
+      if (mode === 'diagnostics') {
+        prompt = `
+        You are an expert Nail Technician specializing in Nail Health and Diagnostics.
+        Analyze this image of a client's hand/nails to detect conditions and maintenance needs.
+        
+        Provide a JSON response with the following fields:
+        {
+            "reasoning_steps": [
+                "Step 1: Check Growth - Look at the gap between cuticle and product...",
+                "Step 2: Check Integrity - Look for lifting, cracks, or broken nails...",
+                "Step 3: Check Skin Health - Look for dry cuticles, hangnails, or redness...",
+                "Step 4: Recommend Services - Suggest fills, repairs, or treatments."
+            ],
+            "growth_weeks": 3, // Estimate weeks of growth based on gap size (0 if fresh, 2+ if gap visible)
+            "repairs_needed": 1, // Count of broken or missing nails
+            "conditions": ["4-week growth", "Broken index nail", "Dry cuticles"],
+            "recommended_services": ["Rebalance/Fill", "Nail Repair", "Oil Treatment Add-on"],
+            "vibe": "Diagnostics Report: Detected 4-week growth and 1 broken nail. Cuticles appear dry.",
+            // Fill these with defaults or detected values if applicable
+            "shape": "Coffin", 
+            "system": "Acrylic",
+            "estimated_length": "Medium",
+            "art_notes": "None",
+            "foreign_work": "None"
+        }
+        `;
+      } else {
+        // Design Mode (Original Prompt)
+        prompt = `
         You are an expert Nail Technician and Pricing Specialist. 
         Analyze this nail art image with extreme attention to detail.
         `;
 
-      if (florenceCaptions) {
-        prompt += `
-        Computer Vision Insights (Use these as hints for ART/TEXTURE, but IGNORE them for SHAPE):
-        - Dense Caption: "${florenceCaptions.dense}"
-        - Object Detection: "${JSON.stringify(florenceCaptions.od)}"
-        *WARNING: The Computer Vision model often mistakes Coffin/Square for Stiletto. DO NOT TRUST IT FOR SHAPE. Use the Visual Rules below.*
-        `;
-      }
+        if (florenceCaptions) {
+          prompt += `
+          Computer Vision Insights (Use these as hints for ART/TEXTURE, but IGNORE them for SHAPE):
+          - Dense Caption: "${florenceCaptions.dense}"
+          - Object Detection: "${JSON.stringify(florenceCaptions.od)}"
+          *WARNING: The Computer Vision model often mistakes Coffin/Square for Stiletto. DO NOT TRUST IT FOR SHAPE. Use the Visual Rules below.*
+          `;
+        }
 
-      prompt += `
+        prompt += `
         Provide a JSON response with the following fields:
         {
             "reasoning_steps": [
@@ -255,6 +285,7 @@ async function analyzeWithGemini(file: File, florenceCaptions?: any): Promise<Ge
         7. **CONTEXT:** Trust the "Dense Caption" for PATTERNS (checkered, swirls) but IGNORE it for background/scene descriptions.
         8. **FOCUS:** Describe the nails FACTUALLY. Start with the physical attributes (shape, length) then move to the design details (color, pattern, texture). Avoid metaphors like 'winter wonderland' or 'sugarplum fairy'. Be precise and descriptive.
         `;
+      }
 
       const result = await model.generateContent([
         prompt,

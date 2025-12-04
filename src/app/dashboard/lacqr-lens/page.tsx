@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown, History, RefreshCw } from 'lucide-react';
+import { Camera, X, AlertCircle, AlertTriangle, ZoomIn, ZoomOut, HelpCircle, ArrowRight, ArrowLeft, ThumbsUp, ThumbsDown, History, RefreshCw, Scan, Sparkles, CheckCircle2, BrainCircuit } from 'lucide-react';
 import { AI_SERVICE } from '@/services/ai';
 import { isImageBlurry, compressImage } from '@/utils/imageProcessing';
 import { collection, addDoc, doc, getDoc, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
@@ -49,6 +49,7 @@ function LacqrLensContent() {
         if (typeof window !== 'undefined') return (localStorage.getItem('lacqr_lens_step') as LensStep) || 'scan';
         return 'scan';
     });
+    const [mode, setMode] = useState<'diagnostics' | 'design'>('design');
 
     // History State
     const [recentScans, setRecentScans] = useState<any[]>([]);
@@ -173,7 +174,7 @@ function LacqrLensContent() {
             try {
                 // Compress image before sending to AI
                 const compressedFile = await compressImage(file);
-                const analysis = await AI_SERVICE.analyzeImage(compressedFile); // No longer passing menu, AI returns ServiceSelection
+                const analysis = await AI_SERVICE.analyzeImage(compressedFile, mode); // Pass mode to AI
                 setResult(analysis);
                 setStep('configure'); // Move to configure step
                 startCooldown();
@@ -202,6 +203,14 @@ function LacqrLensContent() {
 
     const toggleZoom = () => {
         setZoomLevel(prev => prev === 1 ? 2.5 : 1);
+    };
+
+    const handleRetake = () => {
+        reset();
+    };
+
+    const handleConfirm = () => {
+        setStep('receipt');
     };
 
     // --- Receipt Actions ---
@@ -284,286 +293,241 @@ function LacqrLensContent() {
         }
     };
 
+    // --- RENDER STEPS ---
+
     return (
-        <div className="space-y-6 max-w-md mx-auto p-4">
-            <GettingStartedWidget />
-            <div className="text-center space-y-2 relative">
-                <button
-                    onClick={() => setShowHelp(true)}
-                    className="absolute right-0 top-0 text-gray-400 hover:text-pink-500 transition-colors"
-                >
-                    <HelpCircle size={20} />
-                </button>
-                <h2 className="text-2xl font-bold tracking-tight">Lacqr Lens</h2>
-                <p className="text-sm text-gray-600">Snap a pic, get the price.</p>
-                {
-                    isCoolingDown && (
-                        <p className="text-xs text-amber-600 font-medium animate-pulse">
-                            Cooling down... {remainingTime}s
-                        </p>
-                    )
-                }
-            </div >
+        <>
+            {step === 'scan' && (
+                <div className="flex flex-col h-full max-w-md mx-auto relative bg-black min-h-screen">
+                    {/* Header with Segmented Control */}
+                    <div className="p-4 z-10 space-y-4 bg-gradient-to-b from-black/80 to-transparent">
+                        <div className="flex justify-between items-center">
+                            <button onClick={() => router.back()} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
+                                <X size={24} />
+                            </button>
+                            <button onClick={() => setShowHelp(true)} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
+                                <HelpCircle size={24} />
+                            </button>
+                        </div>
 
-            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} context="lacqr_lens" />
+                        {/* Large Segmented Control */}
+                        <div className="bg-white/10 backdrop-blur-md p-1 rounded-2xl flex relative">
+                            {/* Sliding Background */}
+                            <div
+                                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-lg transition-all duration-300 ease-out ${mode === 'diagnostics' ? 'left-1' : 'left-[calc(50%+4px)]'
+                                    }`}
+                            />
 
-            {/* Error Message */}
-            {
-                error && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 animate-in slide-in-from-top-2">
-                        <div className="flex items-start">
-                            <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
-                            <div className="flex-1">
-                                <h3 className="text-sm font-bold text-red-800 mb-1">Analysis Failed</h3>
-                                <p className="text-xs text-red-700 break-words mb-3">
-                                    {error}
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        setError(null);
-                                        setResult({
-                                            base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
-                                            addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
-                                            art: { level: null },
-                                            bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
-                                            modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
-                                            pedicure: { type: 'None', toeArtMatch: false },
-                                            estimatedDuration: 0,
-                                            aiDescription: "Manual Configuration"
-                                        });
-                                        setStep('configure');
-                                    }}
-                                    className="text-xs font-bold bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
-                                >
-                                    Configure Manually
-                                </button>
-                            </div>
-                            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 ml-2">
-                                <X size={16} />
+                            <button
+                                onClick={() => setMode('diagnostics')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl relative z-10 transition-colors duration-300 ${mode === 'diagnostics' ? 'text-black font-bold' : 'text-white/60 font-medium hover:text-white'
+                                    }`}
+                            >
+                                <Scan size={18} />
+                                <span>Assess Hand</span>
+                            </button>
+                            <button
+                                onClick={() => setMode('design')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl relative z-10 transition-colors duration-300 ${mode === 'design' ? 'text-black font-bold' : 'text-white/60 font-medium hover:text-white'
+                                    }`}
+                            >
+                                <Sparkles size={18} />
+                                <span>Analyze Inspo</span>
                             </button>
                         </div>
                     </div>
-                )
-            }
 
-            {/* Scanning Overlay */}
-            <ScanningOverlay
-                isVisible={isAnalyzing}
-                onCancel={() => {
-                    setIsAnalyzing(false);
-                    setError("Scan cancelled by user.");
-                }}
-            />
-
-            {/* Scan New Image Button (Visible when result exists) */}
-            {result && !isAnalyzing && (
-                <button
-                    onClick={reset}
-                    className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 mb-4 shadow-sm"
-                >
-                    <RefreshCw size={18} />
-                    Scan New Image
-                </button>
-            )}
-
-            {/* Upload Area (Only show in 'scan' or 'configure' step) */}
-            {
-                step !== 'receipt' && (
-                    !image && !result ? (
-                        <label className="border-2 border-dashed border-gray-300 rounded-3xl h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:border-pink-300 hover:bg-pink-50/50 transition-all group relative overflow-hidden">
-                            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleUpload} className="hidden" />
-                            <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <Camera size={32} className="text-pink-500" />
-                            </div>
-                            <span className="font-medium text-gray-500 group-hover:text-pink-500 transition-colors">Tap to Scan Design</span>
-                            <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
-                        </label>
-                    ) : (
-                        image && (
-                            <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
-                                <div
-                                    className="w-full h-full overflow-hidden cursor-zoom-in"
-                                    onClick={toggleZoom}
-                                >
-                                    <img
-                                        src={image}
-                                        alt="Uploaded"
-                                        className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
-                                        style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
-                                    />
+                    {/* Camera Viewfinder */}
+                    <div className="flex-1 relative rounded-3xl overflow-hidden shadow-2xl mx-4 mb-4 border border-white/10 bg-gray-900">
+                        {!image ? (
+                            <>
+                                <ScanningOverlay isScanning={isAnalyzing} mode={mode} />
+                                {/* Contextual Hint Overlay */}
+                                <div className="absolute top-1/4 left-0 right-0 text-center px-8 pointer-events-none">
+                                    <p className="text-white/80 text-lg font-medium drop-shadow-md animate-in fade-in slide-in-from-bottom-4 duration-700 key={mode}">
+                                        {mode === 'diagnostics'
+                                            ? "Point camera at client's hand to detect regrowth and repairs."
+                                            : "Upload photo to match colors and calculate design price."}
+                                    </p>
                                 </div>
-
-                                {/* Enlarge Button */}
-                                {!isAnalyzing && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowFullImage(true);
-                                        }}
-                                        className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                                    >
-                                        <ZoomIn size={20} />
-                                    </button>
-                                )}
-
-                                {!isAnalyzing && (
-                                    <button
-                                        onClick={reset}
-                                        className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                )}
-
-                                {/* Zoom Hint */}
-                                {!isAnalyzing && (
-                                    <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                                        {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
-                                        <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
-                                    </div>
-                                )}
-
-                                {/* Blurry Warning Overlay */}
-                                {!isAnalyzing && isBlurry && (
-                                    <div className="absolute bottom-4 left-4 right-16 bg-yellow-500/90 backdrop-blur-md p-3 rounded-xl flex items-center text-white shadow-lg animate-in slide-in-from-bottom-2 pointer-events-none">
-                                        <AlertTriangle size={20} className="mr-3 flex-shrink-0" />
-                                        <p className="text-xs font-bold">Image appears blurry. Results may be less accurate.</p>
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    )
-                )
-            }
-
-            {/* STEP 2: Configuration */}
-            {
-                step === 'configure' && result && (
-                    <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500">
-
-                        {/* Visual Description Card */}
-                        {result.visual_description && (
-                            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl relative">
-                                <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">AI Visual Analysis</h4>
-                                <p className="text-sm text-indigo-900 italic mb-3">&quot;{result.visual_description}&quot;</p>
-
-                                {/* Feedback Buttons */}
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        onClick={() => setFeedbackModalOpen(true)}
-                                        className="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors"
-                                        title="Good analysis"
-                                    >
-                                        <ThumbsUp size={16} />
-                                    </button>
-                                    <button
-                                        onClick={() => setFeedbackModalOpen(true)}
-                                        className="p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-colors"
-                                        title="Bad analysis"
-                                    >
-                                        <ThumbsDown size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            </>
+                        ) : (
+                            <img src={image} alt="Captured" className="w-full h-full object-cover" />
                         )}
 
+                        {/* Controls */}
+                        {!image && (
+                            <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center gap-8">
+                                <button className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
+                                    <History size={24} onClick={() => setShowHistory(true)} />
+                                </button>
+                                <div className="relative group">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                                    <label className="relative w-20 h-20 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xl">
+                                        <Camera size={32} className="text-black" />
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                                    </label>
+                                </div>
+                                <button className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
+                                    <RefreshCw size={24} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* History Drawer */}
+                    {showHistory && (
+                        <div className="absolute inset-0 bg-black/90 z-50 p-6 animate-in slide-in-from-bottom-10">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-white font-bold text-xl">Recent Scans</h2>
+                                <button onClick={() => setShowHistory(false)} className="text-white/60 hover:text-white">
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {recentScans.map(scan => (
+                                    <div key={scan.id} className="bg-white/10 p-4 rounded-xl flex gap-4 items-center">
+                                        <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
+                                            {/* Placeholder for scan thumbnail */}
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-bold">{scan.clientName || 'Unknown Client'}</p>
+                                            <p className="text-white/60 text-xs">{new Date(scan.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="ml-auto font-bold text-green-400">${scan.totalPrice}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {step === 'configure' && result && (
+                <div className="min-h-screen bg-gray-50 pb-20">
+                    {/* Header */}
+                    <div className="bg-white sticky top-0 z-20 border-b border-gray-100 px-4 py-3 flex items-center justify-between shadow-sm">
+                        <button onClick={handleRetake} className="flex items-center text-gray-500 hover:text-black">
+                            <ArrowLeft size={20} className="mr-1" /> Retake
+                        </button>
+                        <h1 className="font-bold text-lg">Review Scan</h1>
+                        <button onClick={handleConfirm} className="text-pink-500 font-bold hover:underline">
+                            Next
+                        </button>
+                    </div>
+
+                    <div className="max-w-md mx-auto p-4 space-y-6">
+                        {/* Result Preview List */}
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 animate-in slide-in-from-bottom-4">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className={`p-2 rounded-xl ${mode === 'diagnostics' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+                                    {mode === 'diagnostics' ? <Scan size={20} /> : <Sparkles size={20} />}
+                                </div>
+                                <h2 className="font-bold text-lg text-charcoal">
+                                    {mode === 'diagnostics' ? 'Required Prep' : 'Design Elements'}
+                                </h2>
+                            </div>
+
+                            <div className="space-y-3">
+                                {mode === 'diagnostics' ? (
+                                    <>
+                                        {result.modifiers.foreignWork !== 'None' && (
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                                <span className="font-medium text-gray-700">{result.modifiers.foreignWork}</span>
+                                                <CheckCircle2 size={16} className="text-green-500" />
+                                            </div>
+                                        )}
+                                        {result.modifiers.repairsCount > 0 && (
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                                <span className="font-medium text-gray-700">{result.modifiers.repairsCount} Nail Repair(s)</span>
+                                                <CheckCircle2 size={16} className="text-green-500" />
+                                            </div>
+                                        )}
+                                        {result.extras && result.extras.length > 0 ? (
+                                            result.extras.map((extra, idx) => (
+                                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                                    <span className="font-medium text-gray-700">{extra.name}</span>
+                                                    <CheckCircle2 size={16} className="text-green-500" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            result.modifiers.foreignWork === 'None' && result.modifiers.repairsCount === 0 && (
+                                                <p className="text-gray-400 text-sm italic text-center py-2">No major issues detected. Ready for prep!</p>
+                                            )
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                            <span className="font-medium text-gray-700">{result.base.shape} Shape</span>
+                                            <CheckCircle2 size={16} className="text-green-500" />
+                                        </div>
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                            <span className="font-medium text-gray-700">{result.base.length} Length</span>
+                                            <CheckCircle2 size={16} className="text-green-500" />
+                                        </div>
+                                        {result.art.level && result.art.level !== 'Level 1' && (
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                                <span className="font-medium text-gray-700">{result.art.level} Art</span>
+                                                <CheckCircle2 size={16} className="text-green-500" />
+                                            </div>
+                                        )}
+                                        {result.addons.specialtyEffect !== 'None' && (
+                                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                                <span className="font-medium text-gray-700">{result.addons.specialtyEffect}</span>
+                                                <CheckCircle2 size={16} className="text-green-500" />
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Service Configurator */}
                         <ServiceConfigurator
                             initialSelection={result}
-                            onUpdate={(updatedSelection) => setResult(updatedSelection)}
+                            onUpdate={(updated) => setResult(updated)}
                         />
 
-                        {/* Next Button */}
-                        <button
-                            onClick={() => setStep('receipt')}
-                            className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2"
-                        >
-                            <span>Generate Receipt</span>
-                            <ArrowRight size={20} />
-                        </button>
-                    </div>
-                )
-            }
-
-            {/* STEP 3: Final Receipt */}
-            {
-                step === 'receipt' && result && (
-                    <div className="space-y-6 animate-in slide-in-from-right-10 fade-in duration-500">
-                        <div className="flex items-center gap-2 mb-4">
-                            <button
-                                onClick={() => setStep('configure')}
-                                className="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-sm font-medium"
-                            >
-                                <ArrowLeft size={16} /> Back to Edit
-                            </button>
-                        </div>
-
-                        <ReceiptBuilder
-                            initialSelection={result}
-                            onSaveDraft={handleSaveDraft}
-                            onAssignClient={handleAssignClient}
-                            onCreateClient={handleCreateClient}
-                        />
-                    </div>
-                )
-            }
-
-            {/* Recent Scans History */}
-            {!isAnalyzing && !result && recentScans.length > 0 && (
-                <div className="mt-8 border-t border-gray-100 pt-8">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-gray-800 flex items-center">
-                            <History size={18} className="mr-2 text-pink-500" />
-                            Recent Scans
-                        </h3>
-                    </div>
-                    <div className="space-y-3">
-                        {recentScans.map((scan) => (
-                            <button
-                                key={scan.id}
-                                onClick={() => loadFromHistory(scan.id)}
-                                className="w-full bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center text-left"
-                            >
-                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mr-3 flex-shrink-0">
-                                    <Camera size={16} />
+                        {/* AI Explanation Card */}
+                        {result.visual_description && (
+                            <div className="bg-gradient-to-br from-gray-900 to-black text-white p-5 rounded-2xl shadow-lg">
+                                <div className="flex items-center gap-2 mb-3 text-pink-400">
+                                    <BrainCircuit size={18} />
+                                    <h3 className="font-bold text-sm uppercase tracking-wider">AI Analysis</h3>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-sm text-charcoal truncate">
-                                        {scan.data?.base?.system || 'Unknown Service'}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {scan.createdAt ? new Date(scan.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown Date'}
-                                    </p>
-                                </div>
-                                <ArrowRight size={16} className="text-gray-300" />
-                            </button>
-                        ))}
+                                <p className="text-sm text-gray-300 leading-relaxed italic">
+                                    &quot;{result.visual_description}&quot;
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* Full Image Modal */}
-            {
-                showFullImage && image && (
-                    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowFullImage(false)}>
+            {step === 'receipt' && result && (
+                <div className="min-h-screen bg-gray-50 pb-20">
+                    <div className="flex items-center gap-2 mb-4 p-4">
                         <button
-                            onClick={() => setShowFullImage(false)}
-                            className="absolute top-4 right-4 text-white hover:text-gray-300"
+                            onClick={() => setStep('configure')}
+                            className="text-gray-500 hover:text-gray-900 flex items-center gap-1 text-sm font-medium"
                         >
-                            <X size={32} />
+                            <ArrowLeft size={16} /> Back to Edit
                         </button>
-                        <img
-                            src={image}
-                            alt="Full size"
-                            className="max-w-full max-h-full object-contain rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                        />
                     </div>
-                )
-            }
 
-            {/* Client Modal */}
+                    <ReceiptBuilder
+                        initialSelection={result}
+                        onSaveDraft={handleSaveDraft}
+                        onAssignClient={handleAssignClient}
+                        onCreateClient={handleCreateClient}
+                    />
+                </div>
+            )}
+
+            {/* Modals */}
+            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} context="lacqr_lens" />
+
             <ClientModal
                 isOpen={clientModalOpen}
                 mode={clientModalMode}
@@ -571,14 +535,30 @@ function LacqrLensContent() {
                 onClientSelected={handleClientSelected}
             />
 
-            {/* Feedback Modal */}
             <FeedbackModal
                 isOpen={feedbackModalOpen}
                 onClose={() => setFeedbackModalOpen(false)}
                 context="lacqr_lens"
                 aiResult={result}
             />
-        </div >
+
+            {showFullImage && image && (
+                <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowFullImage(false)}>
+                    <button
+                        onClick={() => setShowFullImage(false)}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                    >
+                        <X size={32} />
+                    </button>
+                    <img
+                        src={image}
+                        alt="Full size"
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+        </>
     );
 }
 

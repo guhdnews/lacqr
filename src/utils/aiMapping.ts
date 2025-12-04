@@ -9,6 +9,11 @@ export interface GeminiAnalysis {
     estimated_time_minutes?: number;
     foreign_work?: string;
     reasoning_steps?: string[]; // Added Chain of Thought
+    // Diagnostics Mode Fields
+    conditions?: string[];
+    recommended_services?: string[];
+    repairs_needed?: number;
+    growth_weeks?: number;
 }
 
 export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[], gemini?: GeminiAnalysis, florence?: any): ServiceSelection {
@@ -206,12 +211,39 @@ export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[]
         pedicureType = (artLevel || density !== "None") ? "Gel" : "Classic";
     }
 
-    // --- 9. Foreign Work ---
+    // --- 9. Foreign Work & Diagnostics ---
     let foreignWork: ForeignWork = "None";
-    if (gemini?.foreign_work) {
-        const fw = gemini.foreign_work.toLowerCase();
-        if (fw.includes("removal")) foreignWork = "Foreign Removal";
-        else if (fw.includes("fill")) foreignWork = "Foreign Fill";
+    let repairsCount = 0;
+    let extras: { name: string; price: number }[] = [];
+    let isFill = false;
+
+    if (gemini) {
+        // Foreign Work
+        if (gemini.foreign_work) {
+            const fw = gemini.foreign_work.toLowerCase();
+            if (fw.includes("removal")) foreignWork = "Foreign Removal";
+            else if (fw.includes("fill")) foreignWork = "Foreign Fill";
+        }
+
+        // Diagnostics: Repairs
+        if (gemini.repairs_needed && gemini.repairs_needed > 0) {
+            repairsCount = gemini.repairs_needed;
+        }
+
+        // Diagnostics: Growth (Implies Fill)
+        if (gemini.growth_weeks && gemini.growth_weeks >= 2) {
+            isFill = true;
+        }
+
+        // Diagnostics: Recommended Services (Extras)
+        if (gemini.recommended_services) {
+            gemini.recommended_services.forEach(service => {
+                if (service.includes("Oil") || service.includes("Treatment")) {
+                    extras.push({ name: "Oil Treatment", price: 5 });
+                }
+                // Add more mappings as needed
+            });
+        }
     }
 
     // --- 10. Time Estimation (Sanity Check) ---
@@ -226,7 +258,8 @@ export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[]
         base: {
             system: system,
             shape: shape,
-            length: length
+            length: length,
+            isFill: isFill
         },
         addons: {
             finish: finish,
@@ -243,13 +276,14 @@ export function mapDetectionsToSelection(objects: any[], nailPlateBox?: number[]
         },
         modifiers: {
             foreignWork: foreignWork,
-            repairsCount: 0,
+            repairsCount: repairsCount,
             soakOffOnly: false
         },
         pedicure: {
             type: pedicureType,
             toeArtMatch: false
         },
+        extras: extras,
         estimatedDuration: estimatedTime
     };
 }

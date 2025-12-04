@@ -1,25 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Scan, Sparkles, BrainCircuit, CheckCircle2 } from 'lucide-react';
+import { Scan, Sparkles, BrainCircuit, CheckCircle2, Stethoscope, Activity, Search } from 'lucide-react';
 
 interface ScanningOverlayProps {
-    isVisible: boolean;
-    currentStep?: number; // Optional override
+    isScanning: boolean;
+    mode?: 'diagnostics' | 'design';
     onCancel?: () => void;
 }
 
-const STEPS = [
+const DESIGN_STEPS = [
     { icon: Scan, text: "Scanning nail geometry...", color: "text-blue-500" },
     { icon: BrainCircuit, text: "Analyzing art complexity...", color: "text-purple-500" },
     { icon: Sparkles, text: "Identifying add-ons...", color: "text-yellow-500" },
     { icon: CheckCircle2, text: "Calculating estimate...", color: "text-green-500" }
 ];
 
-export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlayProps) {
+const DIAGNOSTICS_STEPS = [
+    { icon: Scan, text: "Scanning hand structure...", color: "text-blue-500" },
+    { icon: Search, text: "Detecting growth & lifting...", color: "text-purple-500" },
+    { icon: Activity, text: "Analyzing skin health...", color: "text-yellow-500" },
+    { icon: Stethoscope, text: "Generating treatment plan...", color: "text-green-500" }
+];
+
+export default function ScanningOverlay({ isScanning, mode = 'design', onCancel }: ScanningOverlayProps) {
     const [activeStep, setActiveStep] = useState(0);
     const [showLongWait, setShowLongWait] = useState(false);
 
+    const steps = mode === 'diagnostics' ? DIAGNOSTICS_STEPS : DESIGN_STEPS;
+
     useEffect(() => {
-        if (!isVisible) {
+        if (!isScanning) {
             setActiveStep(0);
             setShowLongWait(false);
             return;
@@ -27,7 +36,7 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
 
         // Step Animation
         const stepInterval = setInterval(() => {
-            setActiveStep(prev => (prev < STEPS.length - 1 ? prev + 1 : prev));
+            setActiveStep(prev => (prev < steps.length - 1 ? prev + 1 : prev));
         }, 1500);
 
         // Long Wait Timer (10s)
@@ -39,26 +48,30 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
             clearInterval(stepInterval);
             clearTimeout(waitTimer);
         };
-    }, [isVisible]);
+    }, [isScanning, steps.length]);
 
-    if (!isVisible) return null;
+    if (!isScanning) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl">
             <div className="w-full max-w-xs text-center space-y-8 p-6">
 
                 {/* Main Loader */}
                 <div className="relative mx-auto w-24 h-24">
-                    <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <Sparkles className="text-pink-500 animate-pulse" size={32} />
+                        {mode === 'diagnostics' ? (
+                            <Activity className="text-pink-500 animate-pulse" size={32} />
+                        ) : (
+                            <Sparkles className="text-pink-500 animate-pulse" size={32} />
+                        )}
                     </div>
                 </div>
 
                 {/* Steps */}
                 <div className="space-y-4">
-                    {STEPS.map((step, index) => {
+                    {steps.map((step, index) => {
                         const Icon = step.icon;
                         const isActive = index === activeStep;
                         const isCompleted = index < activeStep;
@@ -71,13 +84,13 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
                             >
                                 <div className={`
                                     w-8 h-8 rounded-full flex items-center justify-center transition-colors
-                                    ${isActive ? 'bg-pink-100 ' + step.color : ''}
-                                    ${isCompleted ? 'bg-green-100 text-green-600' : ''}
-                                    ${!isActive && !isCompleted ? 'bg-gray-100 text-gray-300' : ''}
+                                    ${isActive ? 'bg-pink-500/20 ' + step.color : ''}
+                                    ${isCompleted ? 'bg-green-500/20 text-green-400' : ''}
+                                    ${!isActive && !isCompleted ? 'bg-gray-800 text-gray-600' : ''}
                                 `}>
                                     {isCompleted ? <CheckCircle2 size={16} /> : <Icon size={16} />}
                                 </div>
-                                <span className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-500'}`}>
                                     {step.text}
                                 </span>
                             </div>
@@ -88,7 +101,7 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
                 {onCancel && (
                     <button
                         onClick={onCancel}
-                        className="mt-8 px-6 py-2 rounded-full border border-gray-300 text-gray-500 text-sm hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                        className="mt-8 px-6 py-2 rounded-full border border-gray-700 text-gray-400 text-sm hover:bg-gray-800 hover:text-white transition-colors"
                     >
                         Cancel Scan
                     </button>
@@ -96,13 +109,13 @@ export default function ScanningOverlay({ isVisible, onCancel }: ScanningOverlay
 
                 {/* Cold Start Warning (Time-Based) */}
                 {showLongWait && (
-                    <p className="text-xs text-amber-600 animate-in fade-in slide-in-from-bottom-2 duration-1000 mt-4 max-w-[200px] mx-auto">
+                    <p className="text-xs text-amber-500 animate-in fade-in slide-in-from-bottom-2 duration-1000 mt-4 max-w-[200px] mx-auto">
                         First scans take a little longer... hang tight! ⏳
                     </p>
                 )}
 
-                <p className="text-xs text-gray-400 animate-pulse mt-4">
-                    Powered by Lacqr
+                <p className="text-xs text-gray-600 animate-pulse mt-4">
+                    Powered by Lacqr AI
                 </p>
             </div>
         </div>
