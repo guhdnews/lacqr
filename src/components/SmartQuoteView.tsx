@@ -213,7 +213,8 @@ export default function SmartQuoteView({
 
                     {/* Scanning Overlay */}
                     <ScanningOverlay
-                        isVisible={isAnalyzing}
+                        isScanning={isAnalyzing}
+                        mode="design"
                         onCancel={() => {
                             setIsAnalyzing(false);
                         }}
