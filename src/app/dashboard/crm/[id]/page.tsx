@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus, Sparkles } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -15,7 +15,7 @@ export default function ClientDetailPage() {
     const clientId = params.id as string;
     const { user } = useAppStore();
 
-    const { client, history, pendingQuotes, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
+    const { client, history, pendingQuotes, notesHistory, loading, error, refresh } = useClientProfile(user?.id || undefined, clientId);
 
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileForm, setProfileForm] = useState<any>({});

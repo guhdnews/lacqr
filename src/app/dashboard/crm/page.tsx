@@ -130,7 +130,7 @@ export default function CRMDashboard() {
                 <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                         <h3 className="font-bold text-lg text-charcoal">Recent Clients</h3>
-                        <Link href="/dashboard/crm" className="text-pink-500 text-sm font-bold hover:underline flex items-center">
+                        <Link href="/dashboard/clients" className="text-pink-500 text-sm font-bold hover:underline flex items-center">
                             View All <ArrowRight size={16} className="ml-1" />
                         </Link>
                     </div>

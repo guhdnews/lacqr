@@ -9,6 +9,7 @@ interface SmartProfileData {
     lastServiceSnapshot: ServiceRecord | null;
     history: ServiceRecord[];
     pendingQuotes: any[];
+    notesHistory: any[];
     loading: boolean;
     error: string | null;
     refresh: () => void;
@@ -64,6 +65,7 @@ export function useClientProfile(userId: string | undefined, clientId: string) {
         lastServiceSnapshot: null,
         history: [],
         pendingQuotes: [],
+        notesHistory: [],
         loading: true,
         error: null
     });
@@ -109,7 +111,18 @@ export function useClientProfile(userId: string | undefined, clientId: string) {
                 console.warn("Failed to fetch quotes (likely missing index), continuing without them:", quoteErr);
             }
 
-            // 4. Calculate Stats
+            // 4. Fetch Notes History
+            let notesHistory: any[] = [];
+            try {
+                const notesRef = collection(db, 'users', userId, 'clients', clientId, 'notes');
+                const notesQ = query(notesRef, orderBy('createdAt', 'desc'));
+                const notesSnap = await getDocs(notesQ);
+                notesHistory = notesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (notesErr) {
+                console.warn("Failed to fetch notes:", notesErr);
+            }
+
+            // 5. Calculate Stats
             const { stats, lifecycle } = calculateStats(history);
 
             const smartClient: Client = {
@@ -123,6 +136,7 @@ export function useClientProfile(userId: string | undefined, clientId: string) {
                 lastServiceSnapshot: history.length > 0 ? history[0] : null,
                 history,
                 pendingQuotes,
+                notesHistory,
                 loading: false,
                 error: null
             });
