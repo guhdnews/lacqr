@@ -292,29 +292,27 @@ function LacqrLensContent() {
             alert("Failed to save quote.");
         }
     };
-
-    // --- RENDER STEPS ---
-
     return (
         <>
             {step === 'scan' && (
-                <div className="flex flex-col h-full max-w-md mx-auto relative bg-black min-h-screen">
+                <div className="flex flex-col h-[calc(100vh-6rem)] max-w-2xl mx-auto relative bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-gray-800 my-4">
                     {/* Header with Segmented Control */}
-                    <div className="p-4 z-10 space-y-4 bg-gradient-to-b from-black/80 to-transparent">
+                    <div className="p-6 z-10 space-y-6 bg-gradient-to-b from-black/80 to-transparent">
                         <div className="flex justify-between items-center">
                             <button onClick={() => router.back()} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
                                 <X size={24} />
                             </button>
+                            <h2 className="text-white font-bold text-lg tracking-wide opacity-80">Lacqr Lens</h2>
                             <button onClick={() => setShowHelp(true)} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
                                 <HelpCircle size={24} />
                             </button>
                         </div>
 
                         {/* Large Segmented Control */}
-                        <div className="bg-white/10 backdrop-blur-md p-1 rounded-2xl flex relative">
+                        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-2xl flex relative">
                             {/* Sliding Background */}
                             <div
-                                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-lg transition-all duration-300 ease-out ${mode === 'diagnostics' ? 'left-1' : 'left-[calc(50%+4px)]'
+                                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-lg transition-all duration-300 ease-out ${mode === 'diagnostics' ? 'left-1.5' : 'left-[calc(50%+6px)]'
                                     }`}
                             />
 
@@ -338,46 +336,74 @@ function LacqrLensContent() {
                     </div>
 
                     {/* Camera Viewfinder */}
-                    <div className="flex-1 relative rounded-3xl overflow-hidden shadow-2xl mx-4 mb-4 border border-white/10 bg-gray-900">
-                        {!image ? (
-                            <>
-                                <ScanningOverlay isScanning={isAnalyzing} mode={mode} />
-                                {/* Contextual Hint Overlay */}
-                                <div className="absolute top-1/4 left-0 right-0 text-center px-8 pointer-events-none">
-                                    <p className="text-white/80 text-lg font-medium drop-shadow-md animate-in fade-in slide-in-from-bottom-4 duration-700 key={mode}">
-                                        {mode === 'diagnostics'
-                                            ? "Point camera at client's hand to detect regrowth and repairs."
-                                            : "Upload photo to match colors and calculate design price."}
-                                    </p>
-                                </div>
-                            </>
-                        ) : (
-                            <img src={image} alt="Captured" className="w-full h-full object-cover" />
+                    <div className="flex-1 relative mx-4 mb-4 rounded-3xl overflow-hidden bg-black border border-white/10 group">
+
+                        {/* Image Display */}
+                        {image && (
+                            <img
+                                src={image}
+                                alt="Captured"
+                                className={`w-full h-full object-cover transition-opacity duration-500 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
+                            />
                         )}
 
-                        {/* Controls */}
-                        {!image && (
-                            <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center gap-8">
-                                <button className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
-                                    <History size={24} onClick={() => setShowHistory(true)} />
-                                </button>
-                                <div className="relative group">
+                        {/* Scanning Overlay - Always render if analyzing, or if no image (idle state) */}
+                        {(isAnalyzing || !image) && (
+                            <div className="absolute inset-0 z-20">
+                                <ScanningOverlay isScanning={isAnalyzing} mode={mode} />
+                            </div>
+                        )}
+
+                        {/* Contextual Hint Overlay (Only when not analyzing and no image) */}
+                        {!isAnalyzing && !image && (
+                            <div className="absolute top-1/3 left-0 right-0 text-center px-8 pointer-events-none z-30">
+                                <p className="text-white/90 text-xl font-medium drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    {mode === 'diagnostics'
+                                        ? "Point camera at client's hand to detect regrowth and repairs."
+                                        : "Upload photo to match colors and calculate design price."}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Start Scan Button (Center) */}
+                        {!image && !isAnalyzing && (
+                            <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+                                <div className="relative group pointer-events-auto">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                                    <label className="relative w-20 h-20 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xl">
-                                        <Camera size={32} className="text-black" />
-                                        <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                                    <label className="relative w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-2xl">
+                                        <Camera size={36} className="text-black mb-1" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tap to Scan</span>
+                                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                                     </label>
                                 </div>
-                                <button className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all">
-                                    <RefreshCw size={24} />
+                            </div>
+                        )}
+
+                        {/* Bottom Controls (Only when image is present) */}
+                        {image && !isAnalyzing && (
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-6 z-50">
+                                <button onClick={handleRetake} className="px-6 py-3 bg-black/60 backdrop-blur-md rounded-full text-white font-medium hover:bg-black/80 transition-all border border-white/10 flex items-center gap-2">
+                                    <RefreshCw size={18} /> Retake
+                                </button>
+                                <button onClick={handleConfirm} className="px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-gray-100 transition-all shadow-lg flex items-center gap-2">
+                                    Next <ArrowRight size={18} />
                                 </button>
                             </div>
                         )}
                     </div>
 
+                    {/* History Drawer Toggle */}
+                    {!image && (
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-center z-10">
+                            <button onClick={() => setShowHistory(true)} className="text-white/50 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors">
+                                <History size={16} /> Recent Scans
+                            </button>
+                        </div>
+                    )}
+
                     {/* History Drawer */}
                     {showHistory && (
-                        <div className="absolute inset-0 bg-black/90 z-50 p-6 animate-in slide-in-from-bottom-10">
+                        <div className="absolute inset-0 bg-black/95 z-50 p-6 animate-in slide-in-from-bottom-10">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-white font-bold text-xl">Recent Scans</h2>
                                 <button onClick={() => setShowHistory(false)} className="text-white/60 hover:text-white">
@@ -386,9 +412,9 @@ function LacqrLensContent() {
                             </div>
                             <div className="space-y-4">
                                 {recentScans.map(scan => (
-                                    <div key={scan.id} className="bg-white/10 p-4 rounded-xl flex gap-4 items-center">
-                                        <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
-                                            {/* Placeholder for scan thumbnail */}
+                                    <div key={scan.id} className="bg-white/10 p-4 rounded-xl flex gap-4 items-center cursor-pointer hover:bg-white/20 transition-all" onClick={() => loadFromHistory(scan.id)}>
+                                        <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center text-white/30">
+                                            <Scan size={20} />
                                         </div>
                                         <div>
                                             <p className="text-white font-bold">{scan.clientName || 'Unknown Client'}</p>

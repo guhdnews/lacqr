@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Calendar, Clock, Edit, Trash2, MessageSquare, TrendingUp, AlertTriangle, Star, Droplet, Ruler, Save, X, Plus, Sparkles, ArrowRight } from 'lucide-react';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import ServiceLogModal from '@/components/ServiceLogModal';
 
@@ -352,10 +352,14 @@ export default function ClientDetailPage() {
                             </h4>
                             <div className="space-y-3">
                                 {pendingQuotes.map((quote: any) => (
-                                    <div key={quote.id} className="bg-white p-4 rounded-xl border border-pink-100 shadow-sm flex justify-between items-center">
+                                    <div key={quote.id} className="bg-white p-4 rounded-xl border border-pink-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-all">
                                         <div>
-                                            <p className="font-bold text-gray-800">{quote.serviceType}</p>
-                                            <p className="text-xs text-gray-500">Quoted: ${quote.totalPrice}</p>
+                                            <p className="font-bold text-gray-800">{quote.data?.base?.system || 'Custom Set'} - {quote.data?.base?.length || 'Medium'}</p>
+                                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                                <span className="font-medium text-pink-600">${quote.totalPrice}</span>
+                                                <span>•</span>
+                                                <span>{new Date(quote.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => {
@@ -363,14 +367,14 @@ export default function ClientDetailPage() {
                                                 setSelectedService({
                                                     ...quote,
                                                     price: quote.totalPrice,
-                                                    serviceType: quote.serviceType,
-                                                    notes: quote.notes
+                                                    serviceType: `${quote.data?.base?.system} ${quote.data?.base?.shape} Set`,
+                                                    notes: `Based on Lacqr Lens Scan:\n- Length: ${quote.data?.base?.length}\n- Art Level: ${quote.data?.art?.level}\n- Addons: ${quote.data?.addons?.specialtyEffect}`
                                                 });
                                                 setIsLogModalOpen(true);
                                             }}
-                                            className="text-xs bg-white border border-pink-200 text-pink-600 px-3 py-1 rounded-full font-bold hover:bg-pink-50"
+                                            className="bg-pink-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-pink-200 hover:bg-pink-600 transition-colors flex items-center gap-2"
                                         >
-                                            Log Visit
+                                            Book <ArrowRight size={14} />
                                         </button>
                                     </div>
                                 ))}
