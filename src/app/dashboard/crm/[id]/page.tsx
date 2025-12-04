@@ -436,6 +436,72 @@ export default function ClientDetailPage() {
                             ))}
                         </div>
                     )}
+                    </div>
+
+                    {/* Client Notes History Section */}
+                    <div className="space-y-4 pt-8 border-t border-gray-100">
+                        <div className="flex justify-between items-center">
+                            <h3 className="font-bold text-xl text-charcoal flex items-center gap-2">
+                                <MessageSquare size={20} className="text-yellow-500" />
+                                Client Notes History
+                            </h3>
+                            <button
+                                onClick={() => setIsAddingNote(!isAddingNote)}
+                                className="text-pink-500 font-bold text-sm hover:underline"
+                            >
+                                {isAddingNote ? 'Cancel' : '+ Add Note'}
+                            </button>
+                        </div>
+
+                        {isAddingNote && (
+                            <div className="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm animate-in fade-in slide-in-from-top-2">
+                                <textarea
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:border-pink-500 outline-none min-h-[100px]"
+                                    placeholder="Write a note about this client..."
+                                    autoFocus
+                                />
+                                <div className="flex justify-end mt-2">
+                                    <button
+                                        onClick={handleAddNote}
+                                        disabled={!newNote.trim()}
+                                        className="bg-pink-500 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Save Note
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-3">
+                            {notesHistory && notesHistory.length > 0 ? (
+                                notesHistory.map((note: any) => (
+                                    <div key={note.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
+                                        <div className="flex justify-between items-start">
+                                            <p className="text-gray-700 whitespace-pre-wrap flex-1">{note.content}</p>
+                                            <button
+                                                onClick={() => handleDeleteNote(note.id)}
+                                                className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                                                title="Delete Note"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                        <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                                            <span>{note.createdAt ? new Date(note.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown Date'}</span>
+                                            <span>•</span>
+                                            <span>{note.createdBy || 'Staff'}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <p className="text-gray-400 text-sm">No notes yet. Add one to keep track of preferences!</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
