@@ -22,6 +22,38 @@ export default function ClientDetailPage() {
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<any>(null);
 
+    // Client Notes State
+    const [newNote, setNewNote] = useState('');
+    const [isAddingNote, setIsAddingNote] = useState(false);
+
+    const handleAddNote = async () => {
+        if (!newNote.trim() || !user?.id) return;
+        try {
+            await addDoc(collection(db, 'users', user.id, 'clients', clientId, 'notes'), {
+                content: newNote,
+                createdAt: new Date(),
+                createdBy: 'Staff' // In future, use actual user name
+            });
+            setNewNote('');
+            setIsAddingNote(false);
+            refresh();
+        } catch (err) {
+            console.error("Error adding note:", err);
+            alert("Failed to add note.");
+        }
+    };
+
+    const handleDeleteNote = async (noteId: string) => {
+        if (!confirm("Delete this note?") || !user?.id) return;
+        try {
+            await deleteDoc(doc(db, 'users', user.id, 'clients', clientId, 'notes', noteId));
+            refresh();
+        } catch (err) {
+            console.error("Error deleting note:", err);
+            alert("Failed to delete note.");
+        }
+    };
+
     useEffect(() => {
         if (client) {
             setProfileForm({
@@ -295,29 +327,6 @@ export default function ClientDetailPage() {
                         )}
                     </div>
 
-                    {/* Client Notes Section */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                                <MessageSquare size={18} className="text-yellow-500" />
-                                Client Notes
-                            </h3>
-                            {!isEditingProfile && (
-                                <button onClick={() => setIsEditingProfile(true)} className="text-xs text-pink-500 font-bold hover:underline">Edit</button>
-                            )}
-                        </div>
-                        {isEditingProfile ? (
-                            <textarea
-                                value={profileForm.notes || ''}
-                                onChange={e => setProfileForm({ ...profileForm, notes: e.target.value })}
-                                className="w-full p-3 border rounded-xl text-sm min-h-[100px] focus:border-pink-500 outline-none"
-                                placeholder="General notes about the client..."
-                            />
-                        ) : (
-                            <p className="text-gray-600 text-sm whitespace-pre-wrap">
-                                {client.notes || <span className="text-gray-400 italic">No notes added.</span>}
-                            </p>
-                        )}
                     </div>
                 </div>
 
@@ -439,6 +448,6 @@ export default function ClientDetailPage() {
                 initialData={selectedService}
                 serviceId={selectedService?.id}
             />
-        </div>
+        </div >
     );
 }
