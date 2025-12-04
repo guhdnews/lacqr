@@ -365,20 +365,19 @@ function LacqrLensContent() {
                         </div>
                     )}
 
-                    {/* Contextual Hint Overlay (Only when not analyzing and no image) */}
+                    {/* Empty State: Text & Button */}
                     {!isAnalyzing && !image && (
-                        <div className="absolute top-1/3 left-0 right-0 text-center px-8 pointer-events-none z-30">
-                            <p className="text-gray-500 text-lg font-medium animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                {mode === 'diagnostics'
-                                    ? "Point camera at client's hand to detect regrowth and repairs."
-                                    : "Upload photo to match colors and calculate design price."}
-                            </p>
-                        </div>
-                    )}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none gap-8">
+                            {/* Contextual Hint */}
+                            <div className="text-center px-8 max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <p className="text-gray-500 text-lg font-medium">
+                                    {mode === 'diagnostics'
+                                        ? "Point camera at client's hand to detect regrowth and repairs."
+                                        : "Upload photo to match colors and calculate design price."}
+                                </p>
+                            </div>
 
-                    {/* Start Scan Button (Center) */}
-                    {!image && !isAnalyzing && (
-                        <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+                            {/* Start Scan Button */}
                             <div className="relative group pointer-events-auto">
                                 <div className="absolute -inset-4 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                                 <label className="relative w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-4 border-pink-50">
