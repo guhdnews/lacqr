@@ -436,7 +436,7 @@ export default function ClientDetailPage() {
                             ))}
                         </div>
                     )}
-                    </div>
+
 
                     {/* Client Notes History Section */}
                     <div className="space-y-4 pt-8 border-t border-gray-100">
