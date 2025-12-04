@@ -31,3 +31,9 @@
         - [ ] Verify Route Generation in Build
     - [ ] Fix `lengthTier` Root Cause (ServiceConfigurator/AI Service)
 - [x] Strict Shape Logic (Tip Geometry) & Industry Standard Pricing Tiers <!-- id: 18 -->
+- [x] UI Polish & Mobile Fixes <!-- id: 19 -->
+    - [x] ScanningOverlay Contrast & Cutoff
+    - [x] SmartQuoteView UI Match (LacqrLens style)
+    - [x] Mobile Overflow Fixes (BookingPageBuilder, ServiceMenuEditor)
+    - [x] Zoom & Full Screen Interaction
+    - [x] API Key Update

@@ -495,9 +495,9 @@ export default function SmartQuoteView({
                                 <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Check size={32} />
                                 </div>
-                                <h4 className="text-2xl font-bold text-gray-900">You're on the list!</h4>
+                                <h4 className="text-2xl font-bold text-gray-900">You&apos;re on the list!</h4>
                                 <p className="text-gray-500">
-                                    Thanks for your request, {clientDetails.name}. We've received your quote and will text you at {clientDetails.phone} shortly to confirm your appointment.
+                                    Thanks for your request, {clientDetails.name}. We&apos;ve received your quote and will text you at {clientDetails.phone} shortly to confirm your appointment.
                                 </p>
                                 <button
                                     onClick={() => {
