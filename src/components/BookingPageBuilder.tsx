@@ -199,9 +199,9 @@ export default function BookingPageBuilder() {
             </div>
 
             {/* Live Preview */}
-            <div className="lg:sticky lg:top-8 h-fit">
-                <div className="bg-gray-900 rounded-[2.5rem] p-4 shadow-2xl border-4 border-gray-800">
-                    <div className="bg-white rounded-[2rem] overflow-hidden h-[600px] relative">
+            <div className="lg:sticky lg:top-8 h-fit max-w-full">
+                <div className="bg-gray-900 rounded-[2.5rem] p-4 shadow-2xl border-4 border-gray-800 max-w-full overflow-hidden">
+                    <div className="bg-white rounded-[2rem] overflow-hidden h-[600px] relative max-w-full">
                         {/* Mock Browser Bar */}
                         <div className="bg-gray-100 px-4 py-3 flex items-center gap-2 border-b border-gray-200">
                             <div className="flex gap-1.5">

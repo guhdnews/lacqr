@@ -207,7 +207,7 @@ export const DEFAULT_MENU: MasterServiceMenu = {
         base: { 'Acrylic': 60, 'Gel-X': 45, 'Hard Gel': 75, 'Structure Gel': 60 },
         fill: { 'Acrylic': 45, 'Gel-X': 45, 'Hard Gel': 45, 'Structure Gel': 30 },
         length: { 'Short': 0, 'Medium': 10, 'Long': 20, 'XL': 30, 'XXL': 45 },
-        shape: { 'Square': 0, 'Coffin': 10, 'Stiletto': 15, 'Almond': 10, 'Duck': 20, 'Squoval': 0, 'Ballerina': 10, 'Lipstick': 10 },
+        shape: { 'Square': 0, 'Coffin': 10, 'Stiletto': 15, 'Almond': 10, 'Duck': 30, 'Squoval': 0, 'Ballerina': 10, 'Lipstick': 10 },
         art: { 'Level 1': 15, 'Level 2': 30, 'Level 3': 60, 'Level 4': 90 },
         bling: { 'None': 0, 'Minimal': 10, 'Moderate': 20, 'Heavy': 30 },
         pedicure: { 'None': 0, 'Classic': 30, 'Gel': 45, 'Acrylic Toe Set': 60 },

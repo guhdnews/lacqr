@@ -207,9 +207,9 @@ async function analyzeWithGemini(file: File, mode: 'diagnostics' | 'design', flo
             ],
             "growth_weeks": 3, // Estimate weeks of growth based on gap size (0 if fresh, 2+ if gap visible)
             "repairs_needed": 1, // Count of broken or missing nails
-            "conditions": ["4-week growth", "Broken index nail", "Dry cuticles"],
-            "recommended_services": ["Rebalance/Fill", "Nail Repair", "Oil Treatment Add-on"],
-            "vibe": "Diagnostics Report: Detected 4-week growth and 1 broken nail. Cuticles appear dry.",
+            "conditions": ["4-week growth", "Broken index nail", "Dry cuticles", "Lifting detected", "Greenies (Pseudomonas) risk", "Trauma/Bruising"],
+            "recommended_services": ["Rebalance/Fill", "Nail Repair", "Oil Treatment", "Deep Cuticle Clean", "IBX Treatment", "Soak Off"],
+            "vibe": "Diagnostics Report: Detected 4-week growth and 1 broken nail. Cuticles appear dry. Lifting observed on middle finger.",
             // Fill these with defaults or detected values if applicable
             "shape": "Coffin", 
             "system": "Acrylic",
@@ -217,6 +217,12 @@ async function analyzeWithGemini(file: File, mode: 'diagnostics' | 'design', flo
             "art_notes": "None",
             "foreign_work": "None"
         }
+        
+        CRITICAL: 
+        - If you see green discoloration, flag "Greenies (Pseudomonas) risk".
+        - If you see lifting (product separating from nail), flag "Lifting detected".
+        - If cuticles are overgrown/dry, recommend "Deep Cuticle Clean".
+        - If nails look weak/damaged, recommend "IBX Treatment".
         `;
       } else {
         // Design Mode (Original Prompt)

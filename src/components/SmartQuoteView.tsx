@@ -22,6 +22,7 @@ interface SmartQuoteViewProps {
     isAuthenticated?: boolean;
     themeColor?: string;
     buttonStyle?: 'rounded' | 'pill' | 'square';
+    onBook?: (quote: ServiceSelection, clientDetails: { name: string; phone: string; instagram?: string; notes?: string }) => Promise<void>;
 }
 
 export default function SmartQuoteView({
@@ -31,7 +32,8 @@ export default function SmartQuoteView({
     onQuoteGenerated,
     isAuthenticated = false,
     themeColor = '#ec4899',
-    buttonStyle = 'rounded'
+    buttonStyle = 'rounded',
+    onBook
 }: SmartQuoteViewProps) {
     const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -42,6 +44,13 @@ export default function SmartQuoteView({
     const [showHelp, setShowHelp] = useState(false);
     const [editableReply, setEditableReply] = useState("");
     const [selectedClientId, setSelectedClientId] = useState<string>("");
+
+    // Booking Modal State
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [bookingStep, setBookingStep] = useState<'form' | 'success'>('form');
+    const [clientDetails, setClientDetails] = useState({ name: '', phone: '', instagram: '', notes: '' });
+    const [isBooking, setIsBooking] = useState(false);
+
 
     // Feedback Modal State
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
@@ -127,104 +136,135 @@ export default function SmartQuoteView({
     };
 
     return (
-        <div className="space-y-6 max-w-md mx-auto pb-24">
-            <div className="text-center space-y-2 relative">
-                <div className="absolute right-0 top-0 flex space-x-2">
-                    {isAuthenticated && (
-                        <Link href="/dashboard/settings" className="text-gray-400 hover:text-pink-500 transition-colors">
-                            <Settings size={20} />
-                        </Link>
-                    )}
-                    <button
-                        onClick={() => setShowHelp(true)}
-                        className="text-gray-400 hover:text-pink-500 transition-colors"
-                    >
+        <div className="flex flex-col max-w-2xl mx-auto relative bg-white rounded-[2.5rem] shadow-xl overflow-hidden border-4 border-pink-100 my-4 transition-all duration-500 pb-8">
+
+            {/* Header */}
+            <div className="p-6 z-10 space-y-6 bg-gradient-to-b from-pink-50 to-white">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        {isAuthenticated && (
+                            <Link href="/dashboard/settings" className="p-2 bg-white border border-pink-100 rounded-full text-gray-500 hover:text-pink-600 hover:border-pink-300 transition-all shadow-sm">
+                                <Settings size={20} />
+                            </Link>
+                        )}
+                    </div>
+                    <h2 className="text-pink-900 font-bold text-lg tracking-wide">Service Sorter</h2>
+                    <button onClick={() => setShowHelp(true)} className="p-2 bg-white border border-pink-100 rounded-full text-gray-500 hover:text-pink-600 hover:border-pink-300 transition-all shadow-sm">
                         <HelpCircle size={20} />
                     </button>
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight">Service Sorter</h2>
-                <p className="text-sm text-gray-600">Upload inspo, get service recommendations.</p>
-                {isCoolingDown && (
-                    <p className="text-xs text-amber-600 font-medium animate-pulse">
-                        Cooling down... {remainingTime}s
-                    </p>
-                )}
+
+                <div className="text-center px-4">
+                    <p className="text-gray-500 text-sm font-medium">Upload inspo, get service recommendations.</p>
+                    {isCoolingDown && (
+                        <p className="text-xs text-amber-600 font-medium animate-pulse mt-2">
+                            Cooling down... {remainingTime}s
+                        </p>
+                    )}
+                </div>
             </div>
 
-            {/* Upload Area */}
-            {!image ? (
-                <label className={`border-2 border-dashed border-gray-300 h-80 flex flex-col items-center justify-center bg-white cursor-pointer hover:bg-pink-50/50 transition-all group relative overflow-hidden ${buttonStyle === 'pill' ? 'rounded-[2rem]' : buttonStyle === 'square' ? 'rounded-none' : 'rounded-3xl'
-                    }`}
-                    style={{ borderColor: isAnalyzing ? themeColor : undefined }}
-                >
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-                    <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: `${themeColor}15` }} // 15 is hex for ~8% opacity
-                    >
-                        <Sparkles size={32} style={{ color: themeColor }} />
-                    </div>
-                    <span className="font-medium text-gray-500 transition-colors" style={{ color: themeColor }}>Tap to Analyze Inspo</span>
-                    <p className="text-xs text-gray-400 mt-2">or upload from gallery</p>
-                </label>
-            ) : (
-                <div className="relative rounded-3xl overflow-hidden shadow-lg bg-black h-80 group">
-                    <div
-                        className="w-full h-full overflow-hidden cursor-zoom-in"
-                        onClick={toggleZoom}
-                    >
-                        <img
-                            src={image}
-                            alt="Uploaded"
-                            className={`w-full h-full object-contain bg-black transition-all duration-300 ${isAnalyzing ? 'opacity-50' : 'opacity-100'}`}
-                            style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
-                        />
-                    </div>
-
-                    {/* Enlarge Button */}
-                    {!isAnalyzing && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowFullImage(true);
-                            }}
-                            className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                        >
-                            <ZoomIn size={20} />
-                        </button>
-                    )}
-
-                    {!isAnalyzing && (
-                        <button
-                            onClick={reset}
-                            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 backdrop-blur-sm transition-colors z-10"
-                        >
-                            <X size={20} />
-                        </button>
-                    )}
-
-                    {/* Zoom Hint */}
-                    {!isAnalyzing && (
-                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1">
-                            {zoomLevel === 1 ? <ZoomIn size={12} /> : <ZoomOut size={12} />}
-                            <span>{zoomLevel === 1 ? 'Tap to Zoom' : 'Tap to Reset'}</span>
-                        </div>
-                    )}
-
-                    {/* Scanning Overlay */}
-                    <ScanningOverlay
-                        isScanning={isAnalyzing}
-                        mode="design"
-                        onCancel={() => {
-                            setIsAnalyzing(false);
+            {/* Manual Build Button */}
+            {!image && !result && (
+                <div className="flex justify-center mb-4">
+                    <button
+                        onClick={() => {
+                            // Set default result for manual configuration
+                            const defaultResult: ServiceSelection = {
+                                base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
+                                addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
+                                art: { level: null },
+                                bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
+                                modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
+                                pedicure: { type: 'None', toeArtMatch: false }
+                            };
+                            setResult(defaultResult);
+                            // Fake image state to switch view, or handle 'no image' mode better. 
+                            // For now, let's just set result and keep image null, but we need to ensure UI handles it.
+                            // Actually, the UI below checks `if (result)`. So setting result is enough.
+                            // But the upload area is shown `if (!image)`. We want to hide upload area if result exists OR image exists.
                         }}
-                    />
+                        className="text-sm font-bold text-gray-500 hover:text-pink-500 transition-colors underline"
+                    >
+                        Skip Upload & Book Manually
+                    </button>
                 </div>
             )}
 
+            {/* Camera Viewfinder / Upload Area */}
+            <div className="relative mx-4 mb-4 rounded-3xl overflow-hidden bg-gray-50 border-2 border-dashed border-pink-200 group min-h-[400px]">
+
+                {/* Image Display */}
+                {image && (
+                    <img
+                        src={image}
+                        alt="Captured"
+                        className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-500 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
+                        style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', transition: 'transform 0.3s ease-out' }}
+                    />
+                )}
+
+                {/* Scanning Overlay */}
+                {(isAnalyzing || (!image && !result)) && (
+                    <div className={`absolute inset-0 z-20 pointer-events-none ${!isAnalyzing && !image ? 'hidden' : ''}`}>
+                        <ScanningOverlay isScanning={isAnalyzing} mode="design" />
+                    </div>
+                )}
+
+                {/* Empty State: Tap to Scan Button */}
+                {!image && !result && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none gap-8">
+                        <div className="relative group pointer-events-auto">
+                            <div className="absolute -inset-4 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                            <label className="relative w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-4 border-pink-50">
+                                <Sparkles size={40} className="text-pink-500 mb-2" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Tap to Scan</span>
+                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                            </label>
+                        </div>
+                        <p className="text-xs text-gray-400">or upload from gallery</p>
+                    </div>
+                )}
+
+                {/* Controls Overlay (Zoom, Fullscreen, Reset) */}
+                {image && !isAnalyzing && (
+                    <div className="absolute inset-0 pointer-events-none">
+                        {/* Top Right Controls */}
+                        <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
+                            <button
+                                onClick={reset}
+                                className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-red-500 transition-all shadow-sm"
+                                title="Reset"
+                            >
+                                <X size={20} />
+                            </button>
+                            <button
+                                onClick={() => setShowFullImage(true)}
+                                className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-blue-500 transition-all shadow-sm"
+                                title="Full Screen"
+                            >
+                                <ZoomIn size={20} />
+                            </button>
+                        </div>
+
+                        {/* Bottom Right Zoom Toggle */}
+                        <div className="absolute bottom-4 right-4 pointer-events-auto">
+                            <button
+                                onClick={toggleZoom}
+                                className="px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-medium hover:bg-black/70 transition-all flex items-center gap-1"
+                            >
+                                {zoomLevel === 1 ? <ZoomIn size={14} /> : <ZoomOut size={14} />}
+                                {zoomLevel === 1 ? 'Zoom In' : 'Reset Zoom'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+
             {/* Results Card */}
             {result && (
-                <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500">
+                <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-500 px-4">
 
                     {/* Visual Description Card */}
                     {result.visual_description && (
@@ -273,6 +313,18 @@ export default function SmartQuoteView({
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {/* Booking Button (Public Only) */}
+                    {!isAuthenticated && onBook && (
+                        <button
+                            onClick={() => setIsBookingModalOpen(true)}
+                            className={`w-full py-4 text-white font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 ${buttonStyle === 'pill' ? 'rounded-full' : buttonStyle === 'square' ? 'rounded-none' : 'rounded-xl'}`}
+                            style={{ backgroundColor: themeColor }}
+                        >
+                            <Sparkles size={20} />
+                            Request Appointment
+                        </button>
                     )}
 
                     {/* Editable Draft Reply */}
@@ -324,19 +376,22 @@ export default function SmartQuoteView({
 
             {/* Full Image Modal */}
             {showFullImage && image && (
-                <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowFullImage(false)}>
+                <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowFullImage(false)}>
                     <button
                         onClick={() => setShowFullImage(false)}
-                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                        className="absolute top-4 right-4 text-white/80 hover:text-white p-2"
                     >
                         <X size={32} />
                     </button>
                     <img
                         src={image}
                         alt="Full size"
-                        className="max-w-full max-h-full object-contain rounded-lg"
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     />
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+                        Tap anywhere to close
+                    </div>
                 </div>
             )}
             {/* Help Modal */}
@@ -349,6 +404,118 @@ export default function SmartQuoteView({
                 context="smart_quote"
                 aiResult={result}
             />
+
+            {/* Booking Modal */}
+            {isBookingModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-gray-900">
+                                {bookingStep === 'form' ? 'Request Appointment' : 'Request Sent!'}
+                            </h3>
+                            <button onClick={() => setIsBookingModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {bookingStep === 'form' ? (
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={clientDetails.name}
+                                        onChange={(e) => setClientDetails({ ...clientDetails, name: e.target.value })}
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-pink-500 focus:outline-none"
+                                        placeholder="Your full name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Phone <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="tel"
+                                        value={clientDetails.phone}
+                                        onChange={(e) => setClientDetails({ ...clientDetails, phone: e.target.value })}
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-pink-500 focus:outline-none"
+                                        placeholder="(555) 123-4567"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Instagram Handle (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={clientDetails.instagram}
+                                        onChange={(e) => setClientDetails({ ...clientDetails, instagram: e.target.value })}
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-pink-500 focus:outline-none"
+                                        placeholder="@username"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Notes (Optional)</label>
+                                    <textarea
+                                        value={clientDetails.notes}
+                                        onChange={(e) => setClientDetails({ ...clientDetails, notes: e.target.value })}
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-pink-500 focus:outline-none h-24 resize-none"
+                                        placeholder="Any special requests or availability?"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-2">
+                                    <input type="checkbox" id="policy-agree" className="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500" />
+                                    <label htmlFor="policy-agree" className="text-sm text-gray-600">I agree to the salon policies.</label>
+                                </div>
+
+                                <button
+                                    onClick={async () => {
+                                        if (!clientDetails.name || !clientDetails.phone) {
+                                            alert("Please fill in all required fields.");
+                                            return;
+                                        }
+                                        setIsBooking(true);
+                                        try {
+                                            if (onBook && result) {
+                                                await onBook(result, clientDetails);
+                                                setBookingStep('success');
+                                            }
+                                        } catch (error) {
+                                            console.error("Booking failed", error);
+                                            alert("Something went wrong. Please try again.");
+                                        } finally {
+                                            setIsBooking(false);
+                                        }
+                                    }}
+                                    disabled={isBooking}
+                                    className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 mt-4"
+                                >
+                                    {isBooking ? 'Sending Request...' : 'Send Request'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center space-y-4">
+                                <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Check size={32} />
+                                </div>
+                                <h4 className="text-2xl font-bold text-gray-900">You're on the list!</h4>
+                                <p className="text-gray-500">
+                                    Thanks for your request, {clientDetails.name}. We've received your quote and will text you at {clientDetails.phone} shortly to confirm your appointment.
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setIsBookingModalOpen(false);
+                                        setBookingStep('form');
+                                        setClientDetails({ name: '', phone: '', instagram: '', notes: '' });
+                                        reset();
+                                    }}
+                                    className="w-full py-3 bg-gray-100 text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition-colors mt-6"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

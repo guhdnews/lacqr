@@ -25,7 +25,7 @@ export default function ServiceMenuEditor() {
                 ))}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-full">
                 {activeTab === 'base' && (
                     <div className="p-6 space-y-8">
                         {/* Base Prices */}

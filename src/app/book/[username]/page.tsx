@@ -2,11 +2,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import SmartQuoteView from '@/components/SmartQuoteView';
-import { MasterServiceMenu } from '@/types/serviceSchema';
+import { MasterServiceMenu, ServiceSelection } from '@/types/serviceSchema';
 import { DEFAULT_MENU } from '@/utils/pricingCalculator';
+import { BookingConfig } from '@/types/user';
+import { Phone, Mail, Instagram, ExternalLink } from 'lucide-react';
 
 interface PublicBookingPageProps {
     params: {
@@ -73,13 +75,36 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
         );
     }
 
-    const config = salonUser.bookingConfig || {
+    const config: BookingConfig = salonUser.bookingConfig || {
         themeColor: salonUser.brandColor || '#ec4899',
         welcomeMessage: `Welcome to ${salonUser.salonName || salonUser.name}'s booking page!`,
         policies: [],
         showSocialLinks: false,
         font: 'sans',
         buttonStyle: 'rounded'
+    };
+
+    const handleBook = async (quote: ServiceSelection, clientDetails: { name: string; phone: string; instagram?: string; notes?: string }) => {
+        if (!salonUser?.id) return;
+
+        try {
+            await addDoc(collection(db, 'quotes'), {
+                salonId: salonUser.id,
+                clientName: clientDetails.name,
+                clientPhone: clientDetails.phone,
+                clientInstagram: clientDetails.instagram || '',
+                clientNotes: clientDetails.notes || '',
+                data: quote,
+                totalPrice: quote.estimatedPrice || 0, // Should be calculated, but using estimated for now
+                status: 'pending',
+                createdAt: serverTimestamp(),
+                isRead: false
+            });
+            console.log("✅ Booking request sent!");
+        } catch (err) {
+            console.error("❌ Error saving booking:", err);
+            throw err; // Propagate to modal to show error state if needed
+        }
     };
 
     const brandColor = salonUser.brandColor || config.themeColor || '#ec4899';
@@ -147,6 +172,36 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
                         {/* Decorative circle */}
                         <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                     </div>
+
+                    {/* Contact & Social Links */}
+                    {config.showSocialLinks && (
+                        <div className="flex justify-center gap-4 mt-6 flex-wrap">
+                            {(config.publicPhone || salonUser.phone) && (
+                                <a href={`tel:${config.publicPhone || salonUser.phone}`} className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm font-bold text-gray-700 hover:text-pink-500 transition-colors">
+                                    <Phone size={16} />
+                                    <span>Call</span>
+                                </a>
+                            )}
+                            {(config.publicEmail || salonUser.email) && (
+                                <a href={`mailto:${config.publicEmail || salonUser.email}`} className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm font-bold text-gray-700 hover:text-pink-500 transition-colors">
+                                    <Mail size={16} />
+                                    <span>Email</span>
+                                </a>
+                            )}
+                            {config.instagramHandle && (
+                                <a href={`https://instagram.com/${config.instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm font-bold text-gray-700 hover:text-pink-500 transition-colors">
+                                    <Instagram size={16} />
+                                    <span>Instagram</span>
+                                </a>
+                            )}
+                            {config.tiktokHandle && (
+                                <a href={`https://tiktok.com/@${config.tiktokHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm font-bold text-gray-700 hover:text-pink-500 transition-colors">
+                                    <ExternalLink size={16} />
+                                    <span>TikTok</span>
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -175,6 +230,7 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
                             isAuthenticated={false} // Public view
                             themeColor={brandColor}
                             buttonStyle={config.buttonStyle}
+                            onBook={handleBook}
                         />
                     </div>
                 </div>

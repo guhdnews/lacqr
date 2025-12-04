@@ -53,12 +53,12 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
     if (!isScanning) return null;
 
     return (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl">
-            <div className="w-full max-w-xs text-center space-y-8 p-6">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl p-4">
+            <div className="w-full max-w-sm text-center space-y-8">
 
                 {/* Main Loader */}
                 <div className="relative mx-auto w-24 h-24">
-                    <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-gray-700 rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                         {mode === 'diagnostics' ? (
@@ -70,7 +70,7 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
                 </div>
 
                 {/* Steps */}
-                <div className="space-y-4">
+                <div className="space-y-4 px-4">
                     {steps.map((step, index) => {
                         const Icon = step.icon;
                         const isActive = index === activeStep;
@@ -86,11 +86,11 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
                                     w-8 h-8 rounded-full flex items-center justify-center transition-colors
                                     ${isActive ? 'bg-pink-500/20 ' + step.color : ''}
                                     ${isCompleted ? 'bg-green-500/20 text-green-400' : ''}
-                                    ${!isActive && !isCompleted ? 'bg-gray-800 text-gray-600' : ''}
+                                    ${!isActive && !isCompleted ? 'bg-gray-800 text-gray-500' : ''}
                                 `}>
                                     {isCompleted ? <CheckCircle2 size={16} /> : <Icon size={16} />}
                                 </div>
-                                <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                                <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-400'}`}>
                                     {step.text}
                                 </span>
                             </div>
@@ -101,7 +101,7 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
                 {onCancel && (
                     <button
                         onClick={onCancel}
-                        className="mt-8 px-6 py-2 rounded-full border border-gray-700 text-gray-400 text-sm hover:bg-gray-800 hover:text-white transition-colors"
+                        className="mt-8 px-6 py-2 rounded-full border border-gray-600 text-gray-300 text-sm hover:bg-gray-800 hover:text-white transition-colors"
                     >
                         Cancel Scan
                     </button>
@@ -109,12 +109,12 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
 
                 {/* Cold Start Warning (Time-Based) */}
                 {showLongWait && (
-                    <p className="text-xs text-amber-500 animate-in fade-in slide-in-from-bottom-2 duration-1000 mt-4 max-w-[200px] mx-auto">
+                    <p className="text-xs text-amber-400 animate-in fade-in slide-in-from-bottom-2 duration-1000 mt-4 max-w-[200px] mx-auto">
                         First scans take a little longer... hang tight! ⏳
                     </p>
                 )}
 
-                <p className="text-xs text-gray-600 animate-pulse mt-4">
+                <p className="text-xs text-gray-500 animate-pulse mt-4">
                     Powered by Lacqr AI
                 </p>
             </div>

@@ -1,6 +1,7 @@
 # PROJECT CONTEXT & HANDOFF PROTOCOL
 > **Last Updated:** 2025-11-28
 > **Status:** Active Development (Sprint 2 Complete)
+> **Core Philosophy:** Build upon existing foundations. Do not rewrite working features.
 
 ## 1. PROJECT IDENTITY
 * **App:** Lacqr (SaaS for Nail Techs).
@@ -143,7 +144,20 @@
     *   **Zombie Service Worker:** The legacy Vite PWA Service Worker was causing 404s/Blank pages. Implemented `ServiceWorkerKiller` in `RootLayout` to force unregistration.
     *   **Routing Conflicts:** Removed legacy `vercel.json` rewrites that were hijacking Next.js routes.
 
+### Sprint 9: UI Refinement & CRM Integration (Completed)
+*   **Goal:** Finalize Lacqr Lens UI and integrate with CRM booking.
+*   **Key Deliverables:**
+    *   **Lacqr Lens UI Overhaul:** Single-page layout, light theme, "Assess Hand" vs "Analyze Inspo" modes.
+    *   **CRM Integration:** "Pending Quotes" in Client Profile, direct booking from quotes.
+    *   **UI Fixes:** Resolved padding/overlap issues on mobile.
+    *   **Security:** Rotated API keys and established strict gitignore rules.
+
 ## 8. CURRENT CRITICAL ISSUES (DEBUGGING IN PROGRESS)
+### ⚠️ API Key Security
+*   **Context:** Gemini API key was exposed in a previous commit.
+*   **Action:** Key rotated. Global rule established: **NEVER commit secrets.**
+*   **Status:** Resolved. New key in `.env.local`.
+
 ### 🔴 `TypeError: Cannot read properties of undefined (reading 'lengthTier')`
 *   **Context:** Occurs during AI Image Analysis in `LacqrLens`.
 *   **Root Cause:** The `analyzeImage` function (in `src/services/ai.ts`) fails to upload the image to Firebase Storage due to permissions, returning an incomplete object. The UI (`ServiceConfigurator`) then tries to read `pricingDetails.details.lengthTier` from this incomplete object.
@@ -152,22 +166,6 @@
     *   **Infra Fix:** User updated Firebase Storage Rules to `allow read, write: if true;`.
     *   **Verification:** Pending user confirmation after "Zombie SW" fix.
 
-### 🔴 Blank Pages / 404s (Solved?)
-*   **Context:** Users reported blank pages on `/debug-test` and `/admin/logs`.
-*   **Root Cause:** Legacy Service Worker from Vite PWA was caching old routes and serving 404s.
-*   **Fix:** Deployed `ServiceWorkerKiller` component. User instructed to refresh multiple times to clear the cache.
-
-## 9. NEXT STEPS
-1.  **Verify Fixes:** Confirm `ServiceWorkerKiller` has resolved the 404s.
-2.  **Verify Image Upload:** Confirm updated Storage Rules allow `analyzeImage` to succeed.
-3.  **Strict Shape Logic:** Implement industry-standard pricing tiers for nail shapes.
-4.  **Dashboard Overhaul:** Redesign the main dashboard.
-
-## 10. STRATEGIC ROADMAP: THE "DEALERSHIP MODEL" CRM
-> **Source:** User provided Google Sheet mapping Dealership CRM features to Nail Tech equivalents.
-> **Goal:** Professionalize the nail tech workflow by adopting proven automotive service workflows.
-
-| Dealership Feature | Lacqr (Nail Tech) Equivalent | Why it matters |
 | :--- | :--- | :--- |
 | **VIN / Vehicle History** | **Nail Profile & Service Logs** | Tracks specific polish codes, shape preferences (e.g., "Coffin"), and nail health over time. |
 | **Service Intervals (3k/5k)** | **Fill/Removal Cycle (2-3 wks)** | Automates "You're due for a fill" texts based on the specific service type (Gel vs. Acrylic). |

@@ -7,14 +7,10 @@ import { Save, Layout, Palette, Type, Globe } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-interface BookingConfig {
-    themeColor: string;
-    welcomeMessage: string;
-    policies: string[];
-    showSocialLinks: boolean;
-    font?: 'sans' | 'serif' | 'mono';
-    buttonStyle?: 'rounded' | 'pill' | 'square';
-}
+import type { BookingConfig } from '@/types/user';
+
+// Removed local BookingConfig interface in favor of imported one
+
 
 export default function BookingEditor() {
     const { user } = useAppStore();
@@ -148,6 +144,82 @@ export default function BookingEditor() {
                                 onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })}
                                 className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500 min-h-[100px]"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
+                            <textarea
+                                value={config.welcomeMessage}
+                                onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-500 min-h-[100px]"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Contact Info Section */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <Globe size={20} className="text-pink-500" />
+                        Contact & Social
+                    </h3>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Show Social Links</span>
+                            <button
+                                onClick={() => handleSave({ ...config, showSocialLinks: !config.showSocialLinks })}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${config.showSocialLinks ? 'bg-pink-500' : 'bg-gray-200'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${config.showSocialLinks ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Public Phone</label>
+                                <input
+                                    type="tel"
+                                    value={config.publicPhone || ''}
+                                    onChange={(e) => setConfig({ ...config, publicPhone: e.target.value })}
+                                    className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
+                                    placeholder="Override profile phone"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Public Email</label>
+                                <input
+                                    type="email"
+                                    value={config.publicEmail || ''}
+                                    onChange={(e) => setConfig({ ...config, publicEmail: e.target.value })}
+                                    className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-500"
+                                    placeholder="Override profile email"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                                <div className="flex items-center">
+                                    <span className="bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg px-2 py-2 text-gray-500 text-sm">@</span>
+                                    <input
+                                        type="text"
+                                        value={config.instagramHandle || ''}
+                                        onChange={(e) => setConfig({ ...config, instagramHandle: e.target.value })}
+                                        className="w-full p-2 border border-gray-200 rounded-r-lg focus:outline-none focus:border-pink-500"
+                                        placeholder="username"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">TikTok</label>
+                                <div className="flex items-center">
+                                    <span className="bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg px-2 py-2 text-gray-500 text-sm">@</span>
+                                    <input
+                                        type="text"
+                                        value={config.tiktokHandle || ''}
+                                        onChange={(e) => setConfig({ ...config, tiktokHandle: e.target.value })}
+                                        className="w-full p-2 border border-gray-200 rounded-r-lg focus:outline-none focus:border-pink-500"
+                                        placeholder="username"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
