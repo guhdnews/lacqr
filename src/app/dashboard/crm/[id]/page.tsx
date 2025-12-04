@@ -170,7 +170,6 @@ export default function ClientDetailPage() {
                 {/* Left Column: Contact & Nail Profile */}
                 <div className="space-y-6">
                     {/* Contact Info */}
-                    {/* Contact Info */}
                     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 relative">
                         {/* Edit/Delete Controls */}
                         <div className="absolute top-4 right-4 flex space-x-2">
@@ -227,7 +226,7 @@ export default function ClientDetailPage() {
                         </div>
                     </div>
 
-                    {/* Nail Profile (The "VIN" Spec) */}
+                    {/* Nail Profile */}
                     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800">Nail Profile</h3>
@@ -295,7 +294,7 @@ export default function ClientDetailPage() {
                             </div>
                         )}
                     </div>
-                </div>
+
                     {/* Client Notes Section */}
                     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
                         <div className="flex justify-between items-center mb-4">
@@ -440,6 +439,6 @@ export default function ClientDetailPage() {
                 initialData={selectedService}
                 serviceId={selectedService?.id}
             />
-        </div >
+        </div>
     );
 }
