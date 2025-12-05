@@ -4,12 +4,12 @@ import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2025-11-17.clover' as any, // Use latest stable version
-});
-
 export async function POST(request: Request) {
+    // Initialize Stripe inside the handler to avoid build-time issues
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+        apiVersion: '2025-11-17.clover' as any,
+    });
+
     try {
         // 1. Verify Auth Token
         const authHeader = request.headers.get('Authorization');

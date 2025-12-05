@@ -3,12 +3,12 @@ import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-// Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2025-11-17.clover' as any, // Force version to match types if needed, or just use string. The error says types expect this specific string.
-});
-
 export async function POST(request: Request) {
+    // Initialize Stripe inside the handler
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+        apiVersion: '2025-11-17.clover' as any,
+    });
+
     try {
         const { amount, currency, salonId, bookingId } = await request.json();
 
