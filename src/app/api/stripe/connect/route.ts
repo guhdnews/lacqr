@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import Stripe from 'stripe';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -20,8 +18,9 @@ export async function POST(request: Request) {
 
         const token = authHeader.split('Bearer ')[1];
         const adminAuth = getAdminAuth();
+        const adminDb = getAdminDb();
 
-        if (!adminAuth) {
+        if (!adminAuth || !adminDb) {
             console.error("Firebase Admin not initialized");
             return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
         }
@@ -37,15 +36,15 @@ export async function POST(request: Request) {
         }
 
         // 2. Check if user already has a Stripe Account ID in Firestore
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
+        const userRef = adminDb.collection('users').doc(userId);
+        const userSnap = await userRef.get();
 
-        if (!userSnap.exists()) {
+        if (!userSnap.exists) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
         const userData = userSnap.data();
-        let accountId = userData.stripeAccountId;
+        let accountId = userData?.stripeAccountId;
 
         // 3. If no account ID, create one
         if (!accountId) {
@@ -67,7 +66,7 @@ export async function POST(request: Request) {
             accountId = account.id;
 
             // Save to Firestore
-            await updateDoc(userRef, {
+            await userRef.update({
                 stripeAccountId: accountId,
                 stripeConnected: false // Will be updated to true after successful onboarding check
             });
