@@ -1,12 +1,52 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { Camera, Sparkles, Users, ArrowRight } from 'lucide-react';
+import { Camera, Sparkles, Users, ArrowRight, TrendingUp, Calendar, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import DraftsList from '@/components/DraftsList';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Dashboard() {
     const { user } = useAppStore();
+    const [stats, setStats] = useState({
+        pendingBookings: 0,
+        acceptedBookings: 0,
+        totalClients: 0
+    });
+
+    useEffect(() => {
+        if (user?.id) {
+            const fetchStats = async () => {
+                try {
+                    // Fetch Bookings
+                    const bookingsQuery = query(collection(db, 'quotes'), where('salonId', '==', user.id));
+                    const bookingsSnap = await getDocs(bookingsQuery);
+                    const bookings = bookingsSnap.docs.map(doc => doc.data());
+
+                    const pending = bookings.filter(b => b.status === 'pending').length;
+                    const accepted = bookings.filter(b => b.status === 'accepted').length;
+
+                    // Fetch Clients (Unique phone numbers from bookings + manually added clients if we had a separate collection, 
+                    // but for now we'll just count unique clients from bookings as a proxy or if there's a clients collection)
+                    // Assuming 'clients' collection exists based on CRM features, otherwise use unique phones from quotes
+                    const clientsQuery = query(collection(db, 'clients'), where('techId', '==', user.id));
+                    const clientsSnap = await getDocs(clientsQuery);
+                    const totalClients = clientsSnap.size;
+
+                    setStats({
+                        pendingBookings: pending,
+                        acceptedBookings: accepted,
+                        totalClients: totalClients
+                    });
+                } catch (error) {
+                    console.error("Error fetching dashboard stats:", error);
+                }
+            };
+            fetchStats();
+        }
+    }, [user?.id]);
 
     const quickActions = [
         {
@@ -75,29 +115,69 @@ export default function Dashboard() {
                 <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="font-bold text-xl text-gray-900">Recent Drafts</h2>
-                        <Link href="/drafts" className="text-sm text-pink-500 font-medium hover:text-pink-600">
+                        <Link href="/dashboard/drafts" className="text-sm text-pink-500 font-medium hover:text-pink-600">
                             View All
                         </Link>
                     </div>
                     <DraftsList />
                 </div>
 
-                {/* Stats / Info (Placeholder) */}
+                {/* Business Stats */}
                 <div className="space-y-4">
-                    <h2 className="font-bold text-xl text-gray-900">Quick Tips</h2>
-                    <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-                        <div className="flex items-start gap-3">
-                            <Sparkles className="text-indigo-500 mt-1 flex-shrink-0" size={20} />
-                            <div>
-                                <h4 className="font-bold text-indigo-900 text-sm mb-1">Smart Quote</h4>
-                                <p className="text-xs text-indigo-700 leading-relaxed">
-                                    Did you know you can share your Smart Quote link directly with clients? Check your settings to get your link!
-                                </p>
-                                <Link href="/dashboard/settings" className="text-xs font-bold text-indigo-600 mt-3 inline-flex items-center gap-1 hover:text-indigo-800">
-                                    Go to Settings <ArrowRight size={12} />
+                    <h2 className="font-bold text-xl text-gray-900">Business Overview</h2>
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+
+                        {/* Pending Requests */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-yellow-100 p-2 rounded-lg text-yellow-600">
+                                    <Calendar size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Pending Requests</p>
+                                    <p className="text-xl font-black text-gray-900">{stats.pendingBookings}</p>
+                                </div>
+                            </div>
+                            {stats.pendingBookings > 0 && (
+                                <Link href="/dashboard/bookings" className="text-xs font-bold text-pink-500 hover:underline">
+                                    Review
                                 </Link>
+                            )}
+                        </div>
+
+                        <div className="h-px bg-gray-100"></div>
+
+                        {/* Accepted Bookings */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600">
+                                    <TrendingUp size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Upcoming Appts</p>
+                                    <p className="text-xl font-black text-gray-900">{stats.acceptedBookings}</p>
+                                </div>
                             </div>
                         </div>
+
+                        <div className="h-px bg-gray-100"></div>
+
+                        {/* Total Clients */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                                    <Users size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Total Clients</p>
+                                    <p className="text-xl font-black text-gray-900">{stats.totalClients}</p>
+                                </div>
+                            </div>
+                            <Link href="/dashboard/crm" className="text-xs font-bold text-gray-400 hover:text-gray-600">
+                                View CRM
+                            </Link>
+                        </div>
+
                     </div>
                 </div>
             </div>

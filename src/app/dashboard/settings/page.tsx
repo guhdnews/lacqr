@@ -1,15 +1,14 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { User, Building2, CreditCard, Layout, Check, Globe, Palette } from 'lucide-react';
+import { User, Building2, CreditCard, Layout, Check, Globe, Palette, Shield, Download, Trash2, Bell } from 'lucide-react';
 import Link from 'next/link';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function Settings() {
     const { user, setUser } = useAppStore();
-    const [activeTab, setActiveTab] = useState<'profile' | 'salon' | 'booking-page' | 'payments'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'salon' | 'booking-page' | 'payments' | 'notifications' | 'data'>('profile');
     const [loading, setLoading] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -31,6 +30,10 @@ export default function Settings() {
     // Payments State
     const [stripeConnected, setStripeConnected] = useState(false);
 
+    // Notifications State
+    const [emailNotifications, setEmailNotifications] = useState(true);
+    const [smsNotifications, setSmsNotifications] = useState(true);
+
     useEffect(() => {
         if (user?.id) {
             const fetchSettings = async () => {
@@ -48,6 +51,9 @@ export default function Settings() {
                     setLogoUrl(data.logoUrl || '');
                     setHeaderImageUrl(data.headerImageUrl || '');
                     setBrandColor(data.brandColor || '#ec4899');
+                    // Default to true if undefined
+                    setEmailNotifications(data.emailNotifications !== false);
+                    setSmsNotifications(data.smsNotifications !== false);
                 }
             };
             fetchSettings();
@@ -69,7 +75,9 @@ export default function Settings() {
                 stripeConnected,
                 logoUrl,
                 headerImageUrl,
-                brandColor
+                brandColor,
+                emailNotifications,
+                smsNotifications
             });
 
             // Update local store
@@ -93,39 +101,105 @@ export default function Settings() {
         }
     };
 
+    const handleExportData = async () => {
+        if (!user?.id) return;
+        setLoading(true);
+        try {
+            // Fetch all quotes
+            const q = query(collection(db, 'quotes'), where('salonId', '==', user.id));
+            const querySnapshot = await getDocs(q);
+            const quotes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Prepare export object
+            const exportData = {
+                user: {
+                    id: user.id,
+                    name,
+                    email: user.email,
+                    salonName,
+                    phone,
+                    settings: {
+                        emailNotifications,
+                        smsNotifications
+                    }
+                },
+                quotes,
+                exportedAt: new Date().toISOString()
+            };
+
+            // Create blob and download
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lacqr-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            alert("Data export started!");
+        } catch (error) {
+            console.error("Error exporting data:", error);
+            alert("Failed to export data.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] max-w-6xl mx-auto p-4 md:p-6 gap-6 md:gap-8">
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 flex-shrink-0">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 md:p-4 flex overflow-x-auto md:block space-x-2 md:space-x-0 md:space-y-2 scrollbar-hide">
-                    <button
-                        onClick={() => setActiveTab('profile')}
-                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'profile' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        <User size={18} className="md:w-5 md:h-5" />
-                        <span className="text-sm md:text-base">Profile</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('salon')}
-                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'salon' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        <Building2 size={18} className="md:w-5 md:h-5" />
-                        <span className="text-sm md:text-base">Salon Details</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('booking-page')}
-                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'booking-page' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        <Layout size={18} className="md:w-5 md:h-5" />
-                        <span className="text-sm md:text-base">Booking Page</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('payments')}
-                        className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'payments' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        <CreditCard size={18} className="md:w-5 md:h-5" />
-                        <span className="text-sm md:text-base">Payments</span>
-                    </button>
+                <div className="relative">
+                    {/* Scroll Fade Hints (Mobile Only) */}
+                    <div className="md:hidden absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 md:p-4 flex overflow-x-auto md:block space-x-2 md:space-x-0 md:space-y-2 scrollbar-hide relative">
+                        <button
+                            onClick={() => setActiveTab('profile')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'profile' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <User size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Profile</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('salon')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'salon' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <Building2 size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Salon Details</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('booking-page')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'booking-page' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <Layout size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Booking Page</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('payments')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'payments' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <CreditCard size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Payments</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('notifications')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'notifications' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <Bell size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Notifications</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('data')}
+                            className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-2 md:py-3 rounded-xl transition-all whitespace-nowrap ${activeTab === 'data' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        >
+                            <Shield size={18} className="md:w-5 md:h-5" />
+                            <span className="text-sm md:text-base">Security & Data</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -200,26 +274,22 @@ export default function Settings() {
 
                             {/* Branding Fields */}
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Logo URL (Profile Picture)</label>
-                                <input
-                                    type="text"
-                                    value={logoUrl}
-                                    onChange={(e) => setLogoUrl(e.target.value)}
-                                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-pink-500 focus:ring-0 transition-colors"
-                                    placeholder="https://example.com/logo.png"
+                                <ImageUpload
+                                    label="Logo (Profile Picture)"
+                                    currentImageUrl={logoUrl}
+                                    onImageUploaded={setLogoUrl}
+                                    path={`users/${user?.id}/logos`}
+                                    helperText="Recommended: Square image, at least 400x400px."
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Paste a direct link to your logo image.</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Header Image URL (Banner)</label>
-                                <input
-                                    type="text"
-                                    value={headerImageUrl}
-                                    onChange={(e) => setHeaderImageUrl(e.target.value)}
-                                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-pink-500 focus:ring-0 transition-colors"
-                                    placeholder="https://example.com/banner.jpg"
+                                <ImageUpload
+                                    label="Header Image (Banner)"
+                                    currentImageUrl={headerImageUrl}
+                                    onImageUploaded={setHeaderImageUrl}
+                                    path={`users/${user?.id}/banners`}
+                                    helperText="Recommended: Wide image, at least 1200x400px."
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Paste a direct link to a wide banner image.</p>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Brand Color</label>
@@ -357,6 +427,101 @@ export default function Settings() {
                                     {loading ? 'Saving...' : 'Save Changes'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* NOTIFICATIONS TAB */}
+                {activeTab === 'notifications' && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4">
+                        <h2 className="text-2xl font-black text-charcoal mb-6">Notifications</h2>
+                        <div className="space-y-6 max-w-lg">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <div>
+                                    <h3 className="font-bold text-charcoal">Email Notifications</h3>
+                                    <p className="text-sm text-gray-500">Receive booking updates via email</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={emailNotifications}
+                                        onChange={(e) => setEmailNotifications(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                </label>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <div>
+                                    <h3 className="font-bold text-charcoal">SMS Notifications</h3>
+                                    <p className="text-sm text-gray-500">Receive booking updates via text</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={smsNotifications}
+                                        onChange={(e) => setSmsNotifications(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                </label>
+                            </div>
+
+                            <div className="pt-4">
+                                <button
+                                    onClick={handleSave}
+                                    disabled={loading}
+                                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors disabled:opacity-50"
+                                >
+                                    {loading ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* SECURITY & DATA TAB */}
+                {activeTab === 'data' && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4">
+                        <h2 className="text-2xl font-black text-charcoal mb-6">Security & Data</h2>
+                        <div className="space-y-8 max-w-lg">
+
+                            {/* Export Section */}
+                            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                                <h3 className="font-bold text-lg mb-2 text-blue-900 flex items-center gap-2">
+                                    <Download size={20} />
+                                    Export Your Data
+                                </h3>
+                                <p className="text-blue-800/70 text-sm mb-4">
+                                    Download a copy of all your bookings, clients, and settings in JSON format.
+                                </p>
+                                <button
+                                    onClick={handleExportData}
+                                    disabled={loading}
+                                    className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                >
+                                    {loading ? 'Exporting...' : 'Export All Data'}
+                                </button>
+                            </div>
+
+                            {/* Danger Zone */}
+                            <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                                <h3 className="font-bold text-lg mb-2 text-red-900 flex items-center gap-2">
+                                    <Trash2 size={20} />
+                                    Danger Zone
+                                </h3>
+                                <p className="text-red-800/70 text-sm mb-4">
+                                    Permanently delete your account and all associated data. This action cannot be undone.
+                                </p>
+                                <button
+                                    onClick={() => alert("Account deletion is disabled for this demo.")}
+                                    className="w-full py-3 bg-white border-2 border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-colors"
+                                >
+                                    Delete Account
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 )}

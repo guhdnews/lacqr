@@ -9,6 +9,7 @@ import { MasterServiceMenu, ServiceSelection } from '@/types/serviceSchema';
 import { DEFAULT_MENU } from '@/utils/pricingCalculator';
 import { BookingConfig } from '@/types/user';
 import { Phone, Mail, Instagram, ExternalLink } from 'lucide-react';
+import PaymentModal from '@/components/PaymentModal';
 
 interface PublicBookingPageProps {
     params: {
@@ -53,13 +54,23 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
         }
     }, [params.username]);
 
+    // SEO: Update Page Title
+    useEffect(() => {
+        if (salonUser?.salonName || salonUser?.name) {
+            document.title = `Book with ${salonUser.salonName || salonUser.name} | Lacqr`;
+        }
+    }, [salonUser]);
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full mb-4"></div>
-                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-gray-200 border-t-pink-500 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                    </div>
                 </div>
+                <p className="mt-4 text-gray-400 font-medium animate-pulse">Loading Salon...</p>
             </div>
         );
     }
@@ -67,9 +78,15 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
     if (error || !salonUser) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
-                    <p className="text-gray-500">{error || "This booking page does not exist."}</p>
+                <div className="text-center max-w-md bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ExternalLink size={32} className="rotate-180" />
+                    </div>
+                    <h1 className="text-2xl font-black text-gray-900 mb-2">Page Not Found</h1>
+                    <p className="text-gray-500 mb-6">{error || "We couldn't find a booking page for this handle. It might have been changed or deleted."}</p>
+                    <a href="/" className="inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors w-full">
+                        Go to Lacqr Home
+                    </a>
                 </div>
             </div>
         );
@@ -84,10 +101,22 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
         buttonStyle: 'rounded'
     };
 
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [pendingBooking, setPendingBooking] = useState<{ quote: ServiceSelection, clientDetails: any } | null>(null);
+
     const handleBook = async (quote: ServiceSelection, clientDetails: { name: string; phone: string; instagram?: string; notes?: string }) => {
-        if (!salonUser?.id) return;
+        // Store booking details and show payment modal
+        setPendingBooking({ quote, clientDetails });
+        setShowPaymentModal(true);
+    };
+
+    const handlePaymentSuccess = async (paymentIntentId: string) => {
+        if (!salonUser?.id || !pendingBooking) return;
+
+        const { quote, clientDetails } = pendingBooking;
 
         try {
+            // 1. Create Booking
             await addDoc(collection(db, 'quotes'), {
                 salonId: salonUser.id,
                 clientName: clientDetails.name,
@@ -95,15 +124,32 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
                 clientInstagram: clientDetails.instagram || '',
                 clientNotes: clientDetails.notes || '',
                 data: quote,
-                totalPrice: quote.estimatedPrice || 0, // Should be calculated, but using estimated for now
-                status: 'pending',
+                totalPrice: quote.estimatedPrice || 0,
+                status: 'pending', // Or 'paid_deposit'
+                paymentStatus: 'paid',
+                paymentIntentId: paymentIntentId,
                 createdAt: serverTimestamp(),
                 isRead: false
             });
-            console.log("✅ Booking request sent!");
+
+            // 2. Create Notification
+            await addDoc(collection(db, `users/${salonUser.id}/notifications`), {
+                type: 'booking_request',
+                title: 'New Paid Appointment',
+                message: `${clientDetails.name} booked a ${quote.base.system} set. Deposit paid.`,
+                read: false,
+                createdAt: serverTimestamp(),
+                link: '/dashboard/bookings'
+            });
+
+            console.log("✅ Booking saved after payment!");
+            setShowPaymentModal(false);
+            setPendingBooking(null);
+            alert("Booking confirmed! You will receive a confirmation shortly.");
+            // Optional: Redirect to success page
         } catch (err) {
             console.error("❌ Error saving booking:", err);
-            throw err; // Propagate to modal to show error state if needed
+            alert("Payment successful, but booking failed to save. Please contact the salon.");
         }
     };
 
@@ -116,8 +162,7 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
         'mono': 'font-mono'
     }[config.font as string] || 'font-sans';
 
-    // Button radius mapping (passed to CSS variable or used in child components if possible, 
-    // for now applying to a wrapper that might be used by SmartQuoteView if it uses CSS variables or inheritance)
+    // Button radius mapping
     const buttonRadiusClass = {
         'rounded': 'rounded-xl',
         'pill': 'rounded-full',
@@ -235,6 +280,15 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Payment Modal */}
+            <PaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                amount={pendingBooking?.quote.estimatedPrice ? pendingBooking.quote.estimatedPrice * 0.20 : 20} // 20% deposit or $20 min
+                salonId={salonUser.id}
+                onSuccess={handlePaymentSuccess}
+            />
         </div>
     );
 }

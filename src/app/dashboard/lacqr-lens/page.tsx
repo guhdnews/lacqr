@@ -29,26 +29,14 @@ function LacqrLensContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const [image, setImage] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') return localStorage.getItem('lacqr_lens_image');
-        return null;
-    });
+    const [image, setImage] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<ServiceSelection | null>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('lacqr_lens_result');
-            return saved ? JSON.parse(saved) : null;
-        }
-        return null;
-    });
+    const [result, setResult] = useState<ServiceSelection | null>(null);
     const [isBlurry, setIsBlurry] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
     const [showHelp, setShowHelp] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
-    const [step, setStep] = useState<LensStep>(() => {
-        if (typeof window !== 'undefined') return (localStorage.getItem('lacqr_lens_step') as LensStep) || 'scan';
-        return 'scan';
-    });
+    const [step, setStep] = useState<LensStep>('scan');
     const [mode, setMode] = useState<'diagnostics' | 'design'>('design');
 
     // History State
@@ -79,23 +67,8 @@ function LacqrLensContent() {
     }, [user?.id, step]); // Re-fetch when step changes (e.g. after saving a quote)
 
     // Persistence Effects
-    useEffect(() => {
-        try {
-            if (image) localStorage.setItem('lacqr_lens_image', image);
-            else localStorage.removeItem('lacqr_lens_image');
-        } catch (e) {
-            console.warn("Failed to save image to localStorage (likely quota exceeded):", e);
-        }
-    }, [image]);
-
-    useEffect(() => {
-        if (result) localStorage.setItem('lacqr_lens_result', JSON.stringify(result));
-        else localStorage.removeItem('lacqr_lens_result');
-    }, [result]);
-
-    useEffect(() => {
-        localStorage.setItem('lacqr_lens_step', step);
-    }, [step]);
+    // Persistence Effects Removed as per user request
+    // Scans should not persist on refresh, but should be saved to history.
 
     // Resume Draft Logic via Query Param
     useEffect(() => {
@@ -162,6 +135,11 @@ function LacqrLensContent() {
         }
 
         if (file) {
+            // Check file size (Max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert("File is too large. Please upload an image smaller than 10MB.");
+                return;
+            }
 
             const reader = new FileReader();
             reader.onloadend = async () => {
@@ -186,6 +164,42 @@ function LacqrLensContent() {
                 setResult(analysis);
                 setStep('configure'); // Move to configure step
                 startCooldown();
+
+                // Auto-save to history
+                if (user?.id) {
+                    try {
+                        const { addDoc, collection } = await import('firebase/firestore');
+                        const { db } = await import('@/lib/firebase');
+
+                        // Sanitize
+                        const cleanData = JSON.parse(JSON.stringify(analysis));
+                        if (cleanData.modalResult) delete cleanData.modalResult;
+
+                        await addDoc(collection(db, 'quotes'), {
+                            userId: user.id,
+                            status: 'history', // Distinct status for auto-saved history
+                            data: cleanData,
+                            createdAt: new Date(),
+                            salonName: user.name || "My Salon",
+                            totalPrice: calculatePrice(analysis, menu).total,
+                            clientName: 'Auto-Save'
+                        });
+
+                        // Refresh history list
+                        const q = query(
+                            collection(db, 'quotes'),
+                            where('userId', '==', user.id),
+                            orderBy('createdAt', 'desc'),
+                            limit(5)
+                        );
+                        const snapshot = await getDocs(q);
+                        const scans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setRecentScans(scans);
+
+                    } catch (err) {
+                        console.error("Auto-save failed", err);
+                    }
+                }
             } catch (error: any) {
                 console.error("Analysis failed", error);
                 setError(error.message || "An unexpected error occurred.");
@@ -203,10 +217,8 @@ function LacqrLensContent() {
         setIsBlurry(false);
         setZoomLevel(1);
         setStep('scan');
-        // Clear persistence
-        localStorage.removeItem('lacqr_lens_image');
-        localStorage.removeItem('lacqr_lens_result');
-        localStorage.removeItem('lacqr_lens_step');
+        setStep('scan');
+        // Clear persistence removed
     };
 
     const toggleZoom = () => {
@@ -419,18 +431,26 @@ function LacqrLensContent() {
                             </button>
                         </div>
                         <div className="space-y-4">
-                            {recentScans.map(scan => (
-                                <div key={scan.id} className="bg-gray-50 border border-gray-100 p-4 rounded-xl flex gap-4 items-center cursor-pointer hover:bg-pink-50 hover:border-pink-100 transition-all" onClick={() => loadFromHistory(scan.id)}>
-                                    <div className="w-12 h-12 bg-white rounded-lg overflow-hidden flex items-center justify-center text-pink-200 border border-gray-100 shadow-sm">
-                                        <Scan size={20} />
+                            {recentScans.length > 0 ? (
+                                recentScans.map(scan => (
+                                    <div key={scan.id} className="bg-gray-50 border border-gray-100 p-4 rounded-xl flex gap-4 items-center cursor-pointer hover:bg-pink-50 hover:border-pink-100 transition-all" onClick={() => loadFromHistory(scan.id)}>
+                                        <div className="w-12 h-12 bg-white rounded-lg overflow-hidden flex items-center justify-center text-pink-200 border border-gray-100 shadow-sm">
+                                            <Scan size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-800 font-bold">{scan.clientName || 'Unknown Client'}</p>
+                                            <p className="text-gray-400 text-xs">{new Date(scan.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="ml-auto font-bold text-pink-500">${scan.totalPrice}</div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-800 font-bold">{scan.clientName || 'Unknown Client'}</p>
-                                        <p className="text-gray-400 text-xs">{new Date(scan.createdAt?.seconds * 1000).toLocaleDateString()}</p>
-                                    </div>
-                                    <div className="ml-auto font-bold text-pink-500">${scan.totalPrice}</div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    <History size={48} className="mx-auto mb-2 opacity-20" />
+                                    <p>No recent scans found.</p>
+                                    <p className="text-xs mt-1">Saved quotes will appear here.</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 )}
@@ -520,8 +540,7 @@ function LacqrLensContent() {
                     </div>
 
                     {/* Service Configurator */}
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                        <h2 className="font-bold text-xl text-charcoal mb-6">Fine Tune Quote</h2>
+                    <div className="mt-6">
                         <ServiceConfigurator
                             initialSelection={result}
                             onUpdate={(updated) => setResult(updated)}

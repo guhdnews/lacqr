@@ -64,18 +64,23 @@ export default function Header() {
                 </div>
 
                 {/* Mobile Menu Button */}
-                <button className="md:hidden text-gray-600" onClick={toggleMenu}>
+                <button
+                    className="md:hidden text-gray-600 p-2 -mr-2"
+                    onClick={toggleMenu}
+                    aria-label="Toggle menu"
+                    aria-expanded={isMenuOpen}
+                >
                     {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-pink-50 shadow-lg py-4 px-6 flex flex-col space-y-4">
-                    <Link href="/features" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Features</Link>
-                    <Link href="/pricing" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Pricing</Link>
-                    <Link href="/about" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>About</Link>
-                    <Link href="/faq" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>FAQ</Link>
+                <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-pink-50 shadow-lg py-4 px-6 flex flex-col space-y-4 animate-in slide-in-from-top-2">
+                    <Link href="/features" className="text-gray-600 hover:text-pink-500 font-medium py-2" onClick={toggleMenu}>Features</Link>
+                    <Link href="/pricing" className="text-gray-600 hover:text-pink-500 font-medium py-2" onClick={toggleMenu}>Pricing</Link>
+                    <Link href="/about" className="text-gray-600 hover:text-pink-500 font-medium py-2" onClick={toggleMenu}>About</Link>
+                    <Link href="/faq" className="text-gray-600 hover:text-pink-500 font-medium py-2" onClick={toggleMenu}>FAQ</Link>
                     {user.isAuthenticated ? (
                         <>
                             <hr className="border-pink-50" />
@@ -86,7 +91,7 @@ export default function Header() {
                                         import('../lib/firebase').then(({ auth }) => auth.signOut());
                                         toggleMenu();
                                     }}
-                                    className="text-red-500 hover:text-red-600 font-medium text-left"
+                                    className="text-red-500 hover:text-red-600 font-medium text-left py-2"
                                 >
                                     Sign Out
                                 </button>
@@ -95,7 +100,7 @@ export default function Header() {
                     ) : (
                         <>
                             <hr className="border-pink-50" />
-                            <Link href="/login" className="text-gray-600 hover:text-pink-500 font-medium" onClick={toggleMenu}>Log In</Link>
+                            <Link href="/login" className="text-gray-600 hover:text-pink-500 font-medium py-2" onClick={toggleMenu}>Log In</Link>
                             <button
                                 onClick={() => {
                                     router.push('/signup');

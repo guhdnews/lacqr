@@ -39,6 +39,19 @@ interface ServiceStore {
     // Actions for Pedicure
     updatePedicurePrice: (type: PedicureType, price: number) => void;
 
+    // Generic Actions for Dynamic Menu
+    addItem: (
+        category: keyof MasterServiceMenu,
+        key: string,
+        price: number,
+        duration?: number
+    ) => void;
+
+    removeItem: (
+        category: keyof MasterServiceMenu,
+        key: string
+    ) => void;
+
     resetMenu: () => void;
 }
 
@@ -117,10 +130,73 @@ export const useServiceStore = create<ServiceStore>()(
                 }
             })),
 
+            addItem: (category, key, price, duration = 0) => set((state) => {
+                const newMenu = { ...state.menu };
+
+                // 1. Add to the price map
+                // @ts-ignore - Dynamic access is safe here due to relaxed types
+                newMenu[category] = { ...newMenu[category], [key]: price };
+
+                // 2. Add to durations if applicable
+                // Map category to duration category
+                const durationMap: Record<string, string> = {
+                    'basePrices': 'base',
+                    'fillPrices': 'fill',
+                    'lengthSurcharges': 'length',
+                    'shapeSurcharges': 'shape',
+                    'artLevelPrices': 'art',
+                    'blingDensityPrices': 'bling',
+                    'pedicurePrices': 'pedicure'
+                };
+
+                const durationKey = durationMap[category];
+                if (durationKey && newMenu.durations) {
+                    // @ts-ignore
+                    newMenu.durations[durationKey] = {
+                        // @ts-ignore
+                        ...newMenu.durations[durationKey],
+                        [key]: duration
+                    };
+                }
+
+                return { menu: newMenu };
+            }),
+
+            removeItem: (category, key) => set((state) => {
+                const newMenu = { ...state.menu };
+
+                // 1. Remove from price map
+                // @ts-ignore
+                const { [key]: _, ...rest } = newMenu[category];
+                // @ts-ignore
+                newMenu[category] = rest;
+
+                // 2. Remove from durations if applicable
+                const durationMap: Record<string, string> = {
+                    'basePrices': 'base',
+                    'fillPrices': 'fill',
+                    'lengthSurcharges': 'length',
+                    'shapeSurcharges': 'shape',
+                    'artLevelPrices': 'art',
+                    'blingDensityPrices': 'bling',
+                    'pedicurePrices': 'pedicure'
+                };
+
+                const durationKey = durationMap[category];
+                if (durationKey && newMenu.durations) {
+                    // @ts-ignore
+                    const { [key]: __, ...restDurations } = newMenu.durations[durationKey];
+                    // @ts-ignore
+                    newMenu.durations[durationKey] = restDurations;
+                }
+
+                return { menu: newMenu };
+            }),
+
             resetMenu: () => set({ menu: DEFAULT_MENU })
         }),
         {
-            name: 'lacqr-service-menu-v2', // Changed key to force reset for new schema
+            name: 'lacqr-service-menu-v3', // Bump version to force migration if needed, or just keep v2 if compatible
         }
     )
 );

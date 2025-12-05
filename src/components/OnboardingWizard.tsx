@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, Check, Store, DollarSign, Link as LinkIcon, User, Phone, Loader2 } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppStore } from '../store/useAppStore';
 import ServiceMenuEditor from './ServiceMenuEditor';
 
 export default function OnboardingWizard() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [initializing, setInitializing] = useState(true);
 
     // Step 1: User Profile
     const [userName, setUserName] = useState('');
@@ -20,15 +22,110 @@ export default function OnboardingWizard() {
     const [bookingHandle, setBookingHandle] = useState('');
     const [currency, setCurrency] = useState('USD');
 
-    // Step 3: Service Menu (Handled by ServiceMenuEditor)
-
     // Step 4: Payments
     const [isStripeConnected, setIsStripeConnected] = useState(false);
 
     const { user, setUser } = useAppStore();
 
+    // Initialize: Check for Stripe Return or Existing Data
+    useEffect(() => {
+        const init = async () => {
+            if (!user.id) return;
+
+            try {
+                // Check if returning from Stripe
+                const isStripeReturn = searchParams.get('stripe_return') === 'true';
+
+                // Fetch latest data from Firestore (to restore state or check Stripe status)
+                const userDoc = await getDoc(doc(db, 'users', user.id));
+
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+
+                    // Restore State
+                    setUserName(data.name || '');
+                    setUserPhone(data.phone || '');
+                    setSalonName(data.salonName || '');
+                    setBookingHandle(data.bookingHandle || '');
+                    setCurrency(data.currency || 'USD');
+                    setIsStripeConnected(data.stripeConnected || false); // Use correct field name
+
+                    // If returning from Stripe, jump to Step 4
+                    if (isStripeReturn) {
+                        setStep(4);
+                        // Optional: Show success toast
+                    } else if (data.onboardingComplete) {
+                        // If already complete, maybe redirect? For now, let's stay to allow editing unless logic dictates otherwise
+                        // router.push('/dashboard'); 
+                    }
+                }
+            } catch (error) {
+                console.error("Error initializing onboarding:", error);
+            } finally {
+                setInitializing(false);
+            }
+        };
+
+        if (user.id) {
+            init();
+        } else {
+            setInitializing(false);
+        }
+    }, [user.id, searchParams]);
+
     const handleNext = () => {
         setStep(step + 1);
+    };
+
+    const handleConnectStripe = async () => {
+        if (!user.id) return;
+        setLoading(true);
+
+        try {
+            // 1. Save current state before redirecting
+            await setDoc(doc(db, 'users', user.id), {
+                name: userName,
+                phone: userPhone,
+                salonName,
+                bookingHandle,
+                currency,
+                // Don't set onboardingComplete yet
+            }, { merge: true });
+
+            // 2. Call API to get Stripe Link
+            const { auth } = await import('../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            if (!token) {
+                throw new Error("User not authenticated");
+            }
+
+            const response = await fetch('/api/stripe/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    email: user.email,
+                    name: userName || user.name,
+                    returnUrl: window.location.origin + '/onboarding' // Return here
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert('Failed to start Stripe connection: ' + (data.error || 'Unknown error'));
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error("Error connecting Stripe:", error);
+            alert("Failed to connect Stripe.");
+            setLoading(false);
+        }
     };
 
     const handleComplete = async () => {
@@ -36,22 +133,22 @@ export default function OnboardingWizard() {
         try {
             if (!user.id) throw new Error("No user ID found");
 
-            // Save User & Salon Settings
+            // Save Final State
             await setDoc(doc(db, 'users', user.id), {
-                name: userName, // Update user name
+                name: userName,
                 phone: userPhone,
                 salonName,
                 bookingHandle,
                 currency,
-                isStripeConnected,
                 onboardingComplete: true
             }, { merge: true });
 
-            // Update Local State
+            // Update Local Store
             setUser({
                 ...user,
                 name: userName,
-                onboardingComplete: true
+                onboardingComplete: true,
+                stripeConnected: isStripeConnected
             });
 
             // Redirect to Dashboard
@@ -80,6 +177,14 @@ export default function OnboardingWizard() {
             setLoading(false);
         }
     };
+
+    if (initializing) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <Loader2 className="animate-spin text-charcoal" size={48} />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
@@ -260,13 +365,24 @@ export default function OnboardingWizard() {
                             <h3 className="font-bold text-xl text-charcoal">Stripe Integration</h3>
                             <p className="text-gray-500">Secure payments, automated deposits, and financial reporting.</p>
 
-                            <button
-                                onClick={() => setIsStripeConnected(!isStripeConnected)}
-                                className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 ${isStripeConnected ? 'bg-green-500 text-white' : 'bg-[#635BFF] text-white hover:bg-[#534be0]'}`}
-                            >
-                                {isStripeConnected ? <Check size={20} /> : <span className="font-bold">S</span>}
-                                <span>{isStripeConnected ? 'Connected' : 'Connect Stripe'}</span>
-                            </button>
+                            {isStripeConnected ? (
+                                <button
+                                    disabled
+                                    className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center space-x-2 bg-green-500 text-white cursor-default"
+                                >
+                                    <Check size={20} />
+                                    <span>Connected</span>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleConnectStripe}
+                                    disabled={loading}
+                                    className="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 bg-[#635BFF] text-white hover:bg-[#534be0] disabled:opacity-70"
+                                >
+                                    {loading ? <Loader2 className="animate-spin" /> : <span className="font-bold">S</span>}
+                                    <span>{loading ? 'Connecting...' : 'Connect Stripe'}</span>
+                                </button>
+                            )}
                         </div>
 
                         <button

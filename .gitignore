@@ -40,6 +40,10 @@ lacqrtraining_dataset_v1/
 lacqrtraining_dataset_v2/
 combined_data.yaml
 
+# Next.js
+.next/
+out/
+
 # Vercel
 .vercel
 .env

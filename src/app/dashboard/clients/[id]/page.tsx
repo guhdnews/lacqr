@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Client } from '@/types/client';
 import type { Appointment } from '@/types/appointment';
@@ -228,10 +228,73 @@ export default function ClientProfile() {
 
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="font-bold text-charcoal mb-4">Preferences</h3>
-                        {/* TODO: Build proper UI for ClientPreferences object */}
-                        <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-500 italic">
-                            Structured preferences (Shapes, Lengths, Colors) are not yet editable in this view.
+                        {client.preferences ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <span className="text-xs font-bold text-gray-400 uppercase">Shapes</span>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {client.preferences.preferredShapes?.length > 0 ? (
+                                            client.preferences.preferredShapes.map(s => (
+                                                <span key={s} className="px-2 py-1 bg-pink-50 text-pink-700 text-xs rounded-md font-medium">{s}</span>
+                                            ))
+                                        ) : <span className="text-sm text-gray-400">None listed</span>}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold text-gray-400 uppercase">Lengths</span>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {client.preferences.preferredLengths?.length > 0 ? (
+                                            client.preferences.preferredLengths.map(l => (
+                                                <span key={l} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">{l}</span>
+                                            ))
+                                        ) : <span className="text-sm text-gray-400">None listed</span>}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold text-gray-400 uppercase">Colors</span>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {client.preferences.favoriteColors?.length > 0 ? (
+                                            client.preferences.favoriteColors.map(c => (
+                                                <span key={c} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md font-medium">{c}</span>
+                                            ))
+                                        ) : <span className="text-sm text-gray-400">None listed</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-500 italic">
+                                No preferences recorded yet.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Zone */}
+            {isEditing && (
+                <div className="border-t border-gray-200 pt-8 mt-8">
+                    <h3 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h3>
+                    <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p className="font-bold text-red-900">Delete this client</p>
+                            <p className="text-sm text-red-700">Once deleted, all data and history will be lost.</p>
                         </div>
+                        <button
+                            onClick={async () => {
+                                if (confirm("Are you sure you want to delete this client? This cannot be undone.")) {
+                                    try {
+                                        await deleteDoc(doc(db, 'clients', id));
+                                        router.push('/dashboard/clients');
+                                    } catch (error) {
+                                        console.error("Error deleting client:", error);
+                                        alert("Failed to delete client.");
+                                    }
+                                }
+                            }}
+                            className="px-4 py-2 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                            Delete Client
+                        </button>
                     </div>
                 </div>
             )}

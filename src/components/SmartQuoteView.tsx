@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState } from 'react';
-import { Sparkles, X, Copy, Check, ZoomIn, ZoomOut, HelpCircle, Share2, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
+import { Sparkles, X, Copy, Check, ZoomIn, ZoomOut, HelpCircle, Share2, ThumbsUp, ThumbsDown, Settings, Edit3 } from 'lucide-react';
 import Link from 'next/link';
 import { AI_SERVICE } from '../services/ai';
 import { compressImage } from '../utils/imageProcessing';
@@ -50,6 +50,7 @@ export default function SmartQuoteView({
     const [bookingStep, setBookingStep] = useState<'form' | 'success'>('form');
     const [clientDetails, setClientDetails] = useState({ name: '', phone: '', instagram: '', notes: '' });
     const [isBooking, setIsBooking] = useState(false);
+    const [policyAgreed, setPolicyAgreed] = useState(false);
 
 
     // Feedback Modal State
@@ -75,14 +76,6 @@ export default function SmartQuoteView({
         }
 
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setImage(reader.result as string);
-            reader.readAsDataURL(file);
-
-            setIsAnalyzing(true);
-            setResult(null);
-            setCopied(false);
-            setZoomLevel(1);
 
             try {
                 const compressedFile = await compressImage(file);
@@ -135,6 +128,16 @@ export default function SmartQuoteView({
         }
     };
 
+    // Default selection for manual booking
+    const DEFAULT_SELECTION: ServiceSelection = {
+        base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
+        addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
+        art: { level: null },
+        bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
+        modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
+        pedicure: { type: 'None', toeArtMatch: false }
+    };
+
     return (
         <div className="flex flex-col max-w-2xl mx-auto relative bg-white rounded-[2.5rem] shadow-xl overflow-hidden border-4 border-pink-100 my-4 transition-all duration-500 pb-8">
 
@@ -148,7 +151,7 @@ export default function SmartQuoteView({
                             </Link>
                         )}
                     </div>
-                    <h2 className="text-pink-900 font-bold text-lg tracking-wide">Service Sorter</h2>
+                    <h2 className="text-pink-900 font-bold text-lg tracking-wide">Smart Quote</h2>
                     <button onClick={() => setShowHelp(true)} className="p-2 bg-white border border-pink-100 rounded-full text-gray-500 hover:text-pink-600 hover:border-pink-300 transition-all shadow-sm">
                         <HelpCircle size={20} />
                     </button>
@@ -166,100 +169,90 @@ export default function SmartQuoteView({
 
             {/* Manual Build Button */}
             {!image && !result && (
-                <div className="flex justify-center mb-4">
+                <div className="px-6 pb-2">
                     <button
                         onClick={() => {
-                            // Set default result for manual configuration
-                            const defaultResult: ServiceSelection = {
-                                base: { system: 'Acrylic', shape: 'Square', length: 'Short' },
-                                addons: { finish: 'Glossy', specialtyEffect: 'None', classicDesign: 'None' },
-                                art: { level: null },
-                                bling: { density: 'None', xlCharmsCount: 0, piercingsCount: 0 },
-                                modifiers: { foreignWork: 'None', repairsCount: 0, soakOffOnly: false },
-                                pedicure: { type: 'None', toeArtMatch: false }
-                            };
-                            setResult(defaultResult);
-                            // Fake image state to switch view, or handle 'no image' mode better. 
-                            // For now, let's just set result and keep image null, but we need to ensure UI handles it.
-                            // Actually, the UI below checks `if (result)`. So setting result is enough.
-                            // But the upload area is shown `if (!image)`. We want to hide upload area if result exists OR image exists.
+                            setResult(DEFAULT_SELECTION);
                         }}
-                        className="text-sm font-bold text-gray-500 hover:text-pink-500 transition-colors underline"
+                        className="w-full py-3 bg-white border-2 border-pink-100 text-pink-600 font-bold rounded-xl hover:bg-pink-50 transition-colors flex items-center justify-center gap-2"
                     >
-                        Skip Upload & Book Manually
+                        <Edit3 size={18} />
+                        Book Manually
                     </button>
                 </div>
             )}
 
             {/* Camera Viewfinder / Upload Area */}
-            <div className="relative mx-4 mb-4 rounded-3xl overflow-hidden bg-gray-50 border-2 border-dashed border-pink-200 group min-h-[400px]">
+            {!result && (
+                <div className="relative mx-4 mb-4 rounded-3xl overflow-hidden bg-gray-50 border-2 border-dashed border-pink-200 group min-h-[400px]">
 
-                {/* Image Display */}
-                {image && (
-                    <img
-                        src={image}
-                        alt="Captured"
-                        className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-500 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
-                        style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', transition: 'transform 0.3s ease-out' }}
-                    />
-                )}
+                    {/* Image Display */}
+                    {image && (
+                        <img
+                            src={image}
+                            alt="Captured"
+                            className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-500 ${isAnalyzing ? 'opacity-50 blur-sm' : 'opacity-100'}`}
+                            style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', transition: 'transform 0.3s ease-out' }}
+                        />
+                    )}
 
-                {/* Scanning Overlay */}
-                {(isAnalyzing || (!image && !result)) && (
-                    <div className={`absolute inset-0 z-20 pointer-events-none ${!isAnalyzing && !image ? 'hidden' : ''}`}>
-                        <ScanningOverlay isScanning={isAnalyzing} mode="design" />
-                    </div>
-                )}
-
-                {/* Empty State: Tap to Scan Button */}
-                {!image && !result && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none gap-8">
-                        <div className="relative group pointer-events-auto">
-                            <div className="absolute -inset-4 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                            <label className="relative w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-4 border-pink-50">
-                                <Sparkles size={40} className="text-pink-500 mb-2" />
-                                <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Tap to Scan</span>
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-                            </label>
+                    {/* Scanning Overlay */}
+                    {(isAnalyzing || (!image && !result)) && (
+                        <div className={`absolute inset-0 z-20 pointer-events-none ${!isAnalyzing && !image ? 'hidden' : ''}`}>
+                            <ScanningOverlay isScanning={isAnalyzing} mode="design" />
                         </div>
-                        <p className="text-xs text-gray-400">or upload from gallery</p>
-                    </div>
-                )}
+                    )}
 
-                {/* Controls Overlay (Zoom, Fullscreen, Reset) */}
-                {image && !isAnalyzing && (
-                    <div className="absolute inset-0 pointer-events-none">
-                        {/* Top Right Controls */}
-                        <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
-                            <button
-                                onClick={reset}
-                                className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-red-500 transition-all shadow-sm"
-                                title="Reset"
-                            >
-                                <X size={20} />
-                            </button>
-                            <button
-                                onClick={() => setShowFullImage(true)}
-                                className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-blue-500 transition-all shadow-sm"
-                                title="Full Screen"
-                            >
-                                <ZoomIn size={20} />
-                            </button>
+                    {/* Empty State: Tap to Scan Button */}
+                    {!image && !result && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none gap-8">
+                            <div className="relative group pointer-events-auto">
+                                <div className="absolute -inset-4 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                                <label className="relative w-32 h-32 bg-white rounded-full flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-4 border-pink-50">
+                                    <Sparkles size={40} className="text-pink-500 mb-2" />
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Tap to Scan</span>
+                                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                                </label>
+                            </div>
+                            <p className="text-xs text-gray-400">or upload from gallery</p>
                         </div>
+                    )}
 
-                        {/* Bottom Right Zoom Toggle */}
-                        <div className="absolute bottom-4 right-4 pointer-events-auto">
-                            <button
-                                onClick={toggleZoom}
-                                className="px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-medium hover:bg-black/70 transition-all flex items-center gap-1"
-                            >
-                                {zoomLevel === 1 ? <ZoomIn size={14} /> : <ZoomOut size={14} />}
-                                {zoomLevel === 1 ? 'Zoom In' : 'Reset Zoom'}
-                            </button>
+                    {/* Controls Overlay (Zoom, Fullscreen, Reset) */}
+                    {image && !isAnalyzing && (
+                        <div className="absolute inset-0 pointer-events-none">
+                            {/* Top Right Controls */}
+                            <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
+                                <button
+                                    onClick={reset}
+                                    className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-red-500 transition-all shadow-sm"
+                                    title="Reset"
+                                >
+                                    <X size={20} />
+                                </button>
+                                <button
+                                    onClick={() => setShowFullImage(true)}
+                                    className="p-2 bg-white/80 backdrop-blur-md rounded-full text-gray-700 hover:text-blue-500 transition-all shadow-sm"
+                                    title="Full Screen"
+                                >
+                                    <ZoomIn size={20} />
+                                </button>
+                            </div>
+
+                            {/* Bottom Right Zoom Toggle */}
+                            <div className="absolute bottom-4 right-4 pointer-events-auto">
+                                <button
+                                    onClick={toggleZoom}
+                                    className="px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-medium hover:bg-black/70 transition-all flex items-center gap-1"
+                                >
+                                    {zoomLevel === 1 ? <ZoomIn size={14} /> : <ZoomOut size={14} />}
+                                    {zoomLevel === 1 ? 'Zoom In' : 'Reset Zoom'}
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
 
             {/* Results Card */}
@@ -293,10 +286,26 @@ export default function SmartQuoteView({
                     )}
 
                     {/* Service Configurator */}
-                    <ServiceConfigurator
-                        initialSelection={result}
-                        onUpdate={(updatedSelection) => setResult(updatedSelection)}
-                    />
+                    <div className="relative">
+                        <ServiceConfigurator
+                            initialSelection={result}
+                            onUpdate={(selection) => {
+                                setResult(selection);
+                            }}
+                        />
+
+                        {/* Back Button for Manual Mode */}
+                        {!image && (
+                            <div className="mt-4 text-center">
+                                <button
+                                    onClick={reset}
+                                    className="text-sm text-gray-500 hover:text-pink-500 underline"
+                                >
+                                    Start Over / Scan Image
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Client Selection (Only if authenticated and clients exist) */}
                     {isAuthenticated && clients.length > 0 && (
@@ -461,7 +470,13 @@ export default function SmartQuoteView({
                                 </div>
 
                                 <div className="flex items-center gap-2 pt-2">
-                                    <input type="checkbox" id="policy-agree" className="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500" />
+                                    <input
+                                        type="checkbox"
+                                        id="policy-agree"
+                                        checked={policyAgreed}
+                                        onChange={(e) => setPolicyAgreed(e.target.checked)}
+                                        className="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+                                    />
                                     <label htmlFor="policy-agree" className="text-sm text-gray-600">I agree to the salon policies.</label>
                                 </div>
 
@@ -469,6 +484,10 @@ export default function SmartQuoteView({
                                     onClick={async () => {
                                         if (!clientDetails.name || !clientDetails.phone) {
                                             alert("Please fill in all required fields.");
+                                            return;
+                                        }
+                                        if (!policyAgreed) {
+                                            alert("Please agree to the salon policies to continue.");
                                             return;
                                         }
                                         setIsBooking(true);
@@ -518,4 +537,3 @@ export default function SmartQuoteView({
         </div>
     );
 }
-

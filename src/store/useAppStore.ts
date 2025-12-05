@@ -18,6 +18,7 @@ interface AppState {
         bookingConfig?: any; // Using any for now to avoid circular dependency or complex type duplication
         isAuthenticated: boolean;
         onboardingComplete: boolean;
+        stripeConnected?: boolean;
     };
     isAuthReady: boolean;
     setAuthReady: (ready: boolean) => void;

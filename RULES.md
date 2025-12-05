@@ -14,3 +14,9 @@
 - **Build, Don't Break**: When refining features (AI accuracy, CRM flows, Pricing), **DO NOT** overwrite existing working logic unless absolutely necessary.
 - **Iterative Improvement**: Add to the existing codebase. For example, when improving AI, refine the prompt or add a post-processing step; do not delete the entire pipeline.
 - **Regression Testing**: Always verify that core flows (Scanning -> Quote -> Booking) remain functional after any change.
+
+## 4. Execution Standards
+- **Complete All Steps**: Never truncate or skip steps. If a task requires multiple actions, complete EVERY single one. Do not leave "TODOs" for the user unless explicitly agreed upon.
+- **Double-Check Work**: Verify every change. Don't just assume it works. Check for syntax errors, logic flaws, and missing imports immediately after editing.
+- **Continuous Auditing**: While fixing, continue to look for "holes", edge cases, and missing logic. Be proactive in identifying issues even if they weren't in the original plan.
+- **No Shortcuts**: Do not use placeholders or "mock" logic for core features unless strictly prototyping. Build for production.

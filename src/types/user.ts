@@ -11,6 +11,20 @@ export interface BookingConfig {
     publicEmail?: string;
     instagramHandle?: string;
     tiktokHandle?: string;
+
+    // Payment Methods
+    paymentMethods?: {
+        cash?: boolean;
+        zelle?: boolean;
+        venmo?: boolean;
+        square?: boolean;
+        stripe?: boolean;
+    };
+    paymentHandles?: {
+        zelle?: string;
+        venmo?: string;
+        squareUrl?: string;
+    };
 }
 
 export interface SalonUser {

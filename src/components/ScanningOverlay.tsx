@@ -113,9 +113,12 @@ export default function ScanningOverlay({ isScanning, mode = 'design', onCancel 
                         First scans take a little longer... hang tight! ⏳
                     </p>
                 )}
-
-                <p className="text-xs text-gray-500 animate-pulse mt-4">
-                    Powered by Lacqr AI
+            </div>
+            {/* Powered by Lacqr */}
+            <div className="absolute bottom-6 left-0 right-0 text-center z-20">
+                <p className="text-[10px] text-gray-500 font-medium tracking-widest uppercase mb-0.5">Powered by</p>
+                <p className="text-xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(236,72,153,0.8)]">
+                    LACQR
                 </p>
             </div>
         </div>

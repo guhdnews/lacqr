@@ -1,13 +1,13 @@
-export type SystemType = 'Acrylic' | 'Gel-X' | 'Hard Gel' | 'Structure Gel';
-export type NailShape = 'Square' | 'Coffin' | 'Stiletto' | 'Almond' | 'Squoval' | 'Ballerina' | 'Lipstick' | 'Duck';
-export type NailLength = 'Short' | 'Medium' | 'Long' | 'XL' | 'XXL';
-export type FinishType = 'Glossy' | 'Matte';
-export type SpecialtyEffect = 'None' | 'Chrome' | 'Holo' | 'Cat Eye';
-export type ClassicDesign = 'None' | 'French Tip' | 'Ombre';
-export type ArtLevel = 'Level 1' | 'Level 2' | 'Level 3' | 'Level 4';
-export type BlingDensity = 'None' | 'Minimal' | 'Moderate' | 'Heavy';
-export type ForeignWork = 'None' | 'Foreign Fill' | 'Foreign Removal';
-export type PedicureType = 'None' | 'Classic' | 'Gel' | 'Acrylic Toe Set';
+export type SystemType = string;
+export type NailShape = string;
+export type NailLength = string;
+export type FinishType = string;
+export type SpecialtyEffect = string;
+export type ClassicDesign = string;
+export type ArtLevel = string;
+export type BlingDensity = string;
+export type ForeignWork = string;
+export type PedicureType = string;
 
 // The "Bill of Materials" (BOM) - What the client wants
 export interface ServiceSelection {

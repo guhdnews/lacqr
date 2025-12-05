@@ -152,6 +152,18 @@
     *   **UI Fixes:** Resolved padding/overlap issues on mobile.
     *   **Security:** Rotated API keys and established strict gitignore rules.
 
+### Sprint 10: Data Safety & UI Polish (Completed)
+*   **Goal:** Implement data safety features and polish UI/UX based on audit.
+*   **Key Deliverables:**
+    *   **Data Safety:** Added "Security & Data" tab with JSON Export and Booking Deletion.
+    *   **API Security:** Secured `/api/stripe/connect` with Firebase Admin SDK.
+    *   **UI Polish:** Fixed Sidebar navigation, moved Drafts to Dashboard, added Notifications tab, and implemented real Dashboard stats.
+    *   **Mobile Polish:** Added visual scroll cues (gradient fade) to Settings tabs.
+    *   **Public Page:** Polished Loading (Spinner) and Error (Branded 404) states.
+    *   **Notifications:** Implemented `NotificationStore` and `NotificationCenter` with simulated SMS alerts.
+    *   **Booking Flow:** Added `BookingCard` with "Accept/Decline/Complete" logic and Calendar View.
+    *   **Deep Dive:** Created Global 404, fixed Mobile Menu focus trap, added "Coming Soon" badges, implemented real Image Uploads, secured Service Menu pricing, and integrated Stripe Payments.
+
 ## 8. CURRENT CRITICAL ISSUES (DEBUGGING IN PROGRESS)
 ### ⚠️ API Key Security
 *   **Context:** Gemini API key was exposed in a previous commit.
