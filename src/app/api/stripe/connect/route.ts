@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -18,6 +18,8 @@ export async function POST(request: Request) {
         }
 
         const token = authHeader.split('Bearer ')[1];
+        const adminAuth = getAdminAuth();
+
         if (!adminAuth) {
             console.error("Firebase Admin not initialized");
             return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
