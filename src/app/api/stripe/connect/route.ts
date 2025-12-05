@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-export const dynamic = 'force-dynamic';
 import Stripe from 'stripe';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
+
+export const dynamic = 'force-dynamic';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {

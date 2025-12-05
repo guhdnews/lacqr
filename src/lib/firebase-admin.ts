@@ -1,6 +1,5 @@
-import * as admin from 'firebase-admin';
-
 export function getAdminAuth() {
+    const admin = require('firebase-admin');
     if (!admin.apps.length) {
         try {
             admin.initializeApp({
@@ -15,6 +14,7 @@ export function getAdminAuth() {
 }
 
 export function getAdminDb() {
+    const admin = require('firebase-admin');
     if (!admin.apps.length) {
         try {
             admin.initializeApp({
