@@ -18,6 +18,11 @@ export async function POST(request: Request) {
         }
 
         const token = authHeader.split('Bearer ')[1];
+        if (!adminAuth) {
+            console.error("Firebase Admin not initialized");
+            return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        }
+
         const decodedToken = await adminAuth.verifyIdToken(token);
         const userId = decodedToken.uid;
 
