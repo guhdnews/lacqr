@@ -127,7 +127,7 @@ export default function BookingCard({ booking, onStatusChange }: BookingCardProp
                                 {booking.clientNotes && (
                                     <div className="flex items-start text-gray-700 bg-white p-3 rounded-lg border border-gray-200 mt-2">
                                         <MessageSquare size={16} className="mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
-                                        <p className="italic text-gray-600">"{booking.clientNotes}"</p>
+                                        <p className="italic text-gray-600">&quot;{booking.clientNotes}&quot;</p>
                                     </div>
                                 )}
                             </div>

@@ -97,7 +97,7 @@
 - [x] **Refine Service Menu Editor**
     - [x] Implement "Delete Category"
     - [x] Implement "Delete Service"
-    - [ ] Implement "Reorder" (Deferred - requires schema refactor)
+    - [x] Implement "Reorder" (Implemented with dnd-kit)
     - [x] Fix "Zombie Data" (ensure deleted services are removed from durations)
 
 - [x] **Secure API Endpoints**

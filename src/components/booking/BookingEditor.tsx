@@ -73,7 +73,7 @@ export default function BookingEditor() {
         };
 
         checkStripeStatus();
-    }, [searchParams, user?.id, router, setUser]);
+    }, [searchParams, user, router, setUser]);
 
     const handleSave = async (newConfig?: BookingConfig) => {
         if (!user?.id) return;

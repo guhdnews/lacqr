@@ -9,7 +9,7 @@ export default function NotFound() {
                     <ExternalLink size={32} className="rotate-180" />
                 </div>
                 <h1 className="text-2xl font-black text-gray-900 mb-2">Page Not Found</h1>
-                <p className="text-gray-500 mb-6">We couldn't find the page you're looking for. It might have been moved or deleted.</p>
+                <p className="text-gray-500 mb-6">We couldn&apos;t find the page you&apos;re looking for. It might have been moved or deleted.</p>
                 <Link
                     href="/"
                     className="inline-flex items-center justify-center px-6 py-3 bg-charcoal text-white font-bold rounded-xl hover:bg-black transition-colors w-full"

@@ -6,7 +6,7 @@ import { adminAuth } from '@/lib/firebase-admin';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2024-04-10', // Use latest stable version
+    apiVersion: '2025-11-17.clover' as any, // Use latest stable version
 });
 
 export async function POST(request: Request) {

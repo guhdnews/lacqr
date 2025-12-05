@@ -52,6 +52,11 @@ interface ServiceStore {
         key: string
     ) => void;
 
+    reorderCategory: (
+        category: keyof MasterServiceMenu,
+        newItems: Record<string, number>
+    ) => void;
+
     resetMenu: () => void;
 }
 
@@ -192,6 +197,13 @@ export const useServiceStore = create<ServiceStore>()(
 
                 return { menu: newMenu };
             }),
+
+            reorderCategory: (category, newItems) => set((state) => ({
+                menu: {
+                    ...state.menu,
+                    [category]: newItems
+                }
+            })),
 
             resetMenu: () => set({ menu: DEFAULT_MENU })
         }),

@@ -21,6 +21,8 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
     const [salonUser, setSalonUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [pendingBooking, setPendingBooking] = useState<{ quote: ServiceSelection, clientDetails: any } | null>(null);
 
     useEffect(() => {
         const fetchSalonUser = async () => {
@@ -100,9 +102,6 @@ export default function PublicBookingPage({ params }: PublicBookingPageProps) {
         font: 'sans',
         buttonStyle: 'rounded'
     };
-
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [pendingBooking, setPendingBooking] = useState<{ quote: ServiceSelection, clientDetails: any } | null>(null);
 
     const handleBook = async (quote: ServiceSelection, clientDetails: { name: string; phone: string; instagram?: string; notes?: string }) => {
         // Store booking details and show payment modal
