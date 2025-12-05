@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import Stripe from 'stripe';
 
 // Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2025-11-17.clover' as any, // Force version to match types if needed, or just use string. The error says types expect this specific string.
 });
 
