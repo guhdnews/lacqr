@@ -85,9 +85,10 @@ export default function ImageUpload({ label, currentImageUrl, onImageUploaded, p
                 <div className="relative group shrink-0">
                     <div className={`w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 ${previewUrl ? 'border-none' : ''}`}>
                         {previewUrl ? (
-                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                            {/* eslint-disable-next-line @next/next/no-img-element */ }
+                            < img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                            <ImageIcon className="text-gray-300" size={32} />
+                        <ImageIcon className="text-gray-300" size={32} />
                         )}
                     </div>
 
